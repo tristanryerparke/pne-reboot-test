@@ -12,7 +12,7 @@ def typed_func_float(a: float, b: float) -> float:
 def typed_func_number(a: Number, b: Number) -> Number:
     return a + b
 
-def add_string(a: str, b: str) -> str:
+def add_string(a: str = "a", b: str = "b") -> str:
     return a + b
 
 

@@ -5,6 +5,7 @@ import inspect
 import typing
 from typing import List, Dict, Any
 from types import ModuleType
+from devtools import debug as d
 
 
 def get_type_repr(tp, module_ns, short_repr=True):
@@ -76,65 +77,77 @@ def analyze_module(module_filepath: str):
         print(f"Module '{module_name}' not found.")
         sys.exit(1)
 
-    # Create a set for all types used in the relevant function annotations
-    all_types: Set[str] = set()
-
-    # Find all functions in the module
-    print(f"Functions in {module_filepath}:")  
     module_ns: Dict[str, Any] = vars(module)
     funcs_dict = {name: obj for name, obj in inspect.getmembers(module, inspect.isfunction) if obj.__module__ == module_name}
-    
-    for name, obj in funcs_dict.items():
-        if obj.__module__ == module_name:
-            sig = inspect.signature(obj)
-            type_hints = typing.get_type_hints(obj, module_ns, module_ns)
-            params = []
-            for param in sig.parameters:
-                ann = type_hints.get(param, sig.parameters[param].annotation)
-                if ann is inspect.Parameter.empty:
-                    raise FunctionNotTypedError(f"Parameter {param} has no annotation")
-                else:
-                    ann_str = get_type_repr(ann, module_ns, short_repr=True)
-                    # Only treat as alias if not a class
-                    if inspect.isclass(ann):
-                        class_expansion = get_class_expansion(ann, module_ns)
-                        if class_expansion:
-                            all_types.add(class_expansion)
-                        else:
-                            all_types.add(get_type_repr(ann, module_ns, short_repr=False))
-                    else:
-                        alias_expansion = get_alias_expansion(ann, module_ns)
-                        if alias_expansion:
-                            all_types.add(alias_expansion)
-                        else:
-                            all_types.add(get_type_repr(ann, module_ns, short_repr=False))
-                params.append(f"{param}: {ann_str}")
-            ret_ann = type_hints.get('return', sig.return_annotation)
-            if ret_ann is inspect.Signature.empty:
-                raise FunctionNotTypedError(f"Function {name} has no return annotation")
-            else:
-                return_type = get_type_repr(ret_ann, module_ns, short_repr=True)
-                if inspect.isclass(ret_ann):
-                    class_expansion = get_class_expansion(ret_ann, module_ns)
-                    if class_expansion:
-                        all_types.add(class_expansion)
-                    else:
-                        all_types.add(get_type_repr(ret_ann, module_ns, short_repr=False))
-                else:
-                    alias_expansion = get_alias_expansion(ret_ann, module_ns)
-                    if alias_expansion:
-                        all_types.add(alias_expansion)
-                    else:
-                        all_types.add(get_type_repr(ret_ann, module_ns, short_repr=False))
-            print(f"- {name}({', '.join(params)}) -> {return_type}")
-    if all_types:
-        print("\nTypes used:")
-        for t in sorted(all_types):
-            print(f"- {t}")
+    types_dict: Dict[str, Dict[str, Any]] = {}
+    functions_dict: Dict[str, Dict[str, Any]] = {}
+    builtin_types = set()
+    seen_types = set()
+
+    def add_type_to_types_dict(tp):
+        # Only add if not already added
+        if tp in seen_types:
+            return
+        seen_types.add(tp)
+        # Builtin
+        if inspect.isclass(tp) and tp.__module__ == 'builtins':
+            tname = tp.__name__
+            if tname not in types_dict:
+                types_dict[tname] = {'class': tp, 'kind': 'builtin'}
+        # User class
+        elif inspect.isclass(tp):
+            for name, val in module_ns.items():
+                if val is tp and name.isidentifier():
+                    types_dict[name] = {'class': tp, 'kind': 'user_class'}
+                    break
+        # User alias
+        else:
+            for name, val in module_ns.items():
+                if val is tp and name.isidentifier() and type(val).__module__ != 'typing':
+                    types_dict[name] = {'class': tp, 'kind': 'user_alias'}
+                    break
+        # Recursively add types for generics/aliases
+        if hasattr(tp, '__origin__') and hasattr(tp, '__args__'):
+            for arg in tp.__args__:
+                add_type_to_types_dict(arg)
+
+    for func_name, func_obj in funcs_dict.items():
+        sig = inspect.signature(func_obj)
+        type_hints = typing.get_type_hints(func_obj, module_ns, module_ns)
+        func_entry = {
+            'callable': func_obj,
+        }
+        doc = inspect.getdoc(func_obj)
+        if doc:
+            func_entry['doc'] = doc
+        arguments = {}
+        for param in sig.parameters.values():
+            ann = type_hints.get(param.name, param.annotation)
+            if ann is inspect.Parameter.empty:
+                raise Exception(f"Parameter {param.name} has no annotation")
+            arg_entry = {
+                'type': ann
+            }
+            if param.default is not inspect.Parameter.empty:
+                arg_entry['default_value'] = param.default
+            arguments[param.name] = arg_entry
+            add_type_to_types_dict(ann)
+        func_entry['arguments'] = arguments
+        # Handle return type
+        ret_ann = type_hints.get('return', sig.return_annotation)
+        if ret_ann is inspect.Signature.empty:
+            raise Exception(f"Function {func_name} has no return annotation")
+        func_entry['return'] = {'type': ret_ann}
+        add_type_to_types_dict(ret_ann)
+        functions_dict[func_name] = func_entry
+
+    return functions_dict, types_dict
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python main.py <filename>")
         sys.exit(1)
     module_filepath: str = sys.argv[1]
-    analyze_module(module_filepath)
+    funcs_dict, types_dict = analyze_module(module_filepath)
+    d(funcs_dict)
+    d(types_dict)
