@@ -1,24 +1,19 @@
-from collections.abc import Set
 import sys
 import importlib
 import inspect
 import typing
-from typing import List, Dict, Any
+from typing import Dict, Any
 from types import ModuleType
 from devtools import debug as d
+import os
 
 
 def get_type_repr(tp, module_ns, short_repr=True):
-    """
-        Prints a representation of a type.
-        Recurses until found types are all builtin types.
-    """
-    # If short_repr is True, show just the alias name if available
+    """get a string representation of a type"""
     if short_repr:
         for name, val in module_ns.items():
             if val is tp and name.isidentifier():
                 return name
-    # Handle Union and generics
     if hasattr(tp, '__origin__'):
         origin: Any = tp.__origin__
         if origin is typing.Union:
@@ -27,50 +22,13 @@ def get_type_repr(tp, module_ns, short_repr=True):
         else:
             args = ', '.join(get_type_repr(arg, module_ns, short_repr) for arg in tp.__args__)
             return f"{origin.__name__}[{args}]"
-    # Handle builtin types
     if hasattr(tp, '__name__'):
         return tp.__name__
-    # Fallback to str
     return str(tp)
 
-def get_alias_expansion(type, module_ns):
-    """
-        Prints a representation of a user-defined alias with like (AliasName: Union[Type1, Type2]).
-        Recurses until found types are all builtin types.
-    """
-    for name, val in module_ns.items():
-        if val is type and name.isidentifier() and not inspect.isclass(val):
-            expansion = get_type_repr(type, module_ns, short_repr=False)
-            return f"{name}(User Alias): {expansion}"
-    return None 
-
-def get_class_expansion(type, module_ns):
-    """
-        Prints a representation of a user-defined class with its fields and their types.
-        Recurses until found types are all builtin types.
-    """
-    for name, val in module_ns.items():
-        if inspect.isclass(val) and val is type:
-            if hasattr(val, '__annotations__') and val.__annotations__:
-                fields: List[str] = []
-                for field, ftype in val.__annotations__.items():
-                    fields.append(f"{field}: {get_type_repr(ftype, module_ns, short_repr=True)}")
-                return f"{name}(User Class): {', '.join(fields)}"
-    return None
-
-class FunctionNotTypedError(Exception):
-    """
-        Raised when a function is not typed.
-    """
-    pass
-
 def analyze_module(module_filepath: str):
-    """
-        Parse file to read potenial nodes from.
-    """
+    """analyze a file for potential nodes"""
     module_name: str = module_filepath.replace('.py', '')
-
-    # Try to import the module
     try:    
         module: ModuleType = importlib.import_module(module_name)
     except ModuleNotFoundError:
@@ -78,14 +36,12 @@ def analyze_module(module_filepath: str):
         sys.exit(1)
 
     module_ns: Dict[str, Any] = vars(module)
-    funcs_dict = {name: obj for name, obj in inspect.getmembers(module, inspect.isfunction) if obj.__module__ == module_name}
+    funcs = {name: obj for name, obj in inspect.getmembers(module, inspect.isfunction) if obj.__module__ == module_name}
     types_dict: Dict[str, Dict[str, Any]] = {}
-    functions_dict: Dict[str, Dict[str, Any]] = {}
-    builtin_types = set()
+    functions_info: Dict[str, Dict[str, Any]] = {}
     seen_types = set()
 
     def add_type_to_types_dict(tp):
-        # Only add if not already added
         if tp in seen_types:
             return
         seen_types.add(tp)
@@ -98,27 +54,30 @@ def analyze_module(module_filepath: str):
         elif inspect.isclass(tp):
             for name, val in module_ns.items():
                 if val is tp and name.isidentifier():
-                    types_dict[name] = {'class': tp, 'kind': 'user_class'}
+                    entry = {'class': tp, 'kind': 'user_class'}
+                    if hasattr(tp, '__annotations__') and tp.__annotations__:
+                        entry['properties'] = {field: get_type_repr(ftype, module_ns, short_repr=True) for field, ftype in tp.__annotations__.items()}
+                    types_dict[name] = entry
                     break
-        # User alias
+        # User alias (including typing.Union, etc. if defined as an alias in the module)
         else:
             for name, val in module_ns.items():
-                if val is tp and name.isidentifier() and type(val).__module__ != 'typing':
-                    types_dict[name] = {'class': tp, 'kind': 'user_alias'}
-                    break
+                if val is tp and name.isidentifier():
+                    if not inspect.isclass(val):
+                        types_dict[name] = {'class': tp, 'kind': 'user_alias'}
+                        break
         # Recursively add types for generics/aliases
         if hasattr(tp, '__origin__') and hasattr(tp, '__args__'):
             for arg in tp.__args__:
                 add_type_to_types_dict(arg)
 
-    for func_name, func_obj in funcs_dict.items():
+    for func_name, func_obj in funcs.items():
         sig = inspect.signature(func_obj)
         type_hints = typing.get_type_hints(func_obj, module_ns, module_ns)
-        func_entry = {
-            'callable': func_obj,
-        }
+        func_entry: Dict[str, Any] = {}
+        func_entry['callable'] = func_obj
         doc = inspect.getdoc(func_obj)
-        if doc:
+        if doc is not None:
             func_entry['doc'] = doc
         arguments = {}
         for param in sig.parameters.values():
@@ -126,7 +85,7 @@ def analyze_module(module_filepath: str):
             if ann is inspect.Parameter.empty:
                 raise Exception(f"Parameter {param.name} has no annotation")
             arg_entry = {
-                'type': ann
+                'type': get_type_repr(ann, module_ns, short_repr=True)
             }
             if param.default is not inspect.Parameter.empty:
                 arg_entry['default_value'] = param.default
@@ -137,17 +96,31 @@ def analyze_module(module_filepath: str):
         ret_ann = type_hints.get('return', sig.return_annotation)
         if ret_ann is inspect.Signature.empty:
             raise Exception(f"Function {func_name} has no return annotation")
-        func_entry['return'] = {'type': ret_ann}
+        func_entry['return'] = {'type': get_type_repr(ret_ann, module_ns, short_repr=True)}
         add_type_to_types_dict(ret_ann)
-        functions_dict[func_name] = func_entry
+        functions_info[func_name] = func_entry
 
-    return functions_dict, types_dict
+    return functions_info, types_dict
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python main.py <filename>")
+        print("Usage: python main.py <filename or directory>")
         sys.exit(1)
-    module_filepath: str = sys.argv[1]
-    funcs_dict, types_dict = analyze_module(module_filepath)
-    d(funcs_dict)
-    d(types_dict)
+    target_path: str = sys.argv[1]
+    if os.path.isdir(target_path):
+        # Recursively find all .py files in the directory
+        py_files = []
+        for root, dirs, files in os.walk(target_path):
+            for file in files:
+                if file.endswith('.py'):
+                    py_files.append(os.path.join(root, file))
+        for py_file in py_files:
+            print(f"\nAnalyzing {py_file}:")
+            py_as_module_name: str = py_file.replace('.py', '').replace('/', '.')
+            functions_info, types_dict = analyze_module(py_as_module_name)
+            d(functions_info)
+            d(types_dict)
+    else:
+        functions_info, types_dict = analyze_module(target_path)
+        d(functions_info)
+        d(types_dict)
