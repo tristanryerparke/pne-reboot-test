@@ -1,4 +1,5 @@
 from typing import Union, List
+from pydantic import BaseModel
 
 
 Number = Union[int, float]
@@ -16,7 +17,7 @@ def add_string(a: str = "a", b: str = "b") -> str:
     return a + b
 
 
-class Point2D:
+class Point2D(BaseModel):
     x: float
     y: float
 
@@ -29,7 +30,7 @@ def add_point2d(a: Point2D, b: Point2D) -> Point2D:
     return Point2D(a.x + b.x, a.y + b.y)
 
 
-class Polygon:
+class Polygon(BaseModel):
     points: List[Point2D]
 
     def __init__(self, points: List[Point2D]):

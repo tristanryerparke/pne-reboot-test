@@ -83,7 +83,11 @@ def analyze_module(module_filepath: str):
         elif inspect.isclass(tp):
             for name, val in module_ns.items():
                 if val is tp and name.isidentifier():
-                    entry = {"class": tp, "kind": "user_model"}
+                    entry = {
+                        "class": tp,
+                        "kind": "user_model",
+                        "category": module_filepath.split("."),
+                    }
                     if hasattr(tp, "__annotations__") and tp.__annotations__:
                         entry["properties"] = {
                             field: get_type_repr(ftype, module_ns, short_repr=True)
@@ -101,6 +105,7 @@ def analyze_module(module_filepath: str):
                             "class": tp,
                             "kind": "user_alias",
                             "type": get_type_repr(tp, module_ns, short_repr=False),
+                            "category": module_filepath.split("."),
                         }
                         break
         # Recursively add types for generics/aliases
