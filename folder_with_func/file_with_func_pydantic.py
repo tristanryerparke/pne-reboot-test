@@ -5,15 +5,15 @@ from pydantic import BaseModel
 Number = Union[int, float]
 
 
-def typed_func_float(a: float, b: float) -> float:
+def typed_func_float_pydantic(a: float, b: float) -> float:
     return a + b
 
 
-def typed_func_number(a: Number, b: Number) -> Number:
+def typed_func_number_pydantic(a: Number, b: Number) -> Number:
     return a + b
 
 
-def add_string(a: str = "a", b: str = "b") -> str:
+def add_string_pydantic(a: str = "a", b: str = "b") -> str:
     return a + b
 
 
@@ -26,7 +26,7 @@ class Point2D(BaseModel):
         self.y = y
 
 
-def add_point2d(a: Point2D, b: Point2D) -> Point2D:
+def add_point2d_pydantic(a: Point2D, b: Point2D) -> Point2D:
     return Point2D(a.x + b.x, a.y + b.y)
 
 
@@ -37,7 +37,7 @@ class Polygon(BaseModel):
         self.points = points
 
 
-def add_polygon(a: Polygon, b: Polygon) -> Polygon:
+def add_polygon_pydantic(a: Polygon, b: Polygon) -> Polygon:
     return Polygon(a.points + b.points)
 
 

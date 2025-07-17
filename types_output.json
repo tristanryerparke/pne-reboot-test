@@ -1,0 +1,48 @@
+{
+    "Point2D": {
+        "kind": "user_model",
+        "category": [
+            "folder_with_func",
+            "file_with_func"
+        ],
+        "properties": {
+            "x": "float",
+            "y": "float"
+        }
+    },
+    "Polygon": {
+        "kind": "user_model",
+        "category": [
+            "folder_with_func",
+            "file_with_func"
+        ],
+        "properties": {
+            "points": {
+                "type": "array",
+                "items": "Point2D"
+            }
+        }
+    },
+    "str": {
+        "kind": "builtin"
+    },
+    "float": {
+        "kind": "builtin"
+    },
+    "Number": {
+        "kind": "user_alias",
+        "type": {
+            "anyOf": [
+                "int",
+                "float"
+            ]
+        },
+        "category": [
+            "folder_with_func",
+            "file_with_func"
+        ]
+    },
+    "int": {
+        "kind": "builtin"
+    }
+}
