@@ -6,6 +6,23 @@ import typing
 from typing import Dict, Any, List, Tuple
 from types import ModuleType
 import os
+from pydantic import BaseModel, create_model
+
+
+def create_request_model(func, module_ns):
+    """Create a Pydantic model for function parameters to ensure JSON body usage."""
+    sig = inspect.signature(func)
+    type_hints = typing.get_type_hints(func, module_ns, module_ns)
+
+    fields = {}
+    for param_name, param in sig.parameters.items():
+        param_type = type_hints.get(param_name, str)
+        if param.default != inspect.Parameter.empty:
+            fields[param_name] = (param_type, param.default)
+        else:
+            fields[param_name] = (param_type, ...)
+
+    return create_model(f"NodeParams_{func.__name__.title()}", **fields)
 
 
 def get_type_repr(tp, module_ns, short_repr=True):
@@ -135,6 +152,9 @@ def analyze_file(file_path: str):
         func_entry["category"] = (
             os.path.splitext(file_path)[0].replace(os.sep, ".").split(".")
         )  # Convert file path to module-like category
+
+        # Create request model for the function
+        func_entry["request_model"] = create_request_model(func_obj, module_ns)
 
         # Get the docstring of the function
         doc = inspect.getdoc(func_obj)

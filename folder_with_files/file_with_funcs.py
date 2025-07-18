@@ -21,24 +21,17 @@ class Point2D(BaseModel):
     x: float
     y: float
 
-    def __init__(self, x: float, y: float):
-        self.x = x
-        self.y = y
-
 
 def add_point2d_pydantic(a: Point2D, b: Point2D) -> Point2D:
-    return Point2D(a.x + b.x, a.y + b.y)
+    return Point2D(x=a.x + b.x, y=a.y + b.y)
 
 
 class Polygon(BaseModel):
     points: List[Point2D]
 
-    def __init__(self, points: List[Point2D]):
-        self.points = points
-
 
 def add_polygon_pydantic(a: Polygon, b: Polygon) -> Polygon:
-    return Polygon(a.points + b.points)
+    return Polygon(points=a.points + b.points)
 
 
 if __name__ == "__main__":
