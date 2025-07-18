@@ -20,14 +20,13 @@ export function CategoryGroup({ category, categoryData, showDivider }: CategoryG
         </strong>
       </div>
       {categoryData.groups && Object.entries(categoryData.groups).map(([group, nodes]) => (
-        <div key={`${category}-${group}`} className="flex flex-col pb-2 gap-1 ml-2">
+        <div key={`${category}-${group}`} className="flex flex-col pb-2 gap-1">
           <div className="flex flex-col flex-shrink">
             <i className="text-xs text-muted-foreground capitalize">
               {group.replace(/_/g, ' ')}
-              <span className="text-xs ml-1">({nodes.length} function{nodes.length !== 1 ? 's' : ''})</span>
             </i>
           </div>
-          <div className="flex flex-col gap-1 ml-1">
+          <div className="flex flex-col gap-1">
             {nodes.map((node, index) => (
               <DraggableNode key={`${node.data.class_name}-${index}`} node={node} />
             ))}

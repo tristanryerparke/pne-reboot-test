@@ -30,4 +30,9 @@
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.2"
   },
-  "devDependenc
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/bun": "latest"
+  }
+}
