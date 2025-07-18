@@ -1,5 +1,6 @@
 import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import sys
 import inspect
 from contextlib import asynccontextmanager
@@ -100,3 +101,13 @@ async def get_types():
             v_copy = v
         types_stripped[k] = v_copy
     return types_stripped
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    max_age=3600,  # Cache preflight requests for 1 hour
+)
