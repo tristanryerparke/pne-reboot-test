@@ -1,9 +1,28 @@
 import sys
 import importlib
+import importlib.util
 import inspect
 import typing
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple
 from types import ModuleType
+import os
+from pydantic import BaseModel, create_model
+
+
+def create_request_model(func, module_ns):
+    """Create a Pydantic model for function parameters to ensure JSON body usage."""
+    sig = inspect.signature(func)
+    type_hints = typing.get_type_hints(func, module_ns, module_ns)
+
+    fields = {}
+    for param_name, param in sig.parameters.items():
+        param_type = type_hints.get(param_name, str)
+        if param.default != inspect.Parameter.empty:
+            fields[param_name] = (param_type, param.default)
+        else:
+            fields[param_name] = (param_type, ...)
+
+    return create_model(f"NodeParams_{func.__name__.title()}", **fields)
 
 
 def get_type_repr(tp, module_ns, short_repr=True):
@@ -33,13 +52,13 @@ def get_type_repr(tp, module_ns, short_repr=True):
     return str(tp)
 
 
-def analyze_module(module_filepath: str):
+def analyze_file(file_path: str):
     """Analyze a file for functions that can be turned into nodes.
     Also collects the input and output types of the functions and returns them.
 
     Args:
-        module_filepath: The path to the module to analyze.
-        Example: 'my_folder.my_module.py'
+        file_path: The actual file path to the Python file to analyze.
+        Example: 'folder_with_func/file_with_func_pydantic.py'
 
     Returns:
         A tuple of two dictionaries:
@@ -47,13 +66,20 @@ def analyze_module(module_filepath: str):
         - types_dict: A dictionary of type information.
     """
 
-    # Import the module
-    module_name: str = module_filepath.replace(".py", "")
+    # Import the module from file path
+    module_name = os.path.splitext(os.path.basename(file_path))[0]
     try:
-        module: ModuleType = importlib.import_module(module_name)
-    except ModuleNotFoundError:
-        print(f"Module '{module_name}' not found.")
-        sys.exit(1)
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Could not load spec for {file_path}")
+
+        module: ModuleType = importlib.util.module_from_spec(spec)
+        # Add to sys.modules to handle potential circular imports
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+    except Exception as e:
+        print(f"Module '{file_path}' could not be imported: {e}")
+        return {}, {}
 
     # Get the namespace of the module
     module_ns: Dict[str, Any] = vars(module)
@@ -62,7 +88,7 @@ def analyze_module(module_filepath: str):
     funcs = {
         name: obj
         for name, obj in inspect.getmembers(module, inspect.isfunction)
-        if obj.__module__ == module_name
+        if obj.__module__ == module_name or obj.__module__ == module.__name__
     }
     types_dict: Dict[str, Dict[str, Any]] = {}  # Dictionary to store type information
     functions_info: Dict[str, Dict[str, Any]] = {}
@@ -86,7 +112,9 @@ def analyze_module(module_filepath: str):
                     entry = {
                         "class": tp,
                         "kind": "user_model",
-                        "category": module_filepath.split("."),
+                        "category": os.path.splitext(file_path)[0]
+                        .replace(os.sep, ".")
+                        .split("."),
                     }
                     if hasattr(tp, "__annotations__") and tp.__annotations__:
                         entry["properties"] = {
@@ -105,7 +133,9 @@ def analyze_module(module_filepath: str):
                             "class": tp,
                             "kind": "user_alias",
                             "type": get_type_repr(tp, module_ns, short_repr=False),
-                            "category": module_filepath.split("."),
+                            "category": os.path.splitext(file_path)[0]
+                            .replace(os.sep, ".")
+                            .split("."),
                         }
                         break
         # Recursively add types for generics/aliases
@@ -119,9 +149,12 @@ def analyze_module(module_filepath: str):
         type_hints = typing.get_type_hints(func_obj, module_ns, module_ns)
         func_entry: Dict[str, Any] = {}
         func_entry["callable"] = func_obj
-        func_entry["category"] = module_filepath.split(
-            "."
-        )  # This lets us sort in the frontend
+        func_entry["category"] = (
+            os.path.splitext(file_path)[0].replace(os.sep, ".").split(".")
+        )  # Convert file path to module-like category
+
+        # Create request model for the function
+        func_entry["request_model"] = create_request_model(func_obj, module_ns)
 
         # Get the docstring of the function
         doc = inspect.getdoc(func_obj)
@@ -154,3 +187,74 @@ def analyze_module(module_filepath: str):
         functions_info[func_name] = func_entry
 
     return functions_info, types_dict
+
+
+def analyze_files(
+    py_files: List[str], base_dir: str
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Analyze multiple Python files and accumulate results without duplicates.
+
+    Args:
+        py_files: List of Python file paths to analyze
+        base_dir: Base directory for calculating module names
+
+    Returns:
+        Tuple of (accumulated_functions_info, accumulated_types_dict)
+    """
+    accumulated_functions = {}
+    accumulated_types = {}
+
+    # Add the base directory to sys.path
+    if base_dir not in sys.path:
+        sys.path.insert(0, base_dir)
+
+    for py_file in py_files:
+        print(f"\nAnalyzing {py_file}:")
+
+        try:
+            functions_info, types_dict = analyze_file(py_file)
+
+            # Merge functions_info, avoiding duplicates
+            for func_key, func_data in functions_info.items():
+                if func_key not in accumulated_functions:
+                    accumulated_functions[func_key] = func_data
+
+            # Merge types_dict, avoiding duplicates
+            for type_key, type_data in types_dict.items():
+                if type_key not in accumulated_types:
+                    accumulated_types[type_key] = type_data
+
+        except Exception as e:
+            print(f"Error analyzing {py_file}: {e}")
+
+    return accumulated_functions, accumulated_types
+
+
+def find_python_files(target_path: str) -> List[str]:
+    """Find all Python files to analyze.
+
+    Args:
+        target_path: Path to a file or directory
+
+    Returns:
+        List of Python file paths to analyze
+    """
+    py_files = []
+
+    if os.path.isdir(target_path):
+        # Recursively find all .py files in the directory
+        for root, dirs, files in os.walk(target_path):
+            for file in files:
+                if file.endswith(".py"):
+                    py_files.append(os.path.join(root, file))
+    else:
+        # Single file
+        py_files = [target_path]
+
+    return py_files
+
+
+def get_all_functions_and_types(search_path: str):
+    py_files = find_python_files(search_path)
+    all_functions, all_types = analyze_files(py_files, search_path)
+    return all_functions, all_types
