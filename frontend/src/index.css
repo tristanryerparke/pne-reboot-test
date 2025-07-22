@@ -1,10 +1,10 @@
+
 @import "../styles/globals.css";
 
 @layer base {
   :root {
     @apply font-sans;
     overscroll-behavior: none;
-    font-size: 14px;
   }
 
   body {
@@ -12,3 +12,4 @@
   }
 }
 
+@import '@xyflow/react/dist/style.css';

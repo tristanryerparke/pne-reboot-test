@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useReactFlow } from '@xyflow/react';
-import { NodeCategories, BaseNode } from '../../types/nodeTypes';
-import { SearchBar } from './SearchBar';
-import { CategoryGroup } from './CategoryGroup';
+import { SearchBar } from './search-bar';
+import { CategoryGroup } from './category-group';
 
 interface FunctionData {
   category: string[];
@@ -21,38 +20,28 @@ interface NodesResponse {
 
 function NodePicker() {
   const { getNodes, setNodes, setEdges } = useReactFlow();
-  const [nodeCategories, setNodeCategories] = useState<NodeCategories>({});
+  const [nodeCategories, setNodeCategories] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
 
-  const transformFunctionDataToNodes = (data: NodesResponse): NodeCategories => {
-    const categories: NodeCategories = {};
+  const transformFunctionDataToNodes = (data: NodesResponse) => {
+    const categories = {};
     
     Object.entries(data).forEach(([functionName, functionData]) => {
       // Use the first element of category array as the main category
       const mainCategory = functionData.category[0] || 'Uncategorized';
       // Use the second element as the group (file name)
       const group = functionData.category[1] || 'Default';
-      
-      // Create a BaseNode from the function data
-      const baseNode: BaseNode = {
-        data: {
-          display_name: functionName,
-          class_name: functionName,
-          min_width: 200,
-          // Include additional data that might be useful
-          arguments: functionData.arguments,
-          return_type: functionData.return.type,
-          category: functionData.category
-        },
-        group: group
+
+      const nodeData = {
+        name: functionName,
+        ...functionData
       };
-      
       // Initialize category if it doesn't exist
       if (!categories[mainCategory]) {
         categories[mainCategory] = [];
       }
       
-      categories[mainCategory].push(baseNode);
+      categories[mainCategory].push(nodeData);
     });
     
     return categories;
@@ -67,11 +56,11 @@ function NodePicker() {
 
         // Create a set of valid node types
         const validNodeTypes = new Set(
-          Object.values(transformedData).flatMap(nodes => nodes.map(node => node.data.class_name))
+          Object.values(transformedData).flatMap(nodes => nodes.map(node => node.name))
         );
 
         // Filter out nodes that are no longer valid
-        setNodes(nodes => nodes.filter(node => validNodeTypes.has(node.data.class_name as string)));
+        setNodes(nodes => nodes.filter(node => validNodeTypes.has(node.name as string)));
 
         // Remove edges connected to deleted nodes
         setEdges(edges => edges.filter(edge => 
@@ -101,7 +90,7 @@ function NodePicker() {
     const filteredGroups: Record<string, BaseNode[]> = {};
     Object.entries(groupedNodes).forEach(([group, groupNodes]) => {
       const filteredNodes = groupNodes.filter(node => 
-        node.data.display_name.toLowerCase().includes(searchTerm.toLowerCase())
+        node.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       if (filteredNodes.length > 0) {
         filteredGroups[group] = filteredNodes;
@@ -110,7 +99,7 @@ function NodePicker() {
 
     if (Object.keys(filteredGroups).length > 0 || category.toLowerCase().includes(searchTerm.toLowerCase())) {
       acc[category] = nodes.filter(node => 
-        node.data.display_name.toLowerCase().includes(searchTerm.toLowerCase())
+        node.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       acc[category].groups = filteredGroups;
     }

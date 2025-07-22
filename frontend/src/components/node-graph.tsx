@@ -7,18 +7,20 @@ import {
   type Node,
   type NodeTypes,
   useReactFlow,
+  Handle,
+  Position,
 } from '@xyflow/react';
 import { useCallback } from 'react';
-// import { BaseNodeData } from '../types/nodeTypes';
-// import CustomNode from './customNode/CustomNode';
+import { CustomNode } from './custom-node';
 import useStore from '../store';
 import { useTheme } from './theme-provider';
 
-const nodeTypes: NodeTypes = {};
+const nodeTypes: NodeTypes = {
+  customNode: CustomNode,
+};
 
 function NodeGraph() {
   const { theme } = useTheme();
-  // Use the store directly since we need all parts of the state
   const { 
     nodes, 
     edges, 
@@ -30,7 +32,6 @@ function NodeGraph() {
 
   const { screenToFlowPosition } = useReactFlow();
 
-  // Determine colorMode for ReactFlow
   let colorMode: 'dark' | 'light';
   if (theme === 'system') {
     colorMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -38,30 +39,32 @@ function NodeGraph() {
     colorMode = theme;
   }
 
-  // // Handle the spawning of droppped nodes
-  // const onDrop = useCallback(
-  //   (event: React.DragEvent<HTMLDivElement>) => {
-  //     event.preventDefault();
-  //     const node_data = JSON.parse(event.dataTransfer.getData('application/reactflow'));
-  //     const droppedNodeData: BaseNodeData = node_data.data;
-  //     const position = screenToFlowPosition({
-  //       x: event.clientX,
-  //       y: event.clientY,
-  //     });
-  //     const newNode: Node = {
-  //       id: crypto.randomUUID(),
-  //       position: {
-  //         x: position.x - node_data.data.min_width / 2,
-  //         y: position.y,
-  //       },
-  //       type: 'customNode',
-  //       data: {...droppedNodeData},
-  //       width: node_data.data.min_width,
-  //     };
-  //     setNodes([...nodes, newNode]);
-  //   },
-  //   [screenToFlowPosition, setNodes, nodes]
-  // );
+  const onDrop = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const nodeDataString = event.dataTransfer.getData('application/reactflow');
+      if (!nodeDataString) return;
+      
+      const nodeData = JSON.parse(nodeDataString);
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      
+      const newNode: Node = {
+        id: crypto.randomUUID(),
+        position: {
+          x: position.x,
+          y: position.y,
+        },
+        type: 'customNode',
+        data: nodeData,
+      };
+      
+      setNodes([...nodes, newNode]);
+    },
+    [screenToFlowPosition, setNodes, nodes]
+  );
 
   const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -72,16 +75,16 @@ function NodeGraph() {
     <div style={{width: '100%', height: '100%'}}>
       <ReactFlow
         proOptions={{ hideAttribution: true }}
-        // nodes={[...nodes]}
-        // edges={edges}
-        // onNodesChange={onNodesChange}
-        // onEdgesChange={onEdgesChange}
-        // onConnect={onConnect}
-        // onDrop={onDrop}
-        // onDragOver={onDragOver}
-        // nodeTypes={nodeTypes}
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        nodeTypes={nodeTypes}
         colorMode={colorMode}
-        // fitView
+        fitView
         panOnScroll
       >
         <Controls />

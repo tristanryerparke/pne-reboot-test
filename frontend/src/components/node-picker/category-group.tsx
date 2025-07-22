@@ -1,11 +1,11 @@
-import { BaseNode } from '../../types/nodeTypes';
+
 import { Separator } from '../ui/separator';
-import { DraggableNode } from './DraggableNode';
+import { DraggableNode } from './draggable-node';
 
 interface CategoryGroupProps {
   category: string;
   categoryData: {
-    groups?: Record<string, BaseNode[]>;
+    groups?: Record<string, any[]>;
   };
   showDivider: boolean;
 }
@@ -28,7 +28,7 @@ export function CategoryGroup({ category, categoryData, showDivider }: CategoryG
           </div>
           <div className="flex flex-col gap-1">
             {nodes.map((node, index) => (
-              <DraggableNode key={`${node.data.class_name}-${index}`} node={node} />
+              <DraggableNode key={`${node.name}-${index}`} nodeData={node} />
             ))}
           </div>
         </div>
