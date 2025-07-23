@@ -209,7 +209,7 @@ def analyze_files(
         sys.path.insert(0, base_dir)
 
     for py_file in py_files:
-        print(f"\nAnalyzing {py_file}:")
+        print(f"Analyzing {py_file}:")
 
         try:
             functions_info, types_dict = analyze_file(py_file)

@@ -2,32 +2,20 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import sys
-import inspect
 from contextlib import asynccontextmanager
 from app.analyze_file import get_all_functions_and_types
-from devtools import debug as d
+from app.graph import router as graph_router
+
+# from devtools import debug as d
+from app.node_routes import setup_function_routes
 
 functions = {}
 types = {}
 
 
-def create_wrapper(original_func, req_model):
-    """Create a wrapper function that extracts parameters from request model and calls the original function."""
-
-    def wrapper(request):
-        sig = inspect.signature(original_func)
-        kwargs = {}
-        for param_name in sig.parameters:
-            kwargs[param_name] = getattr(request, param_name)
-        return original_func(**kwargs)
-
-    wrapper.__annotations__ = {"request": req_model}
-    return wrapper
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager to print sys.argv arguments."""
+    """Lifespan context manager to load functions and types from the provided path argument"""
     global functions, types
     args = sys.argv[1:]
     if len(args) == 0:
@@ -42,40 +30,26 @@ async def lifespan(app: FastAPI):
     types.update(all_types)
     print(f"Found {len(functions)} functions and {len(types)} types")
 
-    # programmatically create a route for each function
-    for function_name, function_info in functions.items():
-        category_path = (
-            "/node/" + "/".join(function_info["category"]) + "/" + function_name
-        )
-
-        return_type = types[function_info["return"]["type"]]["class"]
-        request_model = function_info["request_model"]
-
-        # Create wrapper function
-        wrapper = create_wrapper(function_info["callable"], request_model)
-
-        # Add the route to the app as POST endpoint
-        app.add_api_route(
-            category_path,
-            wrapper,
-            methods=["POST"],
-            response_model=return_type,
-        )
+    # Setup function routes
+    setup_function_routes(app, functions, types)
 
     yield
 
 
 # Create the FastAPI app
 app = FastAPI(
-    title="Simple Test API",
-    description="A simple FastAPI application with basic test endpoints",
+    title="Python Node Editor",
     version="1.0.0",
     lifespan=lifespan,
 )
 
+# Include routers
+app.include_router(graph_router)
+
 
 @app.get("/nodes")
 async def get_functions():
+    """get schema for all loaded functions that are to be served as nodes"""
     functions_stripped = {}
     for k, v in functions.items():
         if isinstance(v, dict) and "callable" in v:
@@ -92,7 +66,8 @@ async def get_functions():
 
 @app.get("/types")
 async def get_types():
-    d(types)
+    """get schema for all loaded types that are to be served as node inputs / outputs"""
+    # d(types)
     types_stripped = {}
     for k, v in types.items():
         if isinstance(v, dict) and "class" in v:

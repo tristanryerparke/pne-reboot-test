@@ -9,6 +9,7 @@ import { ModeToggle } from './components/mode-toggle';
 import { Separator } from './components/ui/separator';
 
 import NodeGraph from './components/node-graph';
+import ExecuteButton from './components/execute-button';
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
               <Separator className='mt-auto' />
               <div className='w-full flex flex-row p-2 gap-2'>
                 <ModeToggle />
+                <ExecuteButton />
               </div>
             </div>
             <Separator orientation="vertical" />
