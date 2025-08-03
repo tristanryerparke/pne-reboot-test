@@ -1,14 +1,21 @@
 import { Handle, Position, useNodeConnections } from '@xyflow/react';
-import { type InputField } from '../../types/nodeTypes';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import DynamicInput from './dynamic-input';
+import { getNodeData } from '../../utils/get-node-data';
 
 interface InputFieldProps {
   path: (string | number)[];
-  field: InputField;
 }
 
-export default function InputFieldComponent({ path, field }: InputFieldProps) {
+export default function InputFieldComponent({ path }: InputFieldProps) {
+  const fieldName = path[2];
+  const field = getNodeData(path) as { type: string; label?: string; user_label?: string } | undefined;
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
+  
+
+  if (!field) {
+    return <div>No field data</div>;
+  }
 
   // Use the xyflow hook to get connections
   const connections = useNodeConnections({
@@ -31,10 +38,11 @@ export default function InputFieldComponent({ path, field }: InputFieldProps) {
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="flex w-full pl-3 pr-2 py-2 gap-1 overflow-hidden items-center">
-            <div className="flex items-center flex-shrink-0">
+            <div className="flex w-full items-center flex-shrink-0 gap-2">
               <span>
-                {field.user_label ?? field.label}{': '}
+                {fieldName}{': '}
               </span>
+              <DynamicInput path={path} data={field} />
             </div>
           </div>
         </TooltipTrigger>

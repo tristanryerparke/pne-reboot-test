@@ -1,15 +1,18 @@
 import { Handle, Position, useNodeConnections } from '@xyflow/react';
-import { type OutputField } from '../../types/nodeTypes';
-import { EdgeConnectedProvider } from '../../contexts/edgeConnectedContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { getNodeData } from '../../utils/get-node-data';
 
 interface OutputFieldComponentProps {
   path: (string | number)[];
-  field: OutputField;
 }
 
-export default function OutputFieldComponent({ path, field }: OutputFieldComponentProps) {
+export default function OutputFieldComponent({ path }: OutputFieldComponentProps) {
+  const field = getNodeData(path) as { type: string } | undefined;
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
+
+  if (!field) {
+    return <div>No field data</div>;
+  }
 
   // Use the xyflow hook to get connections
   const connections = useNodeConnections({
@@ -33,13 +36,13 @@ export default function OutputFieldComponent({ path, field }: OutputFieldCompone
           <div className="flex w-full pl-2 pr-3 py-2 gap-1 overflow-hidden items-center justify-end">
             <div className="flex items-center flex-shrink-0">
               <span>
-                {field.user_label ?? field.label}{': '}{field.type}
+                return
               </span>
             </div>
           </div>
         </TooltipTrigger>
-        <TooltipContent side="right" sideOffset={7}>
-          <span className="text-lg">{field.type}</span>
+        <TooltipContent side="right" sideOffset={2} className="px-2 py-1 text-xs rounded-sm">
+          <span className="text-xs">{field.type}</span>
         </TooltipContent>
       </Tooltip>
     </div>

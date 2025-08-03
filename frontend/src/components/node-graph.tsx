@@ -9,7 +9,7 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 import { useCallback } from 'react';
-import { CustomNode } from './custom-node';
+import CustomNode from './custom-node/custom-node';
 import useStore from '../store';
 import { useTheme } from './theme-provider';
 

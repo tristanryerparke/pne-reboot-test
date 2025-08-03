@@ -14,10 +14,12 @@ async def execute_graph(graph: dict):
 
     execution_list = topological_order(nodes, edges)
 
+    d(execution_list)
+
     return {"status": "success", "message": "Graph execution completed"}
 
 
-def topological_order(self) -> list[str]:
+def topological_order(nodes: list[dict], edges: list[dict]) -> list[str]:
     """
     Returns all nodes in topological order.
     """
@@ -29,12 +31,15 @@ def topological_order(self) -> list[str]:
             return
         visited.add(node_id)
 
-        for e in self.edges_from(node_id):
-            visit(e.target.id)
+        for e in edges:
+            visit(e["target"])
 
         result.append(node_id)
 
-    for node_id in self.nodes:
-        visit(node_id)
+    # Sort nodes by x coordinate in ascending order
+    sorted_nodes = sorted(nodes, key=lambda node: node["position"]["x"])
+
+    for node in sorted_nodes:
+        visit(node["id"])
 
     return result
