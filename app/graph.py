@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from devtools import debug as d
 
+
 router = APIRouter()
 
 
@@ -14,9 +15,28 @@ async def execute_graph(graph: dict):
 
     execution_list = topological_order(nodes, edges)
 
+    for node_id in execution_list:
+        execute_node([node for node in nodes if node["id"] == node_id][0])
+
     d(execution_list)
 
     return {"status": "success", "message": "Graph execution completed"}
+
+
+def execute_node(node: dict):
+    from app.server import FUNCTIONS
+
+    # Find the corresponding function
+
+    function_name = node["data"]["name"]
+
+    callable = FUNCTIONS[function_name]["callable"]
+
+    args = {k: v["value"] for k, v in node["data"]["arguments"].items()}
+
+    result = callable(**args)
+
+    return result
 
 
 def topological_order(nodes: list[dict], edges: list[dict]) -> list[str]:

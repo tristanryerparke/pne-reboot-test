@@ -9,14 +9,14 @@ from app.graph import router as graph_router
 # from devtools import debug as d
 from app.node_routes import setup_function_routes
 
-functions = {}
-types = {}
+FUNCTIONS = {}
+TYPES = {}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager to load functions and types from the provided path argument"""
-    global functions, types
+    global FUNCTIONS, TYPES
     args = sys.argv[1:]
     if len(args) == 0:
         print("No arguments provided")
@@ -26,12 +26,12 @@ async def lifespan(app: FastAPI):
         print(f"The path {search_path} does not exist")
         sys.exit(1)
     all_functions, all_types = get_all_functions_and_types(search_path)
-    functions.update(all_functions)
-    types.update(all_types)
-    print(f"Found {len(functions)} functions and {len(types)} types")
+    FUNCTIONS.update(all_functions)
+    TYPES.update(all_types)
+    print(f"Found {len(FUNCTIONS)} functions and {len(TYPES)} types")
 
     # Setup function routes
-    setup_function_routes(app, functions, types)
+    setup_function_routes(app, FUNCTIONS, TYPES)
 
     yield
 
@@ -51,13 +51,9 @@ app.include_router(graph_router)
 async def get_functions():
     """get schema for all loaded functions that are to be served as nodes"""
     functions_stripped = {}
-    for k, v in functions.items():
+    for k, v in FUNCTIONS.items():
         if isinstance(v, dict) and "callable" in v:
-            v_copy = {
-                key: value
-                for key, value in v.items()
-                if key not in ["callable", "request_model"]
-            }
+            v_copy = {key: value for key, value in v.items() if key not in ["callable", "request_model"]}
         else:
             v_copy = v
         functions_stripped[k] = v_copy
@@ -69,7 +65,7 @@ async def get_types():
     """get schema for all loaded types that are to be served as node inputs / outputs"""
     # d(types)
     types_stripped = {}
-    for k, v in types.items():
+    for k, v in TYPES.items():
         if isinstance(v, dict) and "class" in v:
             v_copy = {key: value for key, value in v.items() if key != "class"}
         else:
