@@ -12,7 +12,10 @@
             "request": "launch",
             "program": "main.py",
             "args": ["folder_with_files"],
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/.venv/bin/python"
+            }
         },
         {
             "name": "Frontend",
@@ -20,6 +23,13 @@
             "request": "launch",
             "command": "/opt/homebrew/bin/bun --hot src/index.tsx",
             "cwd": "${workspaceFolder}/frontend",
+        },
+        {
+            "name": "Python: Debug Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
         }
     ],
     "compounds": [

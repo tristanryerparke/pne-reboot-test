@@ -36,6 +36,8 @@ export default function NodeHeader({ data, nodeId, isJsonView, onToggleView, onR
             width: 'fit-content',
             height: 'fit-content'
           }}
+          autoScale={false}
+          resizeDirection='horizontal'
           className="flex justify-center items-center w-fit h-fit"
           nodeId={nodeId}
           minWidth={minWidth || data.min_width}

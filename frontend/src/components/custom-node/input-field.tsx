@@ -38,8 +38,8 @@ export default function InputFieldComponent({ path, field }: InputFieldProps) {
             </div>
           </div>
         </TooltipTrigger>
-        <TooltipContent side="left" sideOffset={10}>
-          <span className="text-lg">{field.type}</span>
+        <TooltipContent side="left" sideOffset={2} className="px-2 py-1 text-xs rounded-sm">
+          <span className="text-xs">{field.type}</span>
         </TooltipContent>
       </Tooltip>
     </div>

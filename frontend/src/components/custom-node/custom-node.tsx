@@ -79,6 +79,11 @@ export default memo(function CustomNode({ data, id }: NodeProps<CustomNodeData>)
       className={`${isResized ? 
         'relative h-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground' :
         'relative w-fit h-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground'}`}
+      style={{
+        maxHeight: 'fit-content',
+        overflowY: 'visible',
+        resize: 'horizontal'
+      }}
     >
       <NodeHeader 
         data={transformedData} 
