@@ -1,4 +1,4 @@
-import { Handle, Position, useNodeConnections } from '@xyflow/react';
+import { Handle, Position } from '@xyflow/react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import DynamicInput from './dynamic-input';
 import { getNodeData } from '../../utils/get-node-data';
@@ -17,14 +17,6 @@ export default function InputFieldComponent({ path }: InputFieldProps) {
     return <div>No field data</div>;
   }
 
-  // Use the xyflow hook to get connections
-  const connections = useNodeConnections({
-    handleType: 'target',
-    handleId: handleId,
-  });
-
-  // Determine if connected based on connections array length and target node id
-  const isConnected = connections.length > 0 && connections[0].targetHandle === handleId;
 
   return (
     <div className="relative w-full" >
@@ -42,7 +34,7 @@ export default function InputFieldComponent({ path }: InputFieldProps) {
               <span>
                 {fieldName}{': '}
               </span>
-              <DynamicInput path={path} data={field} />
+              <DynamicInput path={path} />
             </div>
           </div>
         </TooltipTrigger>

@@ -55,7 +55,7 @@ export default memo(function CustomNode({ data, id }: { data: any, id: string })
       />
       <Separator/>
       {isJsonView ? (
-        <JsonViewer data={data} className="w-full h-full" />
+        <JsonViewer path={[id]}/>
       ) : (
         <>
           <div>

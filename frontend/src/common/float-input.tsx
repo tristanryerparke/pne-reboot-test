@@ -39,7 +39,18 @@ export default function FloatInput({ path }: FloatInputProps) {
       // If no current value but there's a default, use the default
       setValue(fieldData.default_value);
     }
-  }, [currentValue, value, fieldData?.default_value]);
+  }, [currentValue, value, fieldData?.default_value, isConnected]);
+  
+  // Force update when connection status changes or when value changes
+  useEffect(() => {
+    // When a connection is made, ensure we're showing the latest value
+    if (isConnected) {
+      const connectedValue = getNodeData([...path, 'value']) as number | undefined;
+      if (connectedValue !== undefined) {
+        setValue(connectedValue);
+      }
+    }
+  }, [isConnected, path, currentValue]);
 
   if (!fieldData) {
     return <div>No field data</div>;

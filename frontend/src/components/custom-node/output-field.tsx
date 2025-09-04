@@ -1,6 +1,7 @@
-import { Handle, Position, useNodeConnections } from '@xyflow/react';
+import { Handle, Position } from '@xyflow/react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { getNodeData } from '../../utils/get-node-data';
+import DynamicOutput from './dynamic_output';
 
 interface OutputFieldComponentProps {
   path: (string | number)[];
@@ -14,14 +15,6 @@ export default function OutputFieldComponent({ path }: OutputFieldComponentProps
     return <div>No field data</div>;
   }
 
-  // Use the xyflow hook to get connections
-  const connections = useNodeConnections({
-    handleType: 'source',
-    handleId: handleId,
-  });
-
-  // Determine if connected based on connections array length and source node id
-  const isConnected = connections.length > 0 && connections[0].sourceHandle === handleId;
 
   return (
     <div className="relative w-full" >
@@ -33,11 +26,14 @@ export default function OutputFieldComponent({ path }: OutputFieldComponentProps
       />
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex w-full pl-2 pr-3 py-2 gap-1 overflow-hidden items-center justify-end">
-            <div className="flex items-center flex-shrink-0">
+          <div
+            className="flex w-full pl-3 pr-2 py-2 gap-1 overflow-hidden items-center justify-end"
+          >
+            <div className="w-full flex items-center flex-shrink-0 gap-2">
               <span>
-                return
+                return:
               </span>
+              <DynamicOutput path={path} />
             </div>
           </div>
         </TooltipTrigger>

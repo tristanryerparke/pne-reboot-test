@@ -2,6 +2,9 @@ import useStore from '../store';
 
 // Function to get data at a specific path without updating
 export function getNodeData(path: (string | number)[]) {
+  // console.log(path)
+
+
   const nodes = useStore.getState().nodes;
   
   const nodeIndex = nodes.findIndex(node => node.id === path[0]);
