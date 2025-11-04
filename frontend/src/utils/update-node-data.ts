@@ -8,7 +8,7 @@ interface UpdateNodeDataProps {
 }
 
 export function updateNodeData({ path, newData }: UpdateNodeDataProps) {
-  // Function to handle user updates to node data
+  // Function to handle user updates to node data based on a path that indexes the store
   const setNodes = useStore.getState().setNodes;
   const nodes = useStore.getState().nodes;
 
@@ -37,7 +37,8 @@ export function updateNodeData({ path, newData }: UpdateNodeDataProps) {
     }
     const validPath = path.slice(0, validUntil + 1);
     console.warn(
-      `Creating new property at path: ${path.join(".")}. This may be unintentional. Path was valid up to: ${validPath.join(".")} and failed at key: ${failedKey}`,
+      `Creating new property at path: ${path.join(".")}. This may be unintentional.
+      Path was valid up to: ${validPath.join(".")} and failed at key: ${failedKey}`,
     );
     console.log("nodes", nodes);
   }
