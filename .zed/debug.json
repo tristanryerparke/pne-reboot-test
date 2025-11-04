@@ -13,7 +13,7 @@
     "label": "Launch Backend",
     "adapter": "Debugpy",
     "program": "main.py",
-    "args": ["folder_with_files"],
+    "args": ["folder_with_files/test_file.py"],
     "request": "launch"
   },
   {
