@@ -1,12 +1,13 @@
-import sys
 import importlib
 import importlib.util
 import inspect
-import typing
-from typing import Dict, Any, List, Tuple
-from types import ModuleType
 import os
-from pydantic import BaseModel, create_model
+import sys
+import typing
+from types import ModuleType
+from typing import Any, Dict, List, Tuple
+
+from pydantic import create_model
 
 
 def create_request_model(func, module_ns):
@@ -35,7 +36,11 @@ def get_type_repr(tp, module_ns, short_repr=True):
         origin: Any = tp.__origin__
         # print(origin)
         if origin is typing.Union:
-            return {"anyOf": [get_type_repr(arg, module_ns, short_repr) for arg in tp.__args__]}
+            return {
+                "anyOf": [
+                    get_type_repr(arg, module_ns, short_repr) for arg in tp.__args__
+                ]
+            }
         elif origin in (list, typing.List):
             return {
                 "type": "array",
@@ -81,7 +86,11 @@ def analyze_file(file_path: str):
     module_ns: Dict[str, Any] = vars(module)
 
     # Find all functions in the module
-    funcs = {name: obj for name, obj in inspect.getmembers(module, inspect.isfunction) if obj.__module__ == module_name or obj.__module__ == module.__name__}
+    funcs = {
+        name: obj
+        for name, obj in inspect.getmembers(module, inspect.isfunction)
+        if obj.__module__ == module_name or obj.__module__ == module.__name__
+    }
     types_dict: Dict[str, Dict[str, Any]] = {}  # Dictionary to store type information
     functions_info: Dict[str, Dict[str, Any]] = {}
     seen_types = set()  # Avoids adding the same type multiple times
@@ -104,10 +113,15 @@ def analyze_file(file_path: str):
                     entry = {
                         "class": tp,
                         "kind": "user_model",
-                        "category": os.path.splitext(file_path)[0].replace(os.sep, ".").split("."),
+                        "category": os.path.splitext(file_path)[0]
+                        .replace(os.sep, ".")
+                        .split("."),
                     }
                     if hasattr(tp, "__annotations__") and tp.__annotations__:
-                        entry["properties"] = {field: get_type_repr(ftype, module_ns, short_repr=True) for field, ftype in tp.__annotations__.items()}
+                        entry["properties"] = {
+                            field: get_type_repr(ftype, module_ns, short_repr=True)
+                            for field, ftype in tp.__annotations__.items()
+                        }
                     types_dict[name] = entry
                     break
         # User alias (including typing.Union, etc. if defined as an alias in the module)
@@ -120,7 +134,9 @@ def analyze_file(file_path: str):
                             "class": tp,
                             "kind": "user_alias",
                             "type": get_type_repr(tp, module_ns, short_repr=False),
-                            "category": os.path.splitext(file_path)[0].replace(os.sep, ".").split("."),
+                            "category": os.path.splitext(file_path)[0]
+                            .replace(os.sep, ".")
+                            .split("."),
                         }
                         break
         # Recursively add types for generics/aliases
@@ -134,7 +150,9 @@ def analyze_file(file_path: str):
         type_hints = typing.get_type_hints(func_obj, module_ns, module_ns)
         func_entry: Dict[str, Any] = {}
         func_entry["callable"] = func_obj
-        func_entry["category"] = os.path.splitext(file_path)[0].replace(os.sep, ".").split(".")  # Convert file path to module-like category
+        func_entry["category"] = (
+            os.path.splitext(file_path)[0].replace(os.sep, ".").split(".")
+        )  # Convert file path to module-like category
 
         # Create request model for the function
         func_entry["request_model"] = create_request_model(func_obj, module_ns)
@@ -148,11 +166,14 @@ def analyze_file(file_path: str):
         arguments = {}
         for arg in sig.parameters.values():
             ann = type_hints.get(arg.name, arg.annotation)
+            # You need to type annotate!
             if ann is inspect.Parameter.empty:
                 raise Exception(f"Parameter {arg.name} has no annotation")
             arg_entry = {"type": get_type_repr(ann, module_ns, short_repr=True)}
             if arg.default is not inspect.Parameter.empty:
                 arg_entry["value"] = arg.default
+            else:
+                arg_entry["value"] = None
             arguments[arg.name] = arg_entry
             add_type_to_types_dict(ann)
         func_entry["arguments"] = arguments
@@ -161,7 +182,9 @@ def analyze_file(file_path: str):
         ret_ann = type_hints.get("return", sig.return_annotation)
         if ret_ann is inspect.Signature.empty:
             raise Exception(f"Function {func_name} has no return annotation")
-        func_entry["return"] = {"type": get_type_repr(ret_ann, module_ns, short_repr=True)}
+        func_entry["return"] = {
+            "type": get_type_repr(ret_ann, module_ns, short_repr=True)
+        }
         add_type_to_types_dict(ret_ann)
 
         # Add the function to the functions_info dictionary
@@ -170,7 +193,9 @@ def analyze_file(file_path: str):
     return functions_info, types_dict
 
 
-def analyze_files(py_files: List[str], base_dir: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def analyze_files(
+    py_files: List[str], base_dir: str
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Analyze multiple Python files and accumulate results without duplicates.
 
     Args:

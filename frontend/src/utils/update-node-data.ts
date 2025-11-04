@@ -1,6 +1,6 @@
-import useStore from '../store';
-import { produce } from 'immer';
-import { getNodeData } from './get-node-data';
+import useStore from "../store";
+import { produce } from "immer";
+import { getNodeData } from "./get-node-data";
 
 interface UpdateNodeDataProps {
   path: (string | number)[];
@@ -12,17 +12,14 @@ export function updateNodeData({ path, newData }: UpdateNodeDataProps) {
   const setNodes = useStore.getState().setNodes;
   const nodes = useStore.getState().nodes;
 
-  console.log('updating ', path);
-  console.log('from ', getNodeData(path));
-  console.log('to ', newData);
-
+  console.log("updating ", path, "\n from", getNodeData(path), "to", newData);
   // Check if we're creating a new property
   const existingData = getNodeData(path);
   const isNewProperty = existingData === undefined;
-  
+
   if (isNewProperty) {
     // Find how far we get in the path before failing
-    const currentNode = nodes.find(node => node.id === path[0]);
+    const currentNode = nodes.find((node) => node.id === path[0]);
     let validUntil = 0;
     let failedKey: string | number | undefined = undefined;
     if (currentNode) {
@@ -39,36 +36,40 @@ export function updateNodeData({ path, newData }: UpdateNodeDataProps) {
       }
     }
     const validPath = path.slice(0, validUntil + 1);
-    console.warn(`Creating new property at path: ${path.join('.')}. This may be unintentional. Path was valid up to: ${validPath.join('.')} and failed at key: ${failedKey}`);
-    console.log('nodes', nodes);
+    console.warn(
+      `Creating new property at path: ${path.join(".")}. This may be unintentional. Path was valid up to: ${validPath.join(".")} and failed at key: ${failedKey}`,
+    );
+    console.log("nodes", nodes);
   }
 
   setNodes(
-    produce(nodes, draft => {
-      const nodeIndex = draft.findIndex(node => node.id === path[0]);
+    produce(nodes, (draft) => {
+      const nodeIndex = draft.findIndex((node) => node.id === path[0]);
       if (nodeIndex !== -1) {
         // Navigate to the target property
         let current = draft[nodeIndex].data;
         const pathToProperty = path.slice(1);
-        
+
         for (let i = 0; i < pathToProperty.length - 1; i++) {
           const key = pathToProperty[i];
           if (current[key] === undefined) {
-            console.warn(`Creating new nested property: ${key} at path: ${path.slice(0, i + 2).join('.')}`);
+            console.warn(
+              `Creating new nested property: ${key} at path: ${path.slice(0, i + 2).join(".")}`,
+            );
             current[key] = {};
           }
           current = current[key] as Record<string | number, unknown>;
         }
-        
+
         // Update the property
         const finalKey = pathToProperty[pathToProperty.length - 1];
         current[finalKey] = newData;
       }
-    })
+    }),
   );
 
   // Use setTimeout to log the updated state after the state update has been applied
-  setTimeout(() => {
-    console.log('updated node data', useStore.getState().nodes);
-  }, 0);
+  // setTimeout(() => {
+  //   console.log("updated node data", useStore.getState().nodes);
+  // }, 0);
 }
