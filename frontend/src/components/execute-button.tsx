@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { LoaderIcon } from "lucide-react";
 import useStore from "../store";
 import { useState, useCallback } from "react";
-import { updateNodeData } from "../utils/update-node-data";
 import { stripGraphForExecute } from "../utils/strip-graph";
 import { Graph } from "../types/graph";
 
@@ -10,6 +9,7 @@ export default function ExecuteMenu() {
   const [loading, setLoading] = useState(false);
   const nodes = useStore((state) => state.nodes);
   const edges = useStore((state) => state.edges);
+  const updateNodeData = useStore((state) => state.updateNodeData);
 
   const execute = useCallback(async () => {
     setLoading(true);
@@ -39,7 +39,7 @@ export default function ExecuteMenu() {
         Object.entries(result.updated_outputs).forEach(
           ([nodeId, outputData]) => {
             const path = [nodeId, "return"];
-            updateNodeData({ path, newData: outputData as any });
+            updateNodeData(path, outputData as any);
           },
         );
 
@@ -57,7 +57,7 @@ export default function ExecuteMenu() {
               inputData as Record<string, { value: any; type: string }>,
             ).forEach(([argName, argData]) => {
               const valuePath = [nodeId, "arguments", argName, "value"];
-              updateNodeData({ path: valuePath, newData: argData.value });
+              updateNodeData(valuePath, argData.value);
             });
           }
         });

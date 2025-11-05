@@ -1,13 +1,12 @@
-import { JsonViewer as BaseJsonViewer } from '../ui/json-tree-viewer';
-import { getNodeData } from "../../utils/get-node-data";
+import { JsonViewer as BaseJsonViewer } from "../ui/json-tree-viewer";
+import { useNodeData } from "../../store";
 
 interface JsonViewerProps {
   path: (string | number)[];
 }
 
 export default function JsonViewer({ path }: JsonViewerProps) {
-
-  const data = getNodeData(path)
+  const data = useNodeData(path);
 
   return (
     <div className={`p-2`}>
@@ -19,4 +18,4 @@ export default function JsonViewer({ path }: JsonViewerProps) {
       />
     </div>
   );
-} 
+}

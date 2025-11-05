@@ -1,25 +1,25 @@
 import FloatInput from "../../common/float-input";
 import IntInput from "../../common/int-input";
-import { getNodeData } from "../../utils/get-node-data";
+import { useNodeData } from "../../store";
 
 interface DynamicInputProps {
   path: (string | number)[];
 }
 
 export default function DynamicInput({ path }: DynamicInputProps) {
-  // Use data prop if provided, otherwise get from store
-  const fieldData = getNodeData(path) as { type: string } | undefined;
-  
+  // Use selector to get field data from store
+  const fieldData = useNodeData(path) as { type: string } | undefined;
+
   if (!fieldData) {
     return <div>No data</div>;
   }
 
   // Always use the appropriate input component based on type
-  if (fieldData.type === 'float') {
+  if (fieldData.type === "float") {
     return <FloatInput path={path} />;
   }
 
-  if (fieldData.type === 'int') {
+  if (fieldData.type === "int") {
     return <IntInput path={path} />;
   }
 

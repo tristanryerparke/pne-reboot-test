@@ -1,7 +1,7 @@
 import { Button } from "../ui/button";
 import { Code, ArrowLeftRight, FileText } from "lucide-react";
 import { NodeResizeControl } from "@xyflow/react";
-import { getNodeData } from "../../utils/get-node-data";
+import { useNodeData } from "../../store";
 
 type NodeHeaderProps = {
   nodeId: string;
@@ -9,10 +9,18 @@ type NodeHeaderProps = {
   onToggleView: () => void;
   onResizeStart?: () => void;
   minWidth?: number;
-}
+};
 
-export default function NodeHeader({ nodeId, isJsonView, onToggleView, onResizeStart, minWidth }: NodeHeaderProps) {
-  const data = getNodeData([nodeId]) as { name: string; min_width?: number; max_width?: number } | undefined;
+export default function NodeHeader({
+  nodeId,
+  isJsonView,
+  onToggleView,
+  onResizeStart,
+  minWidth,
+}: NodeHeaderProps) {
+  const data = useNodeData([nodeId]) as
+    | { name: string; min_width?: number; max_width?: number }
+    | undefined;
 
   if (!data) {
     return <div>No node data</div>;
@@ -20,13 +28,11 @@ export default function NodeHeader({ nodeId, isJsonView, onToggleView, onResizeS
 
   return (
     <div className="w-fit h-fit flex items-center p-1 w-full">
-      <span className="px-1 text-sm font-bold">
-        {data.name}
-      </span>
+      <span className="px-1 text-sm font-bold">{data.name}</span>
       <div className="flex gap-0.5 justify-end items-center ml-auto">
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="h-6 w-6 p-0"
           onClick={onToggleView}
           title={isJsonView ? "Show Fields" : "Show JSON"}
@@ -34,15 +40,16 @@ export default function NodeHeader({ nodeId, isJsonView, onToggleView, onResizeS
           {isJsonView ? <FileText size={14} /> : <Code size={14} />}
         </Button>
         <NodeResizeControl
-          style={{all: 'unset', 
-            justifyContent: 'center',
-            alignItems: 'center',
-            display: 'flex',
-            width: 'fit-content',
-            height: 'fit-content'
+          style={{
+            all: "unset",
+            justifyContent: "center",
+            alignItems: "center",
+            display: "flex",
+            width: "fit-content",
+            height: "fit-content",
           }}
           autoScale={false}
-          resizeDirection='horizontal'
+          resizeDirection="horizontal"
           className="flex justify-center items-center w-fit h-fit"
           nodeId={nodeId}
           minWidth={minWidth || data.min_width}
@@ -60,4 +67,4 @@ export default function NodeHeader({ nodeId, isJsonView, onToggleView, onResizeS
       </div>
     </div>
   );
-} 
+}
