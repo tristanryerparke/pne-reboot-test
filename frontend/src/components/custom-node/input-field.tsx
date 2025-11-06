@@ -1,20 +1,20 @@
 import { Handle, Position } from "@xyflow/react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import DynamicInput from "./dynamic-input";
-import { useNodeData } from "../../store";
 
 interface InputFieldProps {
+  fieldData: any;
   path: (string | number)[];
 }
 
-export default function InputFieldComponent({ path }: InputFieldProps) {
+export default function InputFieldComponent({
+  fieldData,
+  path,
+}: InputFieldProps) {
   const fieldName = path[2];
-  const field = useNodeData(path) as
-    | { type: string; label?: string; user_label?: string }
-    | undefined;
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
 
-  if (!field) {
+  if (!fieldData) {
     return <div>No field data</div>;
   }
 
@@ -35,7 +35,7 @@ export default function InputFieldComponent({ path }: InputFieldProps) {
                 {fieldName}
                 {": "}
               </span>
-              <DynamicInput path={path} />
+              <DynamicInput inputData={fieldData} path={path} />
             </div>
           </div>
         </TooltipTrigger>
@@ -44,7 +44,7 @@ export default function InputFieldComponent({ path }: InputFieldProps) {
           sideOffset={2}
           className="px-2 py-1 text-xs rounded-sm"
         >
-          <span className="text-xs">{field.type}</span>
+          <span className="text-xs">{fieldData.type}</span>
         </TooltipContent>
       </Tooltip>
     </div>

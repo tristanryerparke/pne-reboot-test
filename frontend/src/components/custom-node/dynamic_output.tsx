@@ -1,21 +1,15 @@
-import { useNodeData } from "../../store";
-
 interface DynamicOutputProps {
-  path: (string | number)[];
+  outputData: any;
 }
 
-export default function DynamicOutput({ path }: DynamicOutputProps) {
-  const fieldData = useNodeData(path) as
-    | { type: string; value?: any }
-    | undefined;
-
+export default function DynamicOutput({ outputData }: DynamicOutputProps) {
   const displayValue = () => {
-    if (fieldData?.value !== undefined) {
+    if (outputData?.value !== undefined) {
       // Handle different types of values
-      if (typeof fieldData.value === "object") {
-        return JSON.stringify(fieldData.value);
+      if (typeof outputData.value === "object") {
+        return JSON.stringify(outputData.value);
       }
-      return String(fieldData.value);
+      return String(outputData.value);
     }
     return "";
   };

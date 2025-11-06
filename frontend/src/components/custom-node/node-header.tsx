@@ -1,9 +1,9 @@
 import { Button } from "../ui/button";
 import { Code, ArrowLeftRight, FileText } from "lucide-react";
 import { NodeResizeControl } from "@xyflow/react";
-import { useNodeData } from "../../store";
 
 type NodeHeaderProps = {
+  data: any;
   nodeId: string;
   isJsonView: boolean;
   onToggleView: () => void;
@@ -12,22 +12,19 @@ type NodeHeaderProps = {
 };
 
 export default function NodeHeader({
+  data,
   nodeId,
   isJsonView,
   onToggleView,
   onResizeStart,
   minWidth,
 }: NodeHeaderProps) {
-  const data = useNodeData([nodeId]) as
-    | { name: string; min_width?: number; max_width?: number }
-    | undefined;
-
   if (!data) {
     return <div>No node data</div>;
   }
 
   return (
-    <div className="w-fit h-fit flex items-center p-1 w-full">
+    <div className="h-fit flex items-center p-1 w-full">
       <span className="px-1 text-sm font-bold">{data.name}</span>
       <div className="flex gap-0.5 justify-end items-center ml-auto">
         <Button
