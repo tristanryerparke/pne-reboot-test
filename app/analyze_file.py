@@ -102,6 +102,15 @@ def analyze_file(file_path: str):
         if tp in seen_types:
             return
         seen_types.add(tp)
+
+        # Skip types that derive from MultipleOutputs
+        if (
+            inspect.isclass(tp)
+            and issubclass(tp, MultipleOutputs)
+            and tp is not MultipleOutputs
+        ):
+            return
+
         # Builtin
         if inspect.isclass(tp) and tp.__module__ == "builtins":
             tname = tp.__name__
