@@ -36,7 +36,7 @@ export default function ExecuteMenu() {
 
       if (result.status === "success") {
         // Update outputs for each node
-        Object.entries(result.updated_outputs).forEach(
+        Object.entries(result.output_updates).forEach(
           ([nodeId, outputData]) => {
             // Find the node to check its output_style
             const node = nodes.find((n) => n.id === nodeId);
@@ -61,7 +61,7 @@ export default function ExecuteMenu() {
         );
 
         // Update inputs for nodes that received values from connections
-        Object.entries(result.updated_inputs).forEach(([nodeId, inputData]) => {
+        Object.entries(result.input_updates).forEach(([nodeId, inputData]) => {
           // Find the corresponding edge to get the target handle information
           const relevantEdge = edges.find((edge) => edge.target === nodeId);
           if (relevantEdge) {

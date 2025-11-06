@@ -13,8 +13,8 @@ async def execute_graph(graph: dict):
 
     d(execution_list)
 
-    updated_outputs = {}
-    updated_inputs = {}
+    output_updates = {}
+    input_updates = {}
 
     for node_id in execution_list:
         # try:
@@ -30,16 +30,16 @@ async def execute_graph(graph: dict):
 
         if output_style == "multiple":
             # For multiple outputs, extract each field value from the result
-            updated_outputs[node_id] = {}
+            output_updates[node_id] = {}
             for output_name, output_def in node["data"]["outputs"].items():
                 field_value = getattr(result, output_name)
-                updated_outputs[node_id][output_name] = {
+                output_updates[node_id][output_name] = {
                     **output_def,
                     "value": field_value,
                 }
         else:
             # For single output, use the entire result
-            updated_outputs[node_id] = {
+            output_updates[node_id] = {
                 **node["data"]["outputs"]["return"],
                 "value": result,
             }
@@ -64,10 +64,10 @@ async def execute_graph(graph: dict):
                 target_handle = edge["targetHandle"]
                 argument_name = target_handle.split(":")[-2]
 
-                if edge["target"] not in updated_inputs:
-                    updated_inputs[edge["target"]] = {}
+                if edge["target"] not in input_updates:
+                    input_updates[edge["target"]] = {}
 
-                updated_inputs[edge["target"]][argument_name] = {
+                input_updates[edge["target"]][argument_name] = {
                     "value": output_value,
                     "type": output_type,
                 }
@@ -87,14 +87,14 @@ async def execute_graph(graph: dict):
         #     print(format_exc())
         #     return {"status": "error", "message": str(e)}
 
-    d(updated_outputs)
-    d(updated_inputs)
+    d(output_updates)
+    d(input_updates)
     d(graph)
 
     return {
         "status": "success",
-        "updated_outputs": updated_outputs,
-        "updated_inputs": updated_inputs,
+        "output_updates": output_updates,
+        "input_updates": input_updates,
     }
 
 
