@@ -1,89 +1,53 @@
 import { NumberInput } from "../components/ui/number-input";
-import { useState, useEffect } from "react";
-import { getNodeData } from "../utils/get-node-data";
-import { updateNodeData } from "../utils/update-node-data";
-import { useNodeConnections } from '@xyflow/react';
+import useStore from "../store";
+import { useNodeConnections } from "@xyflow/react";
+import { useDebounceValue } from "usehooks-ts";
 
 interface IntInputProps {
+  inputData: any;
   path: (string | number)[];
 }
 
-export default function IntInput({ path }: IntInputProps) {
-  // Get the field definition and current value from the store
-  const fieldData = getNodeData(path) as { type: string; default_value?: number } | undefined;
-  const currentValue = getNodeData([...path, 'value']) as number | undefined;
-  
-  // Use current value if it exists, otherwise use default_value, otherwise undefined
-  const initialValue = typeof currentValue === 'number' ? currentValue : 
-                      (fieldData?.default_value !== undefined ? fieldData.default_value : undefined);
-  
-  const [value, setValue] = useState<number | undefined>(initialValue);
+export default function IntInput({ inputData, path }: IntInputProps) {
+  const updateNodeData = useStore((state) => state.updateNodeData);
 
-  // Create handle ID for connection checking
+  // Use current value if it exists, otherwise use default_value, otherwise undefined
+  const initialValue =
+    typeof inputData.value === "number"
+      ? inputData.value
+      : inputData?.default_value !== undefined
+        ? inputData.default_value
+        : undefined;
+
+  const [debouncedValue, setValue] = useDebounceValue<number | undefined>(
+    initialValue,
+    200,
+  );
+  // Use the xyflow hook to check if input is connected
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
-  
-  // Use the xyflow hook to get connections to check if input is connected
   const connections = useNodeConnections({
-    handleType: 'target',
+    handleType: "target",
     handleId: handleId,
   });
 
   // Determine if connected based on connections array
-  const isConnected = connections.length > 0 && connections[0].targetHandle === handleId;
-
-  // Update local state when store value changes (from external updates)
-  useEffect(() => {
-    if (typeof currentValue === 'number' && currentValue !== value) {
-      setValue(currentValue);
-    } else if (currentValue === undefined && fieldData?.default_value !== undefined && value !== fieldData.default_value) {
-      // If no current value but there's a default, use the default
-      setValue(fieldData.default_value);
-    }
-  }, [currentValue, value, fieldData?.default_value, isConnected]);
-  
-  // Force update when connection status changes or when value changes
-  useEffect(() => {
-    // When a connection is made, ensure we're showing the latest value
-    if (isConnected) {
-      const connectedValue = getNodeData([...path, 'value']) as number | undefined;
-      if (connectedValue !== undefined) {
-        setValue(connectedValue);
-      }
-    }
-  }, [isConnected, path, currentValue]);
-
-  if (!fieldData) {
-    return <div>No field data</div>;
-  }
+  const isConnected =
+    connections.length > 0 && connections[0].targetHandle === handleId;
 
   const handleValueChange = (newValue: number | undefined) => {
-    // Round to nearest integer for int inputs
+    // Round to nearest integer for int inputs but pass null through
     const intValue = newValue !== undefined ? Math.round(newValue) : undefined;
     setValue(intValue);
-    // Update the store with the new value
-    updateNodeData({ 
-      path: [...path, 'value'], 
-      newData: intValue ?? 0 
-    });
-  };
-
-  const handleBlur = () => {
-    if (value === undefined) {
-      const defaultVal = Math.round(fieldData?.default_value ?? 0);
-      setValue(defaultVal);
-      updateNodeData({ 
-        path: [...path, 'value'], 
-        newData: defaultVal 
-      });
-    }
+    updateNodeData([...path, "value"], intValue);
+    // Store update now happens via debounced effect
   };
 
   return (
     <NumberInput
-      value={value}
+      value={debouncedValue}
       decimalScale={0}
       onValueChange={handleValueChange}
-      onBlur={handleBlur}
+      onBlur={() => handleValueChange(debouncedValue)}
       disabled={isConnected}
       className="nodrag nopan noscroll h-9 w-full"
       placeholder="Enter integer"

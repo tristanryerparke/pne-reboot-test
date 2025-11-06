@@ -1,17 +1,21 @@
-import { memo, useState, useRef, useEffect } from 'react';
-import NodeHeader from './node-header';
-import InputFieldComponent from './input-field';
-import OutputFieldComponent from './output-field';
-import JsonViewer from './json-viewer';
-import { Separator } from '../ui/separator';
+import { memo, useState, useRef, useEffect } from "react";
+import NodeHeader from "./node-header";
+import InputFieldComponent from "./input-field";
+import OutputFieldComponent from "./output-field";
+import JsonViewer from "./json-viewer";
+import { Separator } from "../ui/separator";
 
-
-export default memo(function CustomNode({ data, id }: { data: any, id: string }) {
+export default memo(function CustomNode({
+  data,
+  id,
+}: {
+  data: any;
+  id: string;
+}) {
   const [isJsonView, setIsJsonView] = useState(false);
   const [isResized, setIsResized] = useState(false);
   const [fitWidth, setFitWidth] = useState<number | undefined>(undefined);
   const nodeRef = useRef<HTMLDivElement>(null);
-  
 
   // Measure the fit width when not resized
   useEffect(() => {
@@ -22,7 +26,7 @@ export default memo(function CustomNode({ data, id }: { data: any, id: string })
   }, [isResized, isJsonView]);
 
   const toggleView = () => setIsJsonView(!isJsonView);
-  
+
   const handleResizeStart = () => {
     if (nodeRef.current && !fitWidth) {
       setFitWidth(nodeRef.current.offsetWidth);
@@ -35,35 +39,39 @@ export default memo(function CustomNode({ data, id }: { data: any, id: string })
   // console.log(data)
 
   return (
-    <div 
+    <div
       ref={nodeRef}
-      className={`${isResized ? 
-        'relative h-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground' :
-        'relative w-fit h-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground'}`}
+      className={`${
+        isResized
+          ? "relative h-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
+          : "relative w-fit h-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
+      }`}
       style={{
-        maxHeight: 'fit-content',
-        overflowY: 'visible',
-        resize: 'horizontal'
+        maxHeight: "fit-content",
+        overflowY: "visible",
+        resize: "horizontal",
       }}
     >
-      <NodeHeader 
-        nodeId={id} 
+      <NodeHeader
+        data={data}
+        nodeId={id}
         isJsonView={isJsonView}
         onToggleView={toggleView}
         onResizeStart={handleResizeStart}
         minWidth={fitWidth}
       />
-      <Separator/>
+      <Separator />
       {isJsonView ? (
-        <JsonViewer path={[id]}/>
+        <JsonViewer data={data} path={[id]} />
       ) : (
         <>
           <div>
             {Object.entries(data.arguments).map(([argName, argDef], index) => (
-              <div key={argName} className='node-field-input'>
-                {index > 0 && <Separator/>}
+              <div key={argName} className="node-field-input">
+                {index > 0 && <Separator />}
                 <InputFieldComponent
-                  path={[...path, 'arguments', argName]}
+                  fieldData={argDef}
+                  path={[...path, "arguments", argName]}
                 />
               </div>
             ))}
@@ -76,9 +84,9 @@ export default memo(function CustomNode({ data, id }: { data: any, id: string })
                 {data.outputs.map((output, index) => (
                   <div key={index} className='node-field-output'>
                     {index > 0 && <div className='divider-div'/>}
-                    <OutputFieldComponent 
+                    <OutputFieldComponent
                       path={[id, 'outputs', index]}
-                      field={output} 
+                      field={output}
                     />
                   </div>
                 ))}
@@ -86,10 +94,11 @@ export default memo(function CustomNode({ data, id }: { data: any, id: string })
             </>
           )} */}
           <div>
-            <Separator/>
+            <Separator />
             <div>
-              <OutputFieldComponent 
-                path={[...path, 'return']}
+              <OutputFieldComponent
+                fieldData={data.return}
+                path={[...path, "return"]}
               />
             </div>
           </div>
@@ -97,4 +106,4 @@ export default memo(function CustomNode({ data, id }: { data: any, id: string })
       )}
     </div>
   );
-}); 
+});
