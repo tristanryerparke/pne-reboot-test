@@ -58,6 +58,12 @@
     "reveal_target": "dock"
   },
   {
+    "label": "Python: Current File",
+    "command": "uv run $ZED_FILE",
+    "reveal": "always",
+    "reveal_target": "dock"
+  },
+  {
     "label": "Frontend",
     "command": "cd frontend && bun run dev --host"
   }
