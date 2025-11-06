@@ -30,11 +30,10 @@ if __name__ == "__main__":
 
     func = integer_division
 
-    # Get the function signature and type hints
     sig = inspect.signature(func)
     type_hints = typing.get_type_hints(func)
 
-    # Parse the arguments
+    func_entry["name"] = "integer_division"
     func_entry["arguments"] = {}
     for arg in sig.parameters.values():
         ann = type_hints.get(arg.name, arg.annotation)
@@ -48,9 +47,11 @@ if __name__ == "__main__":
             arg_entry["value"] = None
         func_entry["arguments"][arg.name] = arg_entry
 
-    # Detect the use of the MultipleOutputs class or just a regular return type
     ret_ann = type_hints.get("return", sig.return_annotation)
+
+    # Detect output fields from MultipleOutputs return type
     func_entry["outputs"] = {}
+
     if inspect.isclass(ret_ann) and issubclass(ret_ann, MultipleOutputs):
         # Get the model fields using Pydantic's model_fields
         func_entry["output_style"] = "multiple"
