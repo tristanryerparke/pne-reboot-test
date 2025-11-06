@@ -1,9 +1,4 @@
-from devtools import debug as d
-from pydantic import BaseModel
-
-
-class MultipleOutputs(BaseModel):
-    pass
+from ..app.schema import MultipleOutputs
 
 
 class IntegerDivisionOutputs(MultipleOutputs):
