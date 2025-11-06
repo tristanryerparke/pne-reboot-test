@@ -17,7 +17,6 @@ async def execute_graph(graph: dict):
     input_updates = {}
 
     for node_id in execution_list:
-        # try:
         node = [node for node in graph["nodes"] if node["id"] == node_id][0]
         if not node:
             raise Exception(f"Node {node_id} not found")
@@ -29,13 +28,15 @@ async def execute_graph(graph: dict):
         output_style = node["data"].get("output_style", "single")
 
         if output_style == "multiple":
-            # For multiple outputs, extract each field value from the result
+            # For multiple outputs we need to get the model as a dict
+            result_dict = result.model_dump()
             output_updates[node_id] = {}
             for output_name, output_def in node["data"]["outputs"].items():
-                field_value = getattr(result, output_name)
+                #FIXME: We don't need to get the type from the result because the MultipleOutputs
+                # Class is typed already... this could be a probelm later on
                 output_updates[node_id][output_name] = {
-                    **output_def,
-                    "value": field_value,
+                    "type": output_def["type"],
+                    "value": result_dict[output_name],
                 }
         else:
             # For single output, use the entire result
@@ -72,30 +73,22 @@ async def execute_graph(graph: dict):
                     "type": output_type,
                 }
 
-                # Update the graph nodes
-                for i, lookinfor in enumerate(graph["nodes"]):
-                    if lookinfor["id"] == edge["target"]:
+                # Update the graph nodes arguments connected to that edge
+                for i, target_node in enumerate(graph["nodes"]):
+                    if target_node["id"] == edge["target"]:
                         graph["nodes"][i]["data"]["arguments"][argument_name][
                             "value"
                         ] = output_value
                         break
 
-        # except Exception as e:
-        #     d(e)
-        #     from traceback import format_exc
-
-        #     print(format_exc())
-        #     return {"status": "error", "message": str(e)}
-
-    d(output_updates)
-    d(input_updates)
-    d(graph)
-
-    return {
+    update_message = {
         "status": "success",
         "output_updates": output_updates,
         "input_updates": input_updates,
     }
+    d(update_message)
+
+    return update_message
 
 
 def execute_node(node: dict):
