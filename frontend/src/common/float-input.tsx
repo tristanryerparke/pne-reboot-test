@@ -11,13 +11,12 @@ interface FloatInputProps {
 export default function FloatInput({ inputData, path }: FloatInputProps) {
   // Get the field definition and current value from the store using selectors
 
-  const currentValue = inputData.value;
   const updateNodeData = useStore((state) => state.updateNodeData);
 
   // Use current value if it exists, otherwise use default_value, otherwise undefined
   const initialValue =
-    typeof currentValue === "number"
-      ? currentValue
+    typeof inputData.value === "number"
+      ? inputData.value
       : inputData?.default_value !== undefined
         ? inputData.default_value
         : undefined;
