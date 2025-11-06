@@ -9,6 +9,8 @@ from typing import Any, Dict, List, Tuple
 
 from pydantic import create_model
 
+from app.schema import MultipleOutputs
+
 
 def create_request_model(func, module_ns):
     """Create a Pydantic model for function parameters to ensure JSON body usage."""
@@ -178,13 +180,32 @@ def analyze_file(file_path: str):
             add_type_to_types_dict(ann)
         func_entry["arguments"] = arguments
 
-        # Handle return type
+        # Handle return type and detect multiple outputs
         ret_ann = type_hints.get("return", sig.return_annotation)
         if ret_ann is inspect.Signature.empty:
             raise Exception(f"Function {func_name} has no return annotation")
-        func_entry["return"] = {
-            "type": get_type_repr(ret_ann, module_ns, short_repr=True)
-        }
+
+        # Detect output fields from MultipleOutputs return type
+        func_entry["outputs"] = {}
+
+        if inspect.isclass(ret_ann) and issubclass(ret_ann, MultipleOutputs):
+            # Get the model fields using Pydantic's model_fields
+            func_entry["output_style"] = "multiple"
+            for field_name, field_info in ret_ann.model_fields.items():
+                if field_info.annotation is not None:
+                    output_entry = {
+                        "type": get_type_repr(
+                            field_info.annotation, module_ns, short_repr=True
+                        )
+                    }
+                    func_entry["outputs"][field_name] = output_entry
+                    add_type_to_types_dict(field_info.annotation)
+        else:
+            func_entry["output_style"] = "single"
+            func_entry["outputs"]["return"] = {
+                "type": get_type_repr(ret_ann, module_ns, short_repr=True)
+            }
+
         add_type_to_types_dict(ret_ann)
 
         # Add the function to the functions_info dictionary

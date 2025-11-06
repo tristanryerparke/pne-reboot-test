@@ -11,56 +11,14 @@ class IntegerDivisionOutputs(MultipleOutputs):
     remainder: int
 
 
-def integer_division(numerator: int, denominator: int) -> IntegerDivisionOutputs:
+def integer_division_multiple_outputs(
+    numerator: int, denominator: int
+) -> IntegerDivisionOutputs:
     quotient = numerator // denominator
     remainder = numerator % denominator
     return IntegerDivisionOutputs(quotient=quotient, remainder=remainder)
 
 
-def integer_division_2(numerator: int, denominator: int) -> int:
+def integer_division_single_output(numerator: int, denominator: int) -> int:
     quotient = numerator // denominator
     return quotient
-
-
-if __name__ == "__main__":
-    import inspect
-    import typing
-
-    func_entry = {}
-
-    func = integer_division
-
-    sig = inspect.signature(func)
-    type_hints = typing.get_type_hints(func)
-
-    func_entry["name"] = "integer_division"
-    func_entry["arguments"] = {}
-    for arg in sig.parameters.values():
-        ann = type_hints.get(arg.name, arg.annotation)
-        # You need to type annotate!
-        if ann is inspect.Parameter.empty:
-            raise Exception(f"Parameter {arg.name} has no annotation")
-        arg_entry: dict[str, str | None] = {"type": str(ann.__name__)}
-        if arg.default is not inspect.Parameter.empty:
-            arg_entry["value"] = arg.default
-        else:
-            arg_entry["value"] = None
-        func_entry["arguments"][arg.name] = arg_entry
-
-    ret_ann = type_hints.get("return", sig.return_annotation)
-
-    # Detect output fields from MultipleOutputs return type
-    func_entry["outputs"] = {}
-
-    if inspect.isclass(ret_ann) and issubclass(ret_ann, MultipleOutputs):
-        # Get the model fields using Pydantic's model_fields
-        func_entry["output_style"] = "multiple"
-        for field_name, field_info in ret_ann.model_fields.items():
-            if field_info.annotation is not None:
-                output_entry = {"type": str(field_info.annotation.__name__)}
-                func_entry["outputs"][field_name] = output_entry
-    else:
-        func_entry["output_style"] = "single"
-        func_entry["outputs"]["return"] = {"type": str(ret_ann.__name__)}
-
-    d(func_entry)
