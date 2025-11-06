@@ -1,4 +1,7 @@
-from ..app.schema import MultipleOutputs
+import sys
+
+sys.path.append("app")
+from app.schema import MultipleOutputs
 
 
 class IntegerDivisionOutputs(MultipleOutputs):

@@ -2,8 +2,8 @@
     "Point2D": {
         "kind": "user_model",
         "category": [
-            "folder_with_func",
-            "file_with_func"
+            "folder_with_files",
+            "file_with_funcs"
         ],
         "properties": {
             "x": "float",
@@ -13,8 +13,8 @@
     "Polygon": {
         "kind": "user_model",
         "category": [
-            "folder_with_func",
-            "file_with_func"
+            "folder_with_files",
+            "file_with_funcs"
         ],
         "properties": {
             "points": {
@@ -31,18 +31,24 @@
     },
     "Number": {
         "kind": "user_alias",
-        "type": {
-            "anyOf": [
-                "int",
-                "float"
-            ]
-        },
+        "type": "int | float",
         "category": [
-            "folder_with_func",
-            "file_with_func"
+            "folder_with_files",
+            "file_with_funcs"
         ]
     },
     "int": {
         "kind": "builtin"
+    },
+    "IntegerDivisionOutputs": {
+        "kind": "user_model",
+        "category": [
+            "folder_with_files",
+            "multiple_outputs"
+        ],
+        "properties": {
+            "quotient": "int",
+            "remainder": "int"
+        }
     }
 }

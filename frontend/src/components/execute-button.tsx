@@ -38,8 +38,25 @@ export default function ExecuteMenu() {
         // Update outputs for each node
         Object.entries(result.updated_outputs).forEach(
           ([nodeId, outputData]) => {
-            const path = [nodeId, "return"];
-            updateNodeData(path, outputData as any);
+            // Find the node to check its output_style
+            const node = nodes.find((n) => n.id === nodeId);
+            if (!node) return;
+
+            const outputStyle = node.data.output_style;
+
+            if (outputStyle === "multiple") {
+              // Multiple outputs - update each output field individually
+              Object.entries(outputData as Record<string, any>).forEach(
+                ([outputName, outputFieldData]) => {
+                  const path = [nodeId, "outputs", outputName];
+                  updateNodeData(path, outputFieldData);
+                },
+              );
+            } else {
+              // Single output - update the "return" field
+              const path = [nodeId, "outputs", "return"];
+              updateNodeData(path, outputData as any);
+            }
           },
         );
 

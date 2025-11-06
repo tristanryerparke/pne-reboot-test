@@ -1,6 +1,5 @@
-from fastapi import APIRouter
 from devtools import debug as d
-
+from fastapi import APIRouter
 
 router = APIRouter()
 
@@ -26,20 +25,59 @@ async def execute_graph(graph: dict):
         print(f"Executing node {node['id']}")
         result = execute_node(node)
 
-        result_type = node["data"]["return"]["type"]
+        # Handle both single and multiple outputs
+        output_style = node["data"].get("output_style", "single")
 
-        updated_outputs[node_id] = {**node["data"]["return"], "value": result}
+        if output_style == "multiple":
+            # For multiple outputs, extract each field value from the result
+            updated_outputs[node_id] = {}
+            for output_name, output_def in node["data"]["outputs"].items():
+                field_value = getattr(result, output_name)
+                updated_outputs[node_id][output_name] = {
+                    **output_def,
+                    "value": field_value,
+                }
+        else:
+            # For single output, use the entire result
+            updated_outputs[node_id] = {
+                **node["data"]["outputs"]["return"],
+                "value": result,
+            }
 
+        # Propagate outputs to connected nodes
         for edge in graph["edges"]:
             if edge["source"] == node_id:
+                # Extract the output field name from the sourceHandle
+                # Format: nodeId:outputs:outputName:handle
+                source_handle = edge["sourceHandle"]
+                output_field_name = source_handle.split(":")[-2]
+
+                # Get the value for this specific output field
+                if output_style == "multiple":
+                    output_value = getattr(result, output_field_name)
+                    output_type = node["data"]["outputs"][output_field_name]["type"]
+                else:
+                    output_value = result
+                    output_type = node["data"]["outputs"]["return"]["type"]
+
+                # Extract target argument name from targetHandle
                 target_handle = edge["targetHandle"]
                 argument_name = target_handle.split(":")[-2]
 
-                updated_inputs[edge["target"]] = {argument_name: {"value": result, "type": result_type}}
+                if edge["target"] not in updated_inputs:
+                    updated_inputs[edge["target"]] = {}
 
+                updated_inputs[edge["target"]][argument_name] = {
+                    "value": output_value,
+                    "type": output_type,
+                }
+
+                # Update the graph nodes
                 for i, lookinfor in enumerate(graph["nodes"]):
                     if lookinfor["id"] == edge["target"]:
-                        graph["nodes"][i]["data"]["arguments"][argument_name]["value"] = result
+                        graph["nodes"][i]["data"]["arguments"][argument_name][
+                            "value"
+                        ] = output_value
                         break
 
         # except Exception as e:
@@ -94,7 +132,9 @@ def topological_order(graph: dict) -> list[str]:
         result.append(node_id)
 
     # Sort nodes by x coordinate in ascending order
-    sorted_nodes = sorted(graph["nodes"], key=lambda node: node["position"]["x"], reverse=True)
+    sorted_nodes = sorted(
+        graph["nodes"], key=lambda node: node["position"]["x"], reverse=True
+    )
 
     for node in sorted_nodes:
         visit(node["id"])

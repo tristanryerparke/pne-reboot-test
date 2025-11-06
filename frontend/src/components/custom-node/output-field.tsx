@@ -12,6 +12,8 @@ export default function OutputFieldComponent({
   path,
 }: OutputFieldComponentProps) {
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
+  // Extract the output name from the path (last element)
+  const outputName = path[path.length - 1];
 
   if (!fieldData) {
     return <div>No field data</div>;
@@ -29,7 +31,7 @@ export default function OutputFieldComponent({
         <TooltipTrigger asChild>
           <div className="flex w-full pl-3 pr-2 py-2 gap-1 overflow-hidden items-center justify-end">
             <div className="w-full flex items-center flex-shrink-0 gap-2">
-              <span>return:</span>
+              <span>{outputName}:</span>
               <DynamicOutput outputData={fieldData} />
             </div>
           </div>

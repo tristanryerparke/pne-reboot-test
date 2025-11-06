@@ -19,5 +19,6 @@ export default function DynamicInput({ inputData, path }: DynamicInputProps) {
   }
 
   // For types without a component, show a generic message
+  console.log("No component for type:", inputData.type);
   return <div>DynamicInput: {inputData.type}</div>;
 }

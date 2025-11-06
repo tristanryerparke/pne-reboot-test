@@ -76,31 +76,19 @@ export default memo(function CustomNode({
               </div>
             ))}
           </div>
-          {/* TODO: Deal with multiple/named outputs */}
-          {/* {data.return.length > 0 && (
-            <>
-              <Separator/>
-              <div>
-                {data.outputs.map((output, index) => (
-                  <div key={index} className='node-field-output'>
-                    {index > 0 && <div className='divider-div'/>}
-                    <OutputFieldComponent
-                      path={[id, 'outputs', index]}
-                      field={output}
-                    />
-                  </div>
-                ))}
-              </div>
-            </>
-          )} */}
+          {/* Handle both single and multiple outputs */}
           <div>
-            <Separator />
-            <div>
-              <OutputFieldComponent
-                fieldData={data.return}
-                path={[...path, "return"]}
-              />
-            </div>
+            {Object.entries(data.outputs).map(
+              ([outputName, outputDef], index) => (
+                <div key={outputName} className="node-field-output">
+                  {index > 0 && <Separator />}
+                  <OutputFieldComponent
+                    fieldData={outputDef}
+                    path={[...path, "outputs", outputName]}
+                  />
+                </div>
+              ),
+            )}
           </div>
         </>
       )}

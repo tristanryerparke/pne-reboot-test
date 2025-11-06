@@ -1,11 +1,11 @@
-from typing import Union, List
+from typing import List
+
 from pydantic import BaseModel
 
+Number = int | float
 
-Number = Union[int, float]
 
-
-def typed_func_float_pydantic(a: float, b: float) -> float:
+def typed_func_float(a: float, b: float) -> float:
     return a + b
 
 
