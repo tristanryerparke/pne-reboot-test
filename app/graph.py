@@ -32,7 +32,7 @@ async def execute_graph(graph: dict):
             result_dict = result.model_dump()
             output_updates[node_id] = {}
             for output_name, output_def in node["data"]["outputs"].items():
-                #FIXME: We don't need to get the type from the result because the MultipleOutputs
+                # FIXME: We don't need to get the type from the result because the MultipleOutputs
                 # Class is typed already... this could be a probelm later on
                 output_updates[node_id][output_name] = {
                     "type": output_def["type"],
@@ -109,7 +109,8 @@ def execute_node(node: dict):
 
 def topological_order(graph: dict) -> list[str]:
     """
-    Returns all nodes in topological order.
+    Returns all nodes in topological order using DFS.
+    Ensures dependencies are executed before dependents.
     """
     result: list[str] = []
     visited: set[str] = set()
@@ -119,19 +120,18 @@ def topological_order(graph: dict) -> list[str]:
             return
         visited.add(node_id)
 
+        # Visit dependencies (sources) of this node first
         for e in graph["edges"]:
-            visit(e["target"])
+            if e["target"] == node_id:
+                visit(e["source"])
 
         result.append(node_id)
 
-    # Sort nodes by x coordinate in ascending order
-    sorted_nodes = sorted(
-        graph["nodes"], key=lambda node: node["position"]["x"], reverse=True
-    )
+    # Sort nodes by x-coordinate (left to right) to establish execution order for unconnected nodes
+    sorted_nodes = sorted(graph["nodes"], key=lambda node: node["position"]["x"])
 
+    # Visit all nodes in sorted order
     for node in sorted_nodes:
         visit(node["id"])
-
-    result.reverse()
 
     return result
