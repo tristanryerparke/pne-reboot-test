@@ -1,4 +1,5 @@
 import inspect
+
 from fastapi import FastAPI
 
 
@@ -27,7 +28,16 @@ def setup_function_routes(app: FastAPI, functions: dict, types: dict):
             "/node/" + "/".join(function_info["category"]) + "/" + function_name
         )
 
-        return_type = types[function_info["return"]["type"]]["class"]
+        # Handle both single and multiple output styles
+        if function_info["output_style"] == "single":
+            # For single output, get the return type from outputs["return"]
+            return_type = types[function_info["outputs"]["return"]["type"]]["class"]
+        else:
+            # For multiple outputs, the return type is the MultipleOutputs subclass itself
+            # We need to find the type name from the outputs structure
+            # The return type should be in the types dict as the actual class
+            return_type = function_info["callable"].__annotations__["return"]
+
         request_model = function_info["request_model"]
 
         # Create wrapper function that accepts a request body dict and calls the original function

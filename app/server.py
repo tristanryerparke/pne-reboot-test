@@ -2,13 +2,12 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
+from devtools import debug as d
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.analyze_file import get_all_functions_and_types
 from app.graph import router as graph_router
-
-# from devtools import debug as d
 from app.node_routes import setup_function_routes
 
 FUNCTIONS = {}
@@ -31,6 +30,7 @@ async def lifespan(app: FastAPI):
     FUNCTIONS.update(all_functions)
     TYPES.update(all_types)
     print(f"Found {len(FUNCTIONS)} functions and {len(TYPES)} types")
+    d(TYPES)
 
     # Setup function routes
     setup_function_routes(app, FUNCTIONS, TYPES)

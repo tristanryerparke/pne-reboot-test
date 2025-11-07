@@ -36,15 +36,32 @@ export default function ExecuteMenu() {
 
       if (result.status === "success") {
         // Update outputs for each node
-        Object.entries(result.updated_outputs).forEach(
+        Object.entries(result.output_updates).forEach(
           ([nodeId, outputData]) => {
-            const path = [nodeId, "return"];
-            updateNodeData(path, outputData as any);
+            // Find the node to check its output_style
+            const node = nodes.find((n) => n.id === nodeId);
+            if (!node) return;
+
+            const outputStyle = node.data.output_style;
+
+            if (outputStyle === "multiple") {
+              // Multiple outputs - update each output field individually
+              Object.entries(outputData as Record<string, any>).forEach(
+                ([outputName, outputFieldData]) => {
+                  const path = [nodeId, "outputs", outputName];
+                  updateNodeData(path, outputFieldData);
+                },
+              );
+            } else {
+              // Single output - update the "return" field
+              const path = [nodeId, "outputs", "return"];
+              updateNodeData(path, outputData as any);
+            }
           },
         );
 
         // Update inputs for nodes that received values from connections
-        Object.entries(result.updated_inputs).forEach(([nodeId, inputData]) => {
+        Object.entries(result.input_updates).forEach(([nodeId, inputData]) => {
           // Find the corresponding edge to get the target handle information
           const relevantEdge = edges.find((edge) => edge.target === nodeId);
           if (relevantEdge) {
