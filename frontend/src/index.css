@@ -1,15 +1,13 @@
-
 @import "../styles/globals.css";
+@import "@xyflow/react/dist/style.css";
 
 @layer base {
-  :root {
-    @apply font-sans;
-    overscroll-behavior: none;
-  }
+    :root {
+        @apply font-sans;
+        overscroll-behavior: none;
+    }
 
-  body {
-    @apply grid place-items-center min-w-[320px] min-h-screen relative m-0 bg-background text-foreground;
-  }
+    body {
+        @apply grid place-items-center min-w-[320px] min-h-screen relative m-0 bg-background text-foreground;
+    }
 }
-
-@import '@xyflow/react/dist/style.css';

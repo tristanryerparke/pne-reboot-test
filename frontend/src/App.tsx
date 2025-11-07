@@ -1,28 +1,41 @@
-// import '@xyflow/react/dist/style.css'
-import './index.css'
+import "./index.css";
+import "@xyflow/react/dist/style.css";
 
+import NodePicker from "./components/node-picker/node-picker";
+import { ReactFlowProvider } from "@xyflow/react";
+import { ThemeProvider } from "./components/theme-provider";
+import { ModeToggle } from "./components/mode-toggle";
+import { Separator } from "./components/ui/separator";
+import { TypesBrowser } from "./components/types-browser/types-browser";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 
-import NodePicker from './components/node-picker/node-picker';
-import { ReactFlowProvider } from '@xyflow/react';
-import { ThemeProvider } from './components/theme-provider';
-import { ModeToggle } from './components/mode-toggle';
-import { Separator } from './components/ui/separator';
-
-import NodeGraph from './components/node-graph';
-import ExecuteButton from './components/execute-button';
+import NodeGraph from "./components/node-graph";
+import ExecuteButton from "./components/execute-button";
 
 function App() {
-
   return (
     <>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <ReactFlowProvider>
           <div className="min-h-full flex h-screen w-screen flex-row overflow-hidden bg-background text-foreground">
             <div className="min-w-60 flex flex-col h-full">
-              <NodePicker />
-              <Separator className='mt-auto' />
-              <div className='w-full flex flex-row p-2 gap-2'>
-                <ModeToggle />
+              <Tabs defaultValue="nodes" className="w-full gap-0">
+                <div className="flex flex-row w-full px-2 pt-2">
+                  <TabsList className="w-full">
+                    <TabsTrigger value="nodes">Nodes</TabsTrigger>
+                    <TabsTrigger value="types">Types</TabsTrigger>
+                  </TabsList>
+                </div>
+                <TabsContent value="nodes">
+                  <NodePicker />
+                </TabsContent>
+                <TabsContent value="types">
+                  <TypesBrowser />
+                </TabsContent>
+              </Tabs>
+              <Separator className="mt-auto" />
+              <div className="w-full flex flex-row p-2 gap-2">
+                {/*<ModeToggle />*/}
                 <ExecuteButton />
               </div>
             </div>
@@ -32,7 +45,7 @@ function App() {
         </ReactFlowProvider>
       </ThemeProvider>
     </>
-  )
+  );
 }
 
 export { App };
