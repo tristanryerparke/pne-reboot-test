@@ -1,8 +1,9 @@
 import os
 import sys
-from app.analyze_file import get_all_functions_and_types
+
 from devtools import debug as d
 
+from app.analysis.utils import get_all_functions_and_types
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
