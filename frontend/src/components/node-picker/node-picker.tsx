@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useReactFlow } from "@xyflow/react";
-import { SearchBar } from "./search-bar";
+import { SearchBar } from "@/common/search-bar";
 import { CategoryGroup } from "./category-group";
 
 interface NodeFunctionData {
@@ -137,11 +137,14 @@ function NodePicker() {
   );
 
   return (
-    <div className="overflow-x-scroll overflow-y-hidden flex flex-col p-2 gap-2">
+    <div className="overflow-y-hidden flex flex-col px-2 pt-2 gap-2 ">
       <SearchBar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onRefresh={fetchNodes}
+        placeholder="Search nodes..."
+        refreshTitle="Refresh functions"
+        ariaLabel="Search nodes"
       />
       <div className="overflow-y-scroll flex flex-col justify-start items-start pb-1">
         {Object.entries(filteredCategories).map(

@@ -27,11 +27,11 @@ def add_point2d_pydantic(a: Point2D, b: Point2D) -> Point2D:
 
 
 class Polygon(BaseModel):
-    points: List[Point2D]
+    vertices: List[Point2D]
 
 
 def add_polygon_pydantic(a: Polygon, b: Polygon) -> Polygon:
-    return Polygon(points=a.points + b.points)
+    return Polygon(vertices=a.vertices + b.vertices)
 
 
 if __name__ == "__main__":

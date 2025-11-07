@@ -6,6 +6,7 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { ThemeProvider } from "./components/theme-provider";
 import { ModeToggle } from "./components/mode-toggle";
 import { Separator } from "./components/ui/separator";
+import { TypesBrowser } from "./components/types-browser/types-browser";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 
 import NodeGraph from "./components/node-graph";
@@ -18,8 +19,8 @@ function App() {
         <ReactFlowProvider>
           <div className="min-h-full flex h-screen w-screen flex-row overflow-hidden bg-background text-foreground">
             <div className="min-w-60 flex flex-col h-full">
-              <Tabs defaultValue="nodes" className="w-full">
-                <div className="flex flex-row w-full p-2">
+              <Tabs defaultValue="nodes" className="w-full gap-0">
+                <div className="flex flex-row w-full px-2 pt-2">
                   <TabsList className="w-full">
                     <TabsTrigger value="nodes">Nodes</TabsTrigger>
                     <TabsTrigger value="types">Types</TabsTrigger>
@@ -28,7 +29,9 @@ function App() {
                 <TabsContent value="nodes">
                   <NodePicker />
                 </TabsContent>
-                <TabsContent value="types">types</TabsContent>
+                <TabsContent value="types">
+                  <TypesBrowser />
+                </TabsContent>
               </Tabs>
               <Separator className="mt-auto" />
               <div className="w-full flex flex-row p-2 gap-2">
