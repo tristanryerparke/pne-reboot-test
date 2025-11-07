@@ -27,7 +27,7 @@ function pluralizeKind(kind: string): string {
 
 export function KindGroup({ kind, types }: KindGroupProps) {
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full flex flex-col pb-1">
       <div className="pb-1">
         <strong className="text-sm font-semibold text-foreground capitalize">
           {pluralizeKind(kind)}

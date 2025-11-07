@@ -1,0 +1,11 @@
+from pydantic import BaseModel
+
+
+class Point2D(BaseModel):
+    x: float
+    y: float
+
+
+def two_point_distance(a: Point2D, b: Point2D) -> float:
+    """Calculates the distance between two 2D points."""
+    return ((a.x - b.x) ** 2 + (a.y - b.y) ** 2) ** 0.5
