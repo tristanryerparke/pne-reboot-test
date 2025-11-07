@@ -21,7 +21,6 @@ export function TypesBrowser() {
     fetch("http://localhost:8000/types")
       .then((response) => response.json())
       .then((data) => {
-        console.log("types:", data);
         setTypes(data);
       });
   }, []);

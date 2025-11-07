@@ -133,6 +133,9 @@ def analyze_file(file_path: str):
                             field: get_type_repr(ftype, module_ns, short_repr=True)
                             for field, ftype in tp.__annotations__.items()
                         }
+                        # Recursively add field types to types_dict
+                        for field_type in tp.__annotations__.values():
+                            add_type_to_types_dict(field_type)
                     types_dict[name] = entry
                     break
         # User alias (including typing.Union, etc. if defined as an alias in the module)
@@ -149,6 +152,10 @@ def analyze_file(file_path: str):
                             .replace(os.sep, ".")
                             .split("."),
                         }
+                        # Recursively add constituent types from the alias
+                        if hasattr(tp, "__args__"):
+                            for arg in tp.__args__:
+                                add_type_to_types_dict(arg)
                         break
         # Recursively add types for generics/aliases
         if hasattr(tp, "__origin__") and hasattr(tp, "__args__"):
