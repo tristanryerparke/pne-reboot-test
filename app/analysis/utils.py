@@ -1,0 +1,121 @@
+import importlib
+import importlib.util
+import inspect
+import os
+import sys
+from types import ModuleType
+from typing import Any, Callable, Dict, List, Tuple
+
+from ..schema import FunctionSchema
+from .functions_analysis import analyze_function
+from .types_analysis import merge_types_dict
+
+
+def find_python_files(target_path: str) -> List[str]:
+    """Find all Python files to analyze.
+
+    Args:
+        target_path: Path to a file or directory
+
+    Returns:
+        List of Python file paths to analyze
+    """
+    py_files = []
+
+    if os.path.isdir(target_path):
+        # Recursively find all .py files in the directory
+        for root, dirs, files in os.walk(target_path):
+            for file in files:
+                if file.endswith(".py"):
+                    py_files.append(os.path.join(root, file))
+    else:
+        # Single file
+        py_files = [target_path]
+
+    return py_files
+
+
+def analyze_file(file_path: str):
+    """Analyze a single file for functions that can be turned into nodes.
+    Also collects the input and output types of the functions and returns them."""
+
+    # Import the module from file path
+    module_name = os.path.splitext(os.path.basename(file_path))[0]
+    try:
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Could not load spec for {file_path}")
+
+        module: ModuleType = importlib.util.module_from_spec(spec)
+        # Add to sys.modules to handle potential circular imports
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+    except Exception as e:
+        print(f"Module '{file_path}' could not be imported: {e}")
+        return {}, {}, {}
+
+    # Get the namespace of the module
+    module_ns: Dict[str, Any] = vars(module)
+
+    # Find all functions in the module
+    funcs = {
+        name: obj
+        for name, obj in inspect.getmembers(module, inspect.isfunction)
+        if obj.__module__ == module_name or obj.__module__ == module.__name__
+    }
+
+    functions_schemas_list = []
+    callables_dict = {}
+    types_dict = {}
+
+    # Analyze each function and populate the dictionaries
+    for func_name, func_obj in funcs.items():
+        callable_id, func_schema, callable_obj, func_types = analyze_function(
+            func_obj, file_path, module_ns
+        )
+
+        # Store the function schema
+        functions_schemas_list.append(func_schema)
+
+        # Store the callable by its ID
+        callables_dict[callable_id] = callable_obj
+
+        # Merge the types found in this function into the file's types_dict
+        merge_types_dict(types_dict, func_types)
+
+    return functions_schemas_list, callables_dict, types_dict
+
+
+def analyze_files(py_files: List[str], base_dir: str):
+    """Takes in a flat list of python files and analyzes the functions in them"""
+    # Initialize accumulation structures
+    all_function_schemas = []
+    all_callables = {}
+    all_types = {}
+
+    # Add the base directory to sys.path
+    if base_dir not in sys.path:
+        sys.path.insert(0, base_dir)
+
+    for py_file in py_files:
+        print(f"Analyzing {py_file}:")
+
+        # Analyze the file
+        file_functions, file_callables, file_types = analyze_file(py_file)
+
+        # Merge functions schemas from this file
+        all_function_schemas.extend(file_functions)
+
+        # Merge callables from this file
+        for callable_id, callable_obj in file_callables.items():
+            all_callables[callable_id] = callable_obj
+
+        # Merge types from this file
+        merge_types_dict(all_types, file_types)
+
+    return all_function_schemas, all_callables, all_types
+
+
+def analyze_file_structure(search_path: str):
+    py_files_flat = find_python_files(search_path)
+    return analyze_files(py_files_flat, search_path)

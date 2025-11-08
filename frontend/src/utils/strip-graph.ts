@@ -24,19 +24,32 @@ interface StrippedGraph {
   edges: any[];
 }
 
-const NODE_FIELDS_TO_STRIP = [
-  "type",
-  "dragging",
-  "measured",
-  "selected",
+const NODE_FIELDS_TO_KEEP = ["id", "position", "data"] as const;
+const NODE_DATA_FIELDS_TO_KEEP = [
+  "callable_id",
+  "arguments",
+  "outputs",
+  "output_style",
 ] as const;
 
 export function stripGraphForExecute(graph: Graph): StrippedGraph {
   const strippedNodes = graph.nodes.map((node) => {
-    const strippedNode = { ...node };
-    NODE_FIELDS_TO_STRIP.forEach((field) => {
-      delete strippedNode[field];
+    const strippedData: any = {};
+    NODE_DATA_FIELDS_TO_KEEP.forEach((field) => {
+      if (field in node.data) {
+        strippedData[field] = node.data[field];
+      }
     });
+
+    const strippedNode: StrippedNode = {
+      id: node.id,
+      data: strippedData,
+    };
+
+    if (node.position) {
+      strippedNode.position = node.position;
+    }
+
     return strippedNode;
   });
 
