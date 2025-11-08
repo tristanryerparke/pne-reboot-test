@@ -59,6 +59,8 @@ async def execute_graph(graph: Graph):
                 "value": result,
             }
 
+        # FIXME: What if an upstream node's type changes and the input is no longer compatible?
+
         # Propagate outputs to connected nodes via edges
         for edge in graph.edges:
             if edge.source == node.id:
