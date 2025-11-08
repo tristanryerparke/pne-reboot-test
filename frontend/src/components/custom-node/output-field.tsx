@@ -39,6 +39,7 @@ export default function OutputFieldComponent({
         <TooltipContent
           side="right"
           sideOffset={2}
+          inverted
           className="px-2 py-1 text-xs rounded-sm"
         >
           <span className="text-xs">{fieldData.type}</span>
