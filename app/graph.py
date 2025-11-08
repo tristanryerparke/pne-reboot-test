@@ -16,8 +16,7 @@ async def execute_graph(graph: Graph):
 
     d(execution_list)
 
-    output_updates = {}
-    input_updates = {}
+    updates = []
 
     for node in execution_list:
         print(f"Executing node {node.id}")
@@ -26,20 +25,36 @@ async def execute_graph(graph: Graph):
         # Handle both single and multiple outputs
         output_style = node.data.output_style
 
+        node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
+
+        # Check if this node received inputs from other nodes via edges
+        for edge in graph.edges:
+            if edge.target == node.id:
+                # Extract the argument name from targetHandle
+                argument_name = edge.targetHandle.split(":")[-2]
+
+                # Get the actual value that was propagated to this node
+                actual_value = node.data.arguments[argument_name]["value"]
+                actual_type = node.data.arguments[argument_name]["type"]
+
+                node_update["inputs"][argument_name] = {
+                    "value": actual_value,
+                    "type": actual_type,
+                }
+
         if output_style == "multiple":
             # For multiple outputs we need to get the model as a dict
             result_dict = result.model_dump()
-            output_updates[node.id] = {}
             for output_name, output_def in node.data.outputs.items():
                 # FIXME: We don't need to get the type from the result because the MultipleOutputs
                 # Class is typed already... this could be a problem later on
-                output_updates[node.id][output_name] = {
+                node_update["outputs"][output_name] = {
                     "type": output_def["type"],
                     "value": result_dict[output_name],
                 }
         else:
             # For single output, use the entire result
-            output_updates[node.id] = {
+            node_update["outputs"]["return"] = {
                 **node.data.outputs["return"],
                 "value": result,
             }
@@ -62,22 +77,15 @@ async def execute_graph(graph: Graph):
                 # Extract target argument name from targetHandle
                 argument_name = edge.targetHandle.split(":")[-2]
 
-                if edge.target not in input_updates:
-                    input_updates[edge.target] = {}
-
-                input_updates[edge.target][argument_name] = {
-                    "value": output_value,
-                    "type": output_type,
-                }
-
                 # Update the target node's arguments for execution
                 target_node = next(n for n in execution_list if n.id == edge.target)
                 target_node.data.arguments[argument_name]["value"] = output_value
 
+        updates.append(node_update)
+
     update_message = {
         "status": "success",
-        "output_updates": output_updates,
-        "input_updates": input_updates,
+        "updates": updates,
     }
     d(update_message)
 

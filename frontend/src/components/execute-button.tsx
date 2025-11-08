@@ -35,48 +35,25 @@ export default function ExecuteMenu() {
       const result = await response.json();
 
       if (result.status === "success") {
-        // Update outputs for each node
-        Object.entries(result.output_updates).forEach(
-          ([nodeId, outputData]) => {
-            // Find the node to check its output_style
-            const node = nodes.find((n) => n.id === nodeId);
-            if (!node) return;
+        // Process updates in execution order
+        result.updates.forEach((update: any) => {
+          const nodeId = update.node_id;
 
-            const outputStyle = node.data.output_style;
+          // Update outputs
+          Object.entries(update.outputs).forEach(
+            ([outputName, outputFieldData]) => {
+              const path = [nodeId, "outputs", outputName];
+              updateNodeData(path, outputFieldData);
+            },
+          );
 
-            if (outputStyle === "multiple") {
-              // Multiple outputs - update each output field individually
-              Object.entries(outputData as Record<string, any>).forEach(
-                ([outputName, outputFieldData]) => {
-                  const path = [nodeId, "outputs", outputName];
-                  updateNodeData(path, outputFieldData);
-                },
-              );
-            } else {
-              // Single output - update the "return" field
-              const path = [nodeId, "outputs", "return"];
-              updateNodeData(path, outputData as any);
-            }
-          },
-        );
-
-        // Update inputs for nodes that received values from connections
-        Object.entries(result.input_updates).forEach(([nodeId, inputData]) => {
-          // Find the corresponding edge to get the target handle information
-          const relevantEdge = edges.find((edge) => edge.target === nodeId);
-          if (relevantEdge) {
-            // Extract the argument name from the target handle
-            const handleParts = relevantEdge.targetHandle.split(":");
-            const argumentName = handleParts[2]; // Format: nodeId:arguments:argumentName:handle
-
-            // Get the argument data and update only the value property
-            Object.entries(
-              inputData as Record<string, { value: any; type: string }>,
-            ).forEach(([argName, argData]) => {
+          // Update inputs
+          Object.entries(update.inputs).forEach(
+            ([argName, argData]: [string, any]) => {
               const valuePath = [nodeId, "arguments", argName, "value"];
               updateNodeData(valuePath, argData.value);
-            });
-          }
+            },
+          );
         });
 
         console.log("Graph execution completed successfully");
