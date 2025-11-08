@@ -6,19 +6,16 @@ from devtools import debug as d
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-<<<<<<< Updated upstream
 from app.analyze_file import get_all_functions_and_types
 from app.graph import router as graph_router
 from app.node_routes import setup_function_routes
 
 FUNCTIONS = {}
-=======
 from app.analysis.utils import analyze_file_structure
 from app.graph import router as graph_router
 
 FUNCTION_SCHEMAS = []
 CALLABLES = {}
->>>>>>> Stashed changes
 TYPES = {}
 
 
@@ -43,12 +40,6 @@ async def lifespan(app: FastAPI):
     print(f"Found {len(FUNCTION_SCHEMAS)} functions and {len(TYPES)} types")
     d(FUNCTION_SCHEMAS)
     d(TYPES)
-<<<<<<< Updated upstream
-
-    # Setup function routes
-    setup_function_routes(app, FUNCTIONS, TYPES)
-=======
->>>>>>> Stashed changes
 
     yield
 
@@ -67,26 +58,8 @@ app.include_router(graph_router)
 @app.get("/nodes")
 async def get_functions():
     """get schema for all loaded functions that are to be served as nodes"""
-<<<<<<< Updated upstream
-    # Remove the un-serializable types (callable) from the functions that are to become nodes
-    # Serialize and send them to the frontend
-    functions_stripped = {}
-
-    for k, v in FUNCTIONS.items():
-        if isinstance(v, dict) and "callable" in v:
-            v_copy = {
-                key: value
-                for key, value in v.items()
-                if key not in ["callable", "request_model"]
-            }
-        else:
-            v_copy = v
-        functions_stripped[k] = v_copy
-    return functions_stripped
-=======
     # FastAPI will automatically serialize the dict of FunctionSchema models
     return FUNCTION_SCHEMAS
->>>>>>> Stashed changes
 
 
 @app.get("/types")
