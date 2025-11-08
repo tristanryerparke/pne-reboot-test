@@ -16,9 +16,9 @@ export function NodeDocTooltip({ description, children }: NodeDocTooltipProps) {
       <HoverCardContent
         side="right"
         sideOffset={4}
-        className="p-2 text-xs rounded-sm max-w-md dark:bg-neutral-900"
+        className="w-fit p-2 text-xs rounded-sm max-w-md dark:bg-neutral-900"
       >
-        <pre className="text-xs whitespace-pre-wrap">{description}</pre>
+        <pre className="w-fit text-xs whitespace-pre-wrap">{description}</pre>
       </HoverCardContent>
     </HoverCard>
   );
