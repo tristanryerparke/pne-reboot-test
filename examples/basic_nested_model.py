@@ -1,8 +1,8 @@
-from basic_user_model import Point2D
-from pydantic import BaseModel
+from app.schema import UserModel
+from examples.basic_user_model import Point2D
 
 
-class Polygon(BaseModel):
+class Polygon(UserModel):
     vertices: list[Point2D]
 
 

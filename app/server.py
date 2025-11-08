@@ -11,13 +11,18 @@ from app.graph import router as graph_router
 from app.node_routes import setup_function_routes
 
 FUNCTIONS = {}
+from app.analysis.utils import analyze_file_structure
+from app.graph import router as graph_router
+
+FUNCTION_SCHEMAS = []
+CALLABLES = {}
 TYPES = {}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager to load functions and types from the provided path argument"""
-    global FUNCTIONS, TYPES
+    global FUNCTION_SCHEMAS, CALLABLES, TYPES
     args = sys.argv[1:]
     if len(args) == 0:
         print("No arguments provided")
@@ -26,14 +31,15 @@ async def lifespan(app: FastAPI):
     if not os.path.exists(search_path):
         print(f"The path {search_path} does not exist")
         sys.exit(1)
-    all_functions, all_types = get_all_functions_and_types(search_path)
-    FUNCTIONS.update(all_functions)
-    TYPES.update(all_types)
-    print(f"Found {len(FUNCTIONS)} functions and {len(TYPES)} types")
-    d(TYPES)
 
-    # Setup function routes
-    setup_function_routes(app, FUNCTIONS, TYPES)
+    function_schemas, callables, types = analyze_file_structure(search_path)
+    FUNCTION_SCHEMAS.extend(function_schemas)
+    CALLABLES.update(callables)
+    TYPES.update(types)
+
+    print(f"Found {len(FUNCTION_SCHEMAS)} functions and {len(TYPES)} types")
+    d(FUNCTION_SCHEMAS)
+    d(TYPES)
 
     yield
 
@@ -52,21 +58,8 @@ app.include_router(graph_router)
 @app.get("/nodes")
 async def get_functions():
     """get schema for all loaded functions that are to be served as nodes"""
-    # Remove the un-serializable types (callable) from the functions that are to become nodes
-    # Serialize and send them to the frontend
-    functions_stripped = {}
-
-    for k, v in FUNCTIONS.items():
-        if isinstance(v, dict) and "callable" in v:
-            v_copy = {
-                key: value
-                for key, value in v.items()
-                if key not in ["callable", "request_model"]
-            }
-        else:
-            v_copy = v
-        functions_stripped[k] = v_copy
-    return functions_stripped
+    # FastAPI will automatically serialize the dict of FunctionSchema models
+    return FUNCTION_SCHEMAS
 
 
 @app.get("/types")

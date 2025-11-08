@@ -22,7 +22,7 @@ function formatPropertyType(propType: any): string {
     return propType;
   }
   if (propType.type === "array" && propType.items) {
-    return `List[${propType.items}]`;
+    return `list[${propType.items}]`;
   }
   return JSON.stringify(propType);
 }
