@@ -21,8 +21,11 @@ function formatPropertyType(propType: any): string {
   if (typeof propType === "string") {
     return propType;
   }
+  if (propType.anyOf) {
+    return propType.anyOf.map(formatPropertyType).join(" | ");
+  }
   if (propType.type === "array" && propType.items) {
-    return `list[${propType.items}]`;
+    return `list[${formatPropertyType(propType.items)}]`;
   }
   return JSON.stringify(propType);
 }
@@ -48,7 +51,9 @@ export function TypeDisplay({ typeName, typeInfo }: TypeDisplayProps) {
           )}
           {typeInfo.kind === "user_alias" && typeInfo.type && (
             <span className="block mt-1">
-              <span className="block text-xs">{typeInfo.type}</span>
+              <span className="block text-xs">
+                {formatPropertyType(typeInfo.type)}
+              </span>
             </span>
           )}
         </ItemDescription>

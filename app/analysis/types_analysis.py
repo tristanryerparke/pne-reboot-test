@@ -1,5 +1,6 @@
 import inspect
 import os
+import types
 import typing
 from typing import Any, Dict, Set
 
@@ -19,6 +20,11 @@ def get_type_repr(tp, module_ns, short_repr=True):
         for name, val in module_ns.items():
             if val is tp and name.isidentifier():
                 return name
+    # Handle types.UnionType (int | float style)
+    if isinstance(tp, types.UnionType):
+        return {
+            "anyOf": [get_type_repr(arg, module_ns, short_repr) for arg in tp.__args__]
+        }
     if hasattr(tp, "__origin__"):
         origin: Any = tp.__origin__
         # print(origin)
