@@ -77,10 +77,13 @@ def analyze_function(
 
     callable_id = str(uuid.uuid4())
 
+    # Check if the function has a custom node_name attribute from decorator
+    func_name = getattr(func_obj, "node_name", func_obj.__name__)
+
     return (
         callable_id,
         FunctionSchema(
-            name=func_obj.__name__,
+            name=func_name,
             callable_id=callable_id,
             category=os.path.splitext(file_path)[0].replace(os.sep, ".").split("."),
             doc=inspect.getdoc(func_obj),
