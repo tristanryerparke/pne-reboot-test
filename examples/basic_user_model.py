@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from app.schema import UserModel
 
 
-class Point2D(BaseModel):
+class Point2D(UserModel):
     x: float
     y: float
 

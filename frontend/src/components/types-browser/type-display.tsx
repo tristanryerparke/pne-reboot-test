@@ -3,8 +3,10 @@ import {
   ItemContent,
   ItemDescription,
   ItemTitle,
+  ItemActions,
 } from "@/components/ui/item";
 import { type TypeInfo } from "./types-browser";
+import { hasDisplayComponent } from "./has-display-component";
 
 interface TypeDisplayProps {
   typeName: string;
@@ -25,6 +27,8 @@ function formatPropertyType(propType: any): string {
 }
 
 export function TypeDisplay({ typeName, typeInfo }: TypeDisplayProps) {
+  const hasComponent = hasDisplayComponent(typeName);
+
   return (
     <Item variant="outline" className="p-2 h-fit-content">
       <ItemContent className="gap-0">
@@ -52,6 +56,13 @@ export function TypeDisplay({ typeName, typeInfo }: TypeDisplayProps) {
           )}
         </ItemDescription>
       </ItemContent>
+      <ItemActions>
+        <div
+          className={`w-2 h-2 rounded-full ${
+            hasComponent ? "bg-green-500" : "bg-red-500"
+          }`}
+        />
+      </ItemActions>
     </Item>
   );
 }

@@ -7,6 +7,15 @@ interface DynamicInputProps {
   path: (string | number)[];
 }
 
+// Add more input types here
+export const TYPE_COMPONENT_REGISTRY: Record<
+  string,
+  React.ComponentType<DynamicInputProps>
+> = {
+  float: FloatInput,
+  int: IntInput,
+};
+
 export default memo(function DynamicInput({
   inputData,
   path,
@@ -15,11 +24,9 @@ export default memo(function DynamicInput({
     return <div>No data</div>;
   }
 
-  // Always use the appropriate input component based on type
-  if (inputData.type === "float") {
-    return <FloatInput inputData={inputData} path={path} />;
-  } else if (inputData.type === "int") {
-    return <IntInput inputData={inputData} path={path} />;
+  const Component = TYPE_COMPONENT_REGISTRY[inputData.type];
+  if (Component) {
+    return <Component inputData={inputData} path={path} />;
   }
 
   // For types without a component, show a generic message

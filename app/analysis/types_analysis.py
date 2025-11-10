@@ -100,24 +100,10 @@ def analyze_type(
         elif inspect.isclass(t):
             for name, val in module_ns.items():
                 if val is t and name.isidentifier():
-                    if name not in types_dict:
-                        entry = {
-                            "kind": "user_class",
-                            "class": t,
-                            "category": os.path.splitext(file_path)[0]
-                            .replace(os.sep, ".")
-                            .split("."),
-                        }
-                        if hasattr(t, "__annotations__") and t.__annotations__:
-                            entry["properties"] = {
-                                field: get_type_repr(ftype, module_ns, short_repr=True)
-                                for field, ftype in t.__annotations__.items()
-                            }
-                            # Recursively add field types
-                            for field_type in t.__annotations__.values():
-                                _add_type_recursive(field_type)
-                        types_dict[name] = entry
-                    break
+                    raise ValueError(
+                        f"Class '{name}' is not derived from UserModel. "
+                        f"All user-defined classes must inherit from UserModel."
+                    )
         # User alias (including typing.Union, etc. if defined as an alias in the module)
         else:
             for name, val in module_ns.items():

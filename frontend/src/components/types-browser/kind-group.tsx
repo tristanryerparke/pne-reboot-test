@@ -13,6 +13,9 @@ function pluralizeKind(kind: string): string {
   if (kind === "user_alias") {
     return "user aliases";
   }
+  if (kind === "user_class") {
+    return "user classes";
+  }
 
   // Add 's' to the end for other cases
   return formatted + "s";
