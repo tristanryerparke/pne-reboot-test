@@ -8,9 +8,12 @@ import { ModeToggle } from "./components/mode-toggle";
 import { Separator } from "./components/ui/separator";
 import { TypesBrowser } from "./components/types-browser/types-browser";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+import { Button } from "./components/ui/button";
 
 import NodeGraph from "./components/node-graph";
 import ExecuteButton from "./components/execute-button";
+import SaveButton from "./components/save-button";
+import { LoadButton } from "./components/load-button";
 
 function App() {
   return (
@@ -37,9 +40,13 @@ function App() {
                 </TabsContent>
               </Tabs>
               <Separator className="mt-auto" />
-              <div className="w-full flex flex-row p-2 gap-2">
+              <div className="w-full flex flex-row px-2 pt-2 gap-2">
                 <ModeToggle />
                 <ExecuteButton />
+              </div>
+              <div className="w-full flex flex-row p-2 gap-2">
+                <SaveButton />
+                <LoadButton />
               </div>
             </div>
             <Separator orientation="vertical" />

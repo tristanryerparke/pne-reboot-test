@@ -39,19 +39,19 @@ export default function ExecuteMenu() {
         result.updates.forEach((update: any) => {
           const nodeId = update.node_id;
 
-          // Update outputs
-          Object.entries(update.outputs).forEach(
-            ([outputName, outputFieldData]) => {
-              const path = [nodeId, "outputs", outputName];
-              updateNodeData(path, outputFieldData);
-            },
-          );
-
           // Update inputs
           Object.entries(update.inputs).forEach(
             ([argName, argData]: [string, any]) => {
               const valuePath = [nodeId, "arguments", argName, "value"];
               updateNodeData(valuePath, argData.value);
+            },
+          );
+
+          // Update outputs
+          Object.entries(update.outputs).forEach(
+            ([outputName, outputFieldData]) => {
+              const path = [nodeId, "outputs", outputName];
+              updateNodeData(path, outputFieldData);
             },
           );
         });
