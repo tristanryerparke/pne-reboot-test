@@ -2,25 +2,30 @@ import { useCallback, useEffect, useState } from "react";
 import { SearchBar } from "@/common/search-bar";
 import { KindGroup } from "./kind-group";
 
-interface TypeInfo {
+export interface UnionType {
+  anyOf: string[];
+}
+
+export interface TypeInfo {
   kind: string;
   category?: string[];
-  type?: string;
+  type: string | UnionType;
   properties?: Record<string, any>;
 }
 
-interface TypesByKind {
+export interface TypesByKind {
   [kind: string]: [string, TypeInfo][];
 }
 
 export function TypesBrowser() {
-  const [types, setTypes] = useState({});
+  const [types, setTypes] = useState<Record<string, TypeInfo>>({});
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchTypes = useCallback(() => {
     fetch("http://localhost:8000/types")
       .then((response) => response.json())
       .then((data) => {
+        console.log("types:", data);
         setTypes(data);
       });
   }, []);
@@ -31,13 +36,23 @@ export function TypesBrowser() {
 
   const filteredTypes = Object.entries(types).filter(([typeName, typeInfo]) => {
     const searchLower = searchTerm.toLowerCase();
+    let typeStr = "";
+    if (
+      typeInfo.kind === "user_alias" &&
+      typeof typeInfo.type === "object" &&
+      "anyOf" in typeInfo.type
+    ) {
+      typeStr = typeInfo.type.anyOf.join(" | ");
+    } else if (typeof typeInfo.type === "string") {
+      typeStr = typeInfo.type;
+    }
     return (
       typeName.toLowerCase().includes(searchLower) ||
       typeInfo.kind?.toLowerCase().includes(searchLower) ||
       typeInfo.category?.some((cat: string) =>
         cat.toLowerCase().includes(searchLower),
       ) ||
-      typeInfo.type?.toLowerCase().includes(searchLower)
+      typeStr.toLowerCase().includes(searchLower)
     );
   });
 

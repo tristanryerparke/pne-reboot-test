@@ -1,16 +1,9 @@
 import { TypeDisplay } from "./type-display";
-
-interface TypeInfo {
-  kind: string;
-  category?: string[];
-  type?: string;
-  properties?: Record<string, any>;
-}
+import { type TypeInfo } from "./types-browser";
 
 interface KindGroupProps {
   kind: string;
   types: [string, TypeInfo][];
-  showDivider: boolean;
 }
 
 function pluralizeKind(kind: string): string {

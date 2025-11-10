@@ -3,7 +3,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import DynamicOutput from "./dynamic_output";
 
 interface OutputFieldComponentProps {
-  fieldData: { type: string } | undefined;
+  fieldData: Record<string, any> | undefined;
   path: (string | number)[];
 }
 

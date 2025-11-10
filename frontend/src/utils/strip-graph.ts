@@ -3,12 +3,12 @@ interface GraphNode {
   position?: { x: number; y: number };
   type?: string;
   data: any;
-  measured?: { width: number; height: number };
+  measured?: { width?: number; height?: number };
   selected?: boolean;
   [key: string]: any;
 }
 
-interface Graph {
+export interface Graph {
   nodes: GraphNode[];
   edges: any[];
 }
