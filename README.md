@@ -14,7 +14,7 @@ def percentage(x: float, percentage: int) -> float:
     return x * (percentage / 100)
 ```
 
-Now, if you run `uv run main.py test_file.py`, you'll notice the following output:
+Now, if you run `uvx --from . pne-server test_file.py`, you'll notice the following output:
 ```
 INFO:     Started server process [62524]
 INFO:     Waiting for application startup.
