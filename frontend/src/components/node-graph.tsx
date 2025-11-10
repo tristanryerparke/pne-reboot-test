@@ -65,9 +65,10 @@ function NodeGraph() {
         data: nodeData,
       };
 
-      setNodes([...nodes, newNode]);
+      // Use functional update to avoid dependency on nodes array
+      setNodes((currentNodes) => [...currentNodes, newNode]);
     },
-    [screenToFlowPosition, setNodes, nodes],
+    [screenToFlowPosition, setNodes],
   );
 
   const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {

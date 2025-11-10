@@ -1,3 +1,4 @@
+import { memo } from "react";
 import FloatInput from "../../common/float-input";
 import IntInput from "../../common/int-input";
 
@@ -6,7 +7,10 @@ interface DynamicInputProps {
   path: (string | number)[];
 }
 
-export default function DynamicInput({ inputData, path }: DynamicInputProps) {
+export default memo(function DynamicInput({
+  inputData,
+  path,
+}: DynamicInputProps) {
   if (!inputData) {
     return <div>No data</div>;
   }
@@ -21,4 +25,4 @@ export default function DynamicInput({ inputData, path }: DynamicInputProps) {
   // For types without a component, show a generic message
   console.log("No component for type:", inputData.type);
   return <div>DynamicInput: {inputData.type}</div>;
-}
+});

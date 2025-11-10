@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { JsonViewer as BaseJsonViewer } from "../ui/json-tree-viewer";
 import { useNodeData } from "../../store";
 
@@ -6,7 +7,7 @@ interface JsonViewerProps {
   path: (string | number)[];
 }
 
-export default function JsonViewer({ data, path }: JsonViewerProps) {
+export default memo(function JsonViewer({ data, path }: JsonViewerProps) {
   return (
     <div className={`p-2`}>
       <BaseJsonViewer
@@ -17,4 +18,4 @@ export default function JsonViewer({ data, path }: JsonViewerProps) {
       />
     </div>
   );
-}
+});

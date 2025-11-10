@@ -20,7 +20,7 @@ type AppStoreState = {
 };
 
 type AppStoreActions = {
-  setNodes: (nodes: Node[]) => void;
+  setNodes: (nodes: Node[] | ((currentNodes: Node[]) => Node[])) => void;
   setEdges: (edges: Edge[]) => void;
   setRfInstance: (instance: ReactFlowInstance) => void;
   onNodesChange: OnNodesChange;
@@ -64,7 +64,8 @@ const useStore = createWithEqualityFn<AppState>(
       );
     },
     onConnect: (connection) => set({ edges: addEdge(connection, get().edges) }),
-    setNodes: (nodes) => set({ nodes }),
+    setNodes: (nodes) =>
+      set({ nodes: typeof nodes === "function" ? nodes(get().nodes) : nodes }),
     setEdges: (edges) => set({ edges }),
     setRfInstance: (instance) => set({ rfInstance: instance }),
 
