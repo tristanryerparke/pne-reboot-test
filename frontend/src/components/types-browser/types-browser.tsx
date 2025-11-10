@@ -2,18 +2,18 @@ import { useCallback, useEffect, useState } from "react";
 import { SearchBar } from "@/common/search-bar";
 import { KindGroup } from "./kind-group";
 
-interface TypeInfo {
+export interface UnionType {
+  anyOf: string[];
+}
+
+export interface TypeInfo {
   kind: string;
   category?: string[];
   type: string | UnionType;
   properties?: Record<string, any>;
 }
 
-interface UnionType {
-  anyOf: string[];
-}
-
-interface TypesByKind {
+export interface TypesByKind {
   [kind: string]: [string, TypeInfo][];
 }
 
@@ -37,7 +37,11 @@ export function TypesBrowser() {
   const filteredTypes = Object.entries(types).filter(([typeName, typeInfo]) => {
     const searchLower = searchTerm.toLowerCase();
     let typeStr = "";
-    if (typeInfo.kind === "user_alias" && typeInfo.type.anyOf) {
+    if (
+      typeInfo.kind === "user_alias" &&
+      typeof typeInfo.type === "object" &&
+      "anyOf" in typeInfo.type
+    ) {
       typeStr = typeInfo.type.anyOf.join(" | ");
     } else if (typeof typeInfo.type === "string") {
       typeStr = typeInfo.type;

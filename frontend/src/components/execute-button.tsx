@@ -3,7 +3,7 @@ import { LoaderIcon } from "lucide-react";
 import useStore from "../store";
 import { useState, useCallback } from "react";
 import { stripGraphForExecute } from "../utils/strip-graph";
-import { Graph } from "../types/graph";
+import { type Graph } from "../utils/strip-graph";
 
 export default function ExecuteMenu() {
   const [loading, setLoading] = useState(false);

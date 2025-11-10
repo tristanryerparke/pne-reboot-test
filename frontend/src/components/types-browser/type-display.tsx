@@ -4,13 +4,7 @@ import {
   ItemDescription,
   ItemTitle,
 } from "@/components/ui/item";
-
-interface TypeInfo {
-  kind: string;
-  category?: string[];
-  type?: string;
-  properties?: Record<string, any>;
-}
+import { type TypeInfo } from "./types-browser";
 
 interface TypeDisplayProps {
   typeName: string;

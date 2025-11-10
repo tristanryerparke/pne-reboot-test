@@ -75,7 +75,7 @@ function NodePicker() {
 
         // Filter out nodes that are no longer valid
         setNodes((nodes) =>
-          nodes.filter((node) => validNodeTypes.has(node.name as string)),
+          nodes.filter((node) => validNodeTypes.has(node.data.name as string)),
         );
 
         // Remove edges connected to deleted nodes
