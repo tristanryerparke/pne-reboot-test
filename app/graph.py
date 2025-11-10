@@ -1,9 +1,7 @@
-from typing import Any
-
 from devtools import debug as d
 from fastapi import APIRouter
 
-from .schema import Edge, Graph, NodeDataFromFrontend, NodeFromFrontend
+from .schema import Graph, NodeDataFromFrontend, NodeFromFrontend
 
 router = APIRouter()
 
@@ -54,8 +52,11 @@ async def execute_graph(graph: Graph):
                 }
         else:
             # For single output, use the entire result
-            node_update["outputs"]["return"] = {
-                **node.data.outputs["return"],
+            # The output key is already set correctly in the outputs dict (either return_value_name or "return")
+            # Just get the first (and only) key from outputs
+            output_key = list(node.data.outputs.keys())[0]
+            node_update["outputs"][output_key] = {
+                **node.data.outputs[output_key],
                 "value": result,
             }
 
@@ -74,7 +75,9 @@ async def execute_graph(graph: Graph):
                     output_type = node.data.outputs[output_field_name]["type"]
                 else:
                     output_value = result
-                    output_type = node.data.outputs["return"]["type"]
+                    # Get the correct output key (either custom return_value_name or "return")
+                    output_key = list(node.data.outputs.keys())[0]
+                    output_type = node.data.outputs[output_key]["type"]
 
                 # Extract target argument name from targetHandle
                 argument_name = edge.targetHandle.split(":")[-2]

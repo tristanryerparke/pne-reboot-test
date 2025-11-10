@@ -1,6 +1,3 @@
-import sys
-
-sys.path.append("app")
 from app.schema import MultipleOutputs
 
 

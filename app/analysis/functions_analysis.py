@@ -69,7 +69,12 @@ def analyze_function(
     # Basic single output
     else:
         output_style = "single"
-        outputs["return"] = {"type": get_type_repr(ret_ann, module_ns, short_repr=True)}
+        # Check if function has a custom return_value_name from decorator
+        return_value_name_temp = getattr(func_obj, "return_value_name", None)
+        output_key = return_value_name_temp if return_value_name_temp else "return"
+        outputs[output_key] = {
+            "type": get_type_repr(ret_ann, module_ns, short_repr=True)
+        }
 
     # Analyze the return type and merge found types
     ret_types = analyze_type(ret_ann, file_path, module_ns)
@@ -79,6 +84,9 @@ def analyze_function(
 
     # Check if the function has a custom node_name attribute from decorator
     func_name = getattr(func_obj, "node_name", func_obj.__name__)
+
+    # Check if the function has a custom return_value_name attribute from decorator
+    return_value_name = getattr(func_obj, "return_value_name", None)
 
     return (
         callable_id,
@@ -90,6 +98,7 @@ def analyze_function(
             arguments=arguments,
             output_style=output_style,
             outputs=outputs,
+            return_value_name=return_value_name,
         ),
         func_obj,
         found_types,
