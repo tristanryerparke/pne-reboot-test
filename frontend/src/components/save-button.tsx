@@ -1,0 +1,29 @@
+import { Button } from "./ui/button";
+import useStore from "../store";
+
+export default function SaveButton() {
+  const { rfInstance } = useStore();
+
+  const onSave = () => {
+    if (rfInstance) {
+      const flow = rfInstance.toObject();
+      const json = JSON.stringify(flow, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `flow-${new Date().toISOString()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  return (
+    <Button className="flex-1" onClick={onSave}>
+      Save
+    </Button>
+  );
+}

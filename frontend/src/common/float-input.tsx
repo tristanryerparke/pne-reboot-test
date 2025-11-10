@@ -1,30 +1,34 @@
+import { memo } from "react";
 import { NumberInput } from "../components/ui/number-input";
 import useStore from "../store";
 import { useNodeConnections } from "@xyflow/react";
-import { useDebounceValue } from "usehooks-ts";
+import { useControlledDebounce } from "../hooks/useControlledDebounce";
 
 interface FloatInputProps {
   inputData: any;
   path: (string | number)[];
 }
 
-export default function FloatInput({ inputData, path }: FloatInputProps) {
-  // Get the field definition and current value from the store using selectors
-
+export default memo(function FloatInput({ inputData, path }: FloatInputProps) {
   const updateNodeData = useStore((state) => state.updateNodeData);
 
   // Use current value if it exists, otherwise use default_value, otherwise undefined
-  const initialValue =
+  const externalValue =
     typeof inputData.value === "number"
       ? inputData.value
       : inputData?.default_value !== undefined
         ? inputData.default_value
         : undefined;
 
-  const [debouncedValue, setValue] = useDebounceValue<number | undefined>(
-    initialValue,
+  // Use controlled debounce - updates store only on user input, not external updates
+  const [value, setValue] = useControlledDebounce(
+    externalValue,
+    (debouncedValue) => {
+      updateNodeData([...path, "value"], debouncedValue);
+    },
     200,
   );
+
   // Use the xyflow hook to check if input is connected
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
   const connections = useNodeConnections({
@@ -38,19 +42,17 @@ export default function FloatInput({ inputData, path }: FloatInputProps) {
 
   const handleValueChange = (newValue: number | undefined) => {
     setValue(newValue);
-    updateNodeData([...path, "value"], newValue);
-    // Store update now happens via debounced effect
   };
 
   return (
     <NumberInput
-      value={debouncedValue}
+      value={value}
       decimalScale={3}
       onValueChange={handleValueChange}
-      onBlur={() => handleValueChange(debouncedValue)}
+      onBlur={() => handleValueChange(value)}
       disabled={isConnected}
       className="nodrag nopan noscroll h-9 w-full"
       placeholder="Enter float"
     />
   );
-}
+});

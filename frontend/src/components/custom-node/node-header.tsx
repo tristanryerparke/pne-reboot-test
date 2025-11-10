@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Button } from "../ui/button";
 import { Code, ArrowLeftRight, FileText } from "lucide-react";
 import { NodeResizeControl } from "@xyflow/react";
@@ -11,7 +12,7 @@ type NodeHeaderProps = {
   minWidth?: number;
 };
 
-export default function NodeHeader({
+export default memo(function NodeHeader({
   data,
   nodeId,
   isJsonView,
@@ -64,4 +65,4 @@ export default function NodeHeader({
       </div>
     </div>
   );
-}
+});

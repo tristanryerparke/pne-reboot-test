@@ -1,8 +1,10 @@
+import { memo } from "react";
+
 interface DynamicOutputProps {
   outputData: any;
 }
 
-export default function DynamicOutput({ outputData }: DynamicOutputProps) {
+export default memo(function DynamicOutput({ outputData }: DynamicOutputProps) {
   const displayValue = () => {
     if (outputData?.value !== undefined) {
       // Handle different types of values
@@ -21,4 +23,4 @@ export default function DynamicOutput({ outputData }: DynamicOutputProps) {
       </span>
     </div>
   );
-}
+});

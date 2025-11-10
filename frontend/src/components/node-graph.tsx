@@ -7,6 +7,7 @@ import {
   type Node,
   type NodeTypes,
   useReactFlow,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 import { useCallback } from "react";
 import CustomNode from "./custom-node/custom-node";
@@ -19,8 +20,15 @@ const nodeTypes: NodeTypes = {
 
 function NodeGraph() {
   const { theme } = useTheme();
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, setNodes } =
-    useStore();
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    setNodes,
+    setRfInstance,
+  } = useStore();
 
   const { screenToFlowPosition } = useReactFlow();
 
@@ -57,9 +65,10 @@ function NodeGraph() {
         data: nodeData,
       };
 
-      setNodes([...nodes, newNode]);
+      // Use functional update to avoid dependency on nodes array
+      setNodes((currentNodes) => [...currentNodes, newNode]);
     },
-    [screenToFlowPosition, setNodes, nodes],
+    [screenToFlowPosition, setNodes],
   );
 
   const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
@@ -78,6 +87,7 @@ function NodeGraph() {
         onConnect={onConnect}
         onDrop={onDrop}
         onDragOver={onDragOver}
+        onInit={setRfInstance}
         nodeTypes={nodeTypes}
         colorMode={colorMode}
         // fitView
