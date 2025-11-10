@@ -84,7 +84,10 @@ async def execute_graph(graph: Graph):
 
                 # Update the target node's arguments for execution
                 target_node = next(n for n in execution_list if n.id == edge.target)
-                target_node.data.arguments[argument_name]["value"] = output_value
+                target_node.data.arguments[argument_name] = {
+                    "value": output_value,
+                    "type": output_type,
+                }
 
         updates.append(node_update)
 

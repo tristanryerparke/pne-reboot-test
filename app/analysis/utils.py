@@ -4,14 +4,13 @@ import inspect
 import os
 import sys
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any
 
-from ..schema import FunctionSchema
 from .functions_analysis import analyze_function
 from .types_analysis import merge_types_dict
 
 
-def find_python_files(target_path: str) -> List[str]:
+def find_python_files(target_path: str) -> list[str]:
     """Find all Python files to analyze.
 
     Args:
@@ -55,7 +54,7 @@ def analyze_file(file_path: str):
         return {}, {}, {}
 
     # Get the namespace of the module
-    module_ns: Dict[str, Any] = vars(module)
+    module_ns: dict[str, Any] = vars(module)
 
     # Find all functions in the module
     funcs = {
@@ -86,7 +85,7 @@ def analyze_file(file_path: str):
     return functions_schemas_list, callables_dict, types_dict
 
 
-def analyze_files(py_files: List[str], base_dir: str):
+def analyze_files(py_files: list[str], base_dir: str):
     """Takes in a flat list of python files and analyzes the functions in them"""
     # Initialize accumulation structures
     all_function_schemas = []
