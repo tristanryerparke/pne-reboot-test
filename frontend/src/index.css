@@ -11,3 +11,14 @@
         @apply grid place-items-center min-w-[320px] min-h-screen relative m-0 bg-background text-foreground;
     }
 }
+
+@layer utilities {
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+}

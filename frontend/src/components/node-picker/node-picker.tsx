@@ -137,7 +137,7 @@ function NodePicker() {
   );
 
   return (
-    <div className="overflow-y-hidden flex flex-col px-2 pt-2 gap-2 ">
+    <div className="h-full flex flex-col px-2 pt-2 gap-2">
       <SearchBar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -146,7 +146,7 @@ function NodePicker() {
         refreshTitle="Refresh functions"
         ariaLabel="Search nodes"
       />
-      <div className="overflow-y-scroll flex flex-col justify-start items-start pb-1">
+      <div className="flex flex-col justify-start items-start pb-1 overflow-y-auto flex-1 min-h-0 scrollbar-hide">
         {Object.entries(filteredCategories).map(
           ([category, categoryData], index) => (
             <CategoryGroup

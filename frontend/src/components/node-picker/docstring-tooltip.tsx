@@ -4,12 +4,19 @@ import {
   HoverCardTrigger,
 } from "../ui/hover-card";
 
-interface NodeDocTooltipProps {
-  description: string;
+interface DocstringTooltipProps {
+  description: string | null;
   children: React.ReactNode;
 }
 
-export function NodeDocTooltip({ description, children }: NodeDocTooltipProps) {
+export function DocstringTooltip({
+  description,
+  children,
+}: DocstringTooltipProps) {
+  if (!description) {
+    return <>{children}</>;
+  }
+
   return (
     <HoverCard openDelay={200} closeDelay={200}>
       <HoverCardTrigger asChild>{children}</HoverCardTrigger>

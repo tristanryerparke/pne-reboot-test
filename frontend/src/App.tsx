@@ -18,18 +18,21 @@ function App() {
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <ReactFlowProvider>
           <div className="min-h-full flex h-screen w-screen flex-row overflow-hidden bg-background text-foreground">
-            <div className="min-w-60 flex flex-col h-full">
-              <Tabs defaultValue="nodes" className="w-full gap-0">
+            <div className="min-w-60 flex flex-col h-full overflow-y-hidden">
+              <Tabs
+                defaultValue="nodes"
+                className="w-full gap-0 flex flex-col flex-1 overflow-hidden"
+              >
                 <div className="flex flex-row w-full px-2 pt-2">
                   <TabsList className="w-full">
                     <TabsTrigger value="nodes">Nodes</TabsTrigger>
                     <TabsTrigger value="types">Types</TabsTrigger>
                   </TabsList>
                 </div>
-                <TabsContent value="nodes">
+                <TabsContent value="nodes" className="flex-1 overflow-hidden">
                   <NodePicker />
                 </TabsContent>
-                <TabsContent value="types">
+                <TabsContent value="types" className="flex-1 overflow-hidden">
                   <TypesBrowser />
                 </TabsContent>
               </Tabs>

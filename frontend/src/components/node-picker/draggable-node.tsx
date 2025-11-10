@@ -1,4 +1,4 @@
-import { NodeDocTooltip } from "../custom-node/docstring-tooltip";
+import { DocstringTooltip } from "./docstring-tooltip";
 
 interface DraggableNodeProps {
   nodeData: any;
@@ -14,7 +14,7 @@ export function DraggableNode({ nodeData }: DraggableNodeProps) {
   };
 
   return (
-    <NodeDocTooltip description={nodeData.doc || ""}>
+    <DocstringTooltip description={nodeData.doc || ""}>
       <div
         className="bg-background text-secondary-foreground border border-input p-2 rounded-md text-ellipsis overflow-hidden cursor-grab hover:bg-accent hover:text-accent-foreground transition-colors"
         onDragStart={onDragStart}
@@ -22,6 +22,6 @@ export function DraggableNode({ nodeData }: DraggableNodeProps) {
       >
         {nodeData.name}
       </div>
-    </NodeDocTooltip>
+    </DocstringTooltip>
   );
 }
