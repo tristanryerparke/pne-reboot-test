@@ -77,6 +77,7 @@ export default memo(function CustomNode({
             ))}
           </div>
           {/* Handle both single and multiple outputs */}
+          <Separator />
           <div>
             {Object.entries(data.outputs).map(
               ([outputName, outputDef], index) => (

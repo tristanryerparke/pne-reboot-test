@@ -1,4 +1,5 @@
 import { DocstringTooltip } from "./docstring-tooltip";
+import { Item, ItemTitle } from "@/components/ui/item";
 
 interface DraggableNodeProps {
   nodeData: any;
@@ -15,13 +16,14 @@ export function DraggableNode({ nodeData }: DraggableNodeProps) {
 
   return (
     <DocstringTooltip description={nodeData.doc || ""}>
-      <div
-        className="bg-background text-secondary-foreground border border-input p-2 rounded-md text-ellipsis overflow-hidden cursor-grab hover:bg-accent hover:text-accent-foreground transition-colors"
+      <Item
+        variant="outline"
+        className="p-2 cursor-grab hover:bg-accent hover:text-accent-foreground"
         onDragStart={onDragStart}
         draggable
       >
-        {nodeData.name}
-      </div>
+        <ItemTitle className="pb-0">{nodeData.name}</ItemTitle>
+      </Item>
     </DocstringTooltip>
   );
 }

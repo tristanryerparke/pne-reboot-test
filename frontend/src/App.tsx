@@ -18,7 +18,7 @@ function App() {
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <ReactFlowProvider>
           <div className="min-h-full flex h-screen w-screen flex-row overflow-hidden bg-background text-foreground">
-            <div className="min-w-60 flex flex-col h-full overflow-y-hidden">
+            <div className="min-w-60 flex flex-col h-full">
               <Tabs
                 defaultValue="nodes"
                 className="w-full gap-0 flex flex-col flex-1 overflow-hidden"
@@ -38,7 +38,7 @@ function App() {
               </Tabs>
               <Separator className="mt-auto" />
               <div className="w-full flex flex-row p-2 gap-2">
-                {/*<ModeToggle />*/}
+                <ModeToggle />
                 <ExecuteButton />
               </div>
             </div>
