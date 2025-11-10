@@ -1,6 +1,7 @@
 import { memo } from "react";
 import FloatInput from "../../common/float-input";
 import IntInput from "../../common/int-input";
+import UserModelDisplay from "../../common/user-model-display";
 
 interface DynamicInputProps {
   inputData: any;
@@ -14,6 +15,7 @@ export const TYPE_COMPONENT_REGISTRY: Record<
 > = {
   float: FloatInput,
   int: IntInput,
+  Point2D: UserModelDisplay,
 };
 
 export default memo(function DynamicInput({

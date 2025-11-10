@@ -8,7 +8,7 @@ from typing import Any
 
 from .functions_analysis import analyze_function
 from .types_analysis import merge_types_dict
-from .user_model_nodes import create_const_deconst_models
+from .user_model_functions import create_const_deconst_models
 
 
 def find_python_files(target_path: str) -> list[str]:
