@@ -2,7 +2,7 @@
 
 
 
-### Python Node Editor..... 
+### Python Node Editor (PNE)
 
 Let's say your python project is too flexible/modular to keep re-writing a frontend for it. Or maybe you don't want to keep looking at code while you're running some python functions you wrote while tweaking the inputs.
 
