@@ -12,6 +12,7 @@ from app.graph import router as graph_router
 FUNCTION_SCHEMAS = []
 CALLABLES = {}
 TYPES = {}
+VERBOSE = False
 
 
 @asynccontextmanager
@@ -32,9 +33,10 @@ async def lifespan(app: FastAPI):
     CALLABLES.update(callables)
     TYPES.update(types)
 
-    print(f"Found {len(FUNCTION_SCHEMAS)} functions and {len(TYPES)} types")
-    d(FUNCTION_SCHEMAS)
-    d(TYPES)
+    if VERBOSE:
+        print(f"Found {len(FUNCTION_SCHEMAS)} functions and {len(TYPES)} types")
+        d(FUNCTION_SCHEMAS)
+        d(TYPES)
 
     yield
 
