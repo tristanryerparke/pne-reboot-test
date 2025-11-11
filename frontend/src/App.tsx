@@ -14,8 +14,17 @@ import NodeGraph from "./components/node-graph";
 import ExecuteButton from "./components/execute-button";
 import SaveButton from "./components/save-button";
 import { LoadButton } from "./components/load-button";
+import { useEffect } from "react";
+import useStore from "./store";
 
 function App() {
+  const fetchTypes = useStore((state) => state.fetchTypes);
+  const fetchNodeSchemas = useStore((state) => state.fetchNodeSchemas);
+
+  useEffect(() => {
+    fetchTypes();
+    fetchNodeSchemas();
+  }, [fetchTypes, fetchNodeSchemas]);
   return (
     <>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">

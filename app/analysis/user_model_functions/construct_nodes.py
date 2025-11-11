@@ -52,6 +52,7 @@ def create_construct_node(
         output_style="single",
         outputs=outputs,
         return_value_name=None,
+        auto_generated=True,
     )
 
     # Create the callable constructor function

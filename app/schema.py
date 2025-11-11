@@ -23,6 +23,7 @@ class FunctionSchema(BaseModel):
     output_style: Literal["single", "multiple"]
     outputs: dict[str, dict[str, Any]]
     return_value_name: str | None = None
+    auto_generated: bool = False
 
 
 class NodeDataFromFrontend(BaseModel):

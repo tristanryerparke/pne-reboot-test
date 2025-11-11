@@ -1,16 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { SearchBar } from "@/common/search-bar";
 import { KindGroup } from "./kind-group";
+import useStore, { type TypeInfo } from "@/store";
 
 export interface UnionType {
   anyOf: string[];
-}
-
-export interface TypeInfo {
-  kind: string;
-  category?: string[];
-  type: string | UnionType;
-  properties?: Record<string, any>;
 }
 
 export interface TypesByKind {
@@ -18,17 +12,9 @@ export interface TypesByKind {
 }
 
 export function TypesBrowser() {
-  const [types, setTypes] = useState<Record<string, TypeInfo>>({});
+  const types = useStore((state) => state.types);
+  const fetchTypes = useStore((state) => state.fetchTypes);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const fetchTypes = useCallback(() => {
-    fetch("http://localhost:8000/types")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("types:", data);
-        setTypes(data);
-      });
-  }, []);
 
   useEffect(() => {
     fetchTypes();

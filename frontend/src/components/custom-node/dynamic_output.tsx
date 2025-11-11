@@ -1,16 +1,22 @@
 import { memo } from "react";
 import SingleLineTextDisplay from "../../common/single-line-text-display";
+import useStore from "@/store";
 
 interface DynamicOutputProps {
   outputData: any;
 }
 
 export default memo(function DynamicOutput({ outputData }: DynamicOutputProps) {
+  const types = useStore((state) => state.types);
+
   const displayValue = () => {
     if (outputData?.value !== undefined) {
-      // Handle Point2D and other UserModel types
+      const typeInfo = types[outputData.type];
+
+      // Handle user_model types generically
       if (
-        outputData.type === "Point2D" &&
+        typeInfo &&
+        typeInfo.kind === "user_model" &&
         typeof outputData.value === "object"
       ) {
         const fields = Object.entries(outputData.value)

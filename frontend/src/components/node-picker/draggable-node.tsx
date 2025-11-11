@@ -1,5 +1,6 @@
 import { DocstringTooltip } from "./docstring-tooltip";
 import { Item, ItemTitle } from "@/components/ui/item";
+import { Badge } from "@/components/ui/badge";
 
 interface DraggableNodeProps {
   nodeData: any;
@@ -22,7 +23,14 @@ export function DraggableNode({ nodeData }: DraggableNodeProps) {
         onDragStart={onDragStart}
         draggable
       >
-        <ItemTitle className="pb-0">{nodeData.name}</ItemTitle>
+        <div className="flex items-center justify-between gap-2 w-full">
+          <ItemTitle className="pb-0">{nodeData.name}</ItemTitle>
+          {nodeData.auto_generated && (
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+              auto
+            </Badge>
+          )}
+        </div>
       </Item>
     </DocstringTooltip>
   );

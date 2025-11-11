@@ -60,6 +60,7 @@ def create_deconstruct_node(
         output_style="multiple",
         outputs=outputs,
         return_value_name=None,
+        auto_generated=True,
     )
 
     # Create the callable deconstructor function
