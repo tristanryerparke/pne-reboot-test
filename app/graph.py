@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from .schema import Graph, NodeDataFromFrontend, NodeFromFrontend
 
 router = APIRouter()
+VERBOSE = False
 
 
 @router.post("/graph_execute")
@@ -12,12 +13,14 @@ async def execute_graph(graph: Graph):
 
     execution_list = topological_order(graph)
 
-    d(execution_list)
+    if VERBOSE:
+        d(execution_list)
 
     updates = []
 
     for node in execution_list:
-        print(f"Executing node {node.id}")
+        if VERBOSE:
+            print(f"Executing node {node.id}")
         result = execute_node(node.data)
 
         # Handle both single and multiple outputs
@@ -95,7 +98,9 @@ async def execute_graph(graph: Graph):
         "status": "success",
         "updates": updates,
     }
-    d(update_message)
+
+    if VERBOSE:
+        d(update_message)
 
     return update_message
 
