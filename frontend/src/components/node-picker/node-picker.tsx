@@ -1,27 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { SearchBar } from "@/common/search-bar";
 import { CategoryGroup } from "./category-group";
-
-interface NodeFunctionData {
-  name: string;
-  group: string;
-  category: string[];
-  arguments: Record<
-    string,
-    {
-      type: string;
-      default_value?: any;
-    }
-  >;
-  return: {
-    type: string;
-  };
-}
-
-interface NodesResponse {
-  [functionName: string]: NodeFunctionData;
-}
+import useStore, { type NodeFunctionData, type NodesResponse } from "@/store";
 
 interface NodeCategories {
   [category: string]: NodeFunctionData[];
@@ -29,7 +10,8 @@ interface NodeCategories {
 
 function NodePicker() {
   const { getNodes, setNodes, setEdges } = useReactFlow();
-  const [nodeCategories, setNodeCategories] = useState<NodeCategories>({});
+  const nodeSchemas = useStore((state) => state.nodeSchemas);
+  const fetchNodeSchemas = useStore((state) => state.fetchNodeSchemas);
   const [searchTerm, setSearchTerm] = useState("");
 
   const transformNodeFunctionDataToNodes = (
@@ -59,40 +41,37 @@ function NodePicker() {
     return categories;
   };
 
-  const fetchNodes = useCallback(() => {
-    fetch("http://localhost:8000/nodes")
-      .then((response) => response.json())
-      .then((data: NodesResponse) => {
-        const transformedData = transformNodeFunctionDataToNodes(data);
-        setNodeCategories(transformedData);
+  const nodeCategories = useMemo(() => {
+    return transformNodeFunctionDataToNodes(nodeSchemas);
+  }, [nodeSchemas]);
 
-        // Create a set of valid node types
-        const validNodeTypes = new Set(
-          Object.values(transformedData).flatMap((nodes) =>
-            nodes.map((node) => node.name),
-          ),
-        );
-
-        // Filter out nodes that are no longer valid
-        setNodes((nodes) =>
-          nodes.filter((node) => validNodeTypes.has(node.data.name as string)),
-        );
-
-        // Remove edges connected to deleted nodes
-        setEdges((edges) =>
-          edges.filter(
-            (edge) =>
-              getNodes().some((node) => node.id === edge.source) &&
-              getNodes().some((node) => node.id === edge.target),
-          ),
-        );
-      })
-      .catch((error) => console.error("Error fetching node data:", error));
-  }, [setNodeCategories, setNodes, setEdges, getNodes]);
-
+  // Clean up invalid nodes and edges when schemas change
   useEffect(() => {
-    fetchNodes();
-  }, [fetchNodes]);
+    // Create a set of valid node types
+    const validNodeTypes = new Set(
+      Object.values(nodeCategories).flatMap((nodes) =>
+        nodes.map((node) => node.name),
+      ),
+    );
+
+    // Filter out nodes that are no longer valid
+    setNodes((nodes) =>
+      nodes.filter((node) => validNodeTypes.has(node.data.name as string)),
+    );
+
+    // Remove edges connected to deleted nodes
+    setEdges((edges) =>
+      edges.filter(
+        (edge) =>
+          getNodes().some((node) => node.id === edge.source) &&
+          getNodes().some((node) => node.id === edge.target),
+      ),
+    );
+  }, [nodeCategories, setNodes, setEdges, getNodes]);
+
+  const fetchNodes = useCallback(() => {
+    fetchNodeSchemas();
+  }, [fetchNodeSchemas]);
 
   const filteredCategories = Object.entries(nodeCategories).reduce(
     (acc, [category, nodes]) => {

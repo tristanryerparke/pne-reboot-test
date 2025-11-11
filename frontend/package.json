@@ -39,7 +39,6 @@
     "@types/bun": "latest",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "react-devtools": "^7.0.1",
     "shadcn": "^3.0.0"
   }
 }

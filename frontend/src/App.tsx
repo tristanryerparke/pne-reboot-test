@@ -14,8 +14,18 @@ import NodeGraph from "./components/node-graph";
 import ExecuteButton from "./components/execute-button";
 import SaveButton from "./components/save-button";
 import { LoadButton } from "./components/load-button";
+import { useEffect } from "react";
+import useStore from "./store";
 
 function App() {
+  const fetchTypes = useStore((state) => state.fetchTypes);
+  const fetchNodeSchemas = useStore((state) => state.fetchNodeSchemas);
+
+  useEffect(() => {
+    fetchTypes();
+    fetchNodeSchemas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">

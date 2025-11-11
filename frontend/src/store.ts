@@ -12,11 +12,46 @@ import type {
 } from "@xyflow/react";
 import { produce } from "immer";
 
+// Type definitions for types browser
+export interface UnionType {
+  anyOf: string[];
+}
+
+export interface TypeInfo {
+  kind: string;
+  category?: string[];
+  type: string | UnionType;
+  properties?: Record<string, any>;
+}
+
+// Type definitions for node schemas
+export interface NodeFunctionData {
+  name: string;
+  group: string;
+  category: string[];
+  arguments: Record<
+    string,
+    {
+      type: string;
+      default_value?: any;
+    }
+  >;
+  return: {
+    type: string;
+  };
+}
+
+export interface NodesResponse {
+  [functionName: string]: NodeFunctionData;
+}
+
 // Separate state and actions following Zustand best practices
 type AppStoreState = {
   nodes: Node[];
   edges: Edge[];
   rfInstance: ReactFlowInstance | null;
+  types: Record<string, TypeInfo>;
+  nodeSchemas: NodesResponse;
 };
 
 type AppStoreActions = {
@@ -28,6 +63,10 @@ type AppStoreActions = {
   onConnect: OnConnect;
   updateNodeData: (path: (string | number)[], newData: unknown) => void;
   getNodeData: (path: (string | number)[]) => unknown;
+  setTypes: (types: Record<string, TypeInfo>) => void;
+  fetchTypes: () => Promise<void>;
+  setNodeSchemas: (nodeSchemas: NodesResponse) => void;
+  fetchNodeSchemas: () => Promise<void>;
 };
 
 export type AppState = AppStoreState & AppStoreActions;
@@ -37,6 +76,8 @@ const useStore = createWithEqualityFn<AppState>(
     nodes: [], // initial state for nodes, used in NodeGraph
     edges: [], // initial state for edges, used in NodeGraph
     rfInstance: null,
+    types: {},
+    nodeSchemas: {},
 
     onNodesChange: (changes) => {
       set(
@@ -129,6 +170,34 @@ const useStore = createWithEqualityFn<AppState>(
       }
 
       return current; // Return the data at the specified path
+    },
+
+    // Types management
+    setTypes: (types) => set({ types }),
+
+    fetchTypes: async () => {
+      try {
+        const response = await fetch("http://localhost:8000/types");
+        const data = await response.json();
+        console.log("types:", data);
+        set({ types: data });
+      } catch (error) {
+        console.error("Failed to fetch types:", error);
+      }
+    },
+
+    // Node schemas management
+    setNodeSchemas: (nodeSchemas) => set({ nodeSchemas }),
+
+    fetchNodeSchemas: async () => {
+      try {
+        const response = await fetch("http://localhost:8000/nodes");
+        const data = await response.json();
+        console.log("node schemas:", data);
+        set({ nodeSchemas: data });
+      } catch (error) {
+        console.error("Failed to fetch node schemas:", error);
+      }
     },
   }),
   shallow,

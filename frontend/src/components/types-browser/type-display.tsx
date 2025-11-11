@@ -5,7 +5,7 @@ import {
   ItemTitle,
   ItemActions,
 } from "@/components/ui/item";
-import { type TypeInfo } from "./types-browser";
+import { type TypeInfo } from "@/store";
 import { hasDisplayComponent } from "./has-display-component";
 
 interface TypeDisplayProps {
