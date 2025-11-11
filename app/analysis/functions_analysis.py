@@ -11,10 +11,12 @@ from .types_analysis import analyze_type, get_type_repr, merge_types_dict
 
 def analyze_function(
     func_obj: Callable,
-    file_path: str,
-    module_ns: Dict[str, Any],
 ) -> Tuple[str, FunctionSchema, Callable, Dict[str, Any]]:
     """Analyze a function and return its ID, schema, callable, and found types"""
+
+    # Get file path and module namespace from the function object
+    file_path = inspect.getfile(func_obj)
+    module_ns = func_obj.__globals__
 
     # Inspect the function
     sig = inspect.signature(func_obj)
