@@ -4,6 +4,9 @@ import InputFieldComponent from "./input-field";
 import OutputFieldComponent from "./output-field";
 import JsonViewer from "./json-viewer";
 import { Separator } from "../ui/separator";
+import { Button } from "../ui/button";
+import { Plus } from "lucide-react";
+import useStore from "../../store";
 
 export default memo(function CustomNode({
   data,
@@ -16,6 +19,7 @@ export default memo(function CustomNode({
   const [isResized, setIsResized] = useState(false);
   const [fitWidth, setFitWidth] = useState<number | undefined>(undefined);
   const nodeRef = useRef<HTMLDivElement>(null);
+  const updateNodeData = useStore((state) => state.updateNodeData);
 
   // Measure the fit width when not resized
   useEffect(() => {
@@ -34,9 +38,37 @@ export default memo(function CustomNode({
     setIsResized(true);
   };
 
+  const handleAddInput = () => {
+    // Find the highest numbered argument (e.g., _0, _1, _2 or 0, 1, 2)
+    const argNames = Object.keys(data.arguments);
+    const argNumbers = argNames
+      .map((name) => {
+        // Handle both "0", "1" and "_0", "_1" patterns
+        if (/^\d+$/.test(name)) {
+          return parseInt(name);
+        } else if (name.startsWith("_") && /^\d+$/.test(name.substring(1))) {
+          return parseInt(name.substring(1));
+        }
+        return NaN;
+      })
+      .filter((num) => !isNaN(num));
+
+    const nextNumber = argNumbers.length > 0 ? Math.max(...argNumbers) + 1 : 0;
+    const newArgName = `${nextNumber}`;
+
+    // Use list_inputs_type if available, otherwise fall back to first argument
+    const newArg = {
+      type: data.list_inputs_type || data.arguments[argNames[0]]?.type,
+      default_value: data.arguments[argNames[0]]?.default_value,
+    };
+
+    // Update the node data with the new argument
+    updateNodeData([id, "arguments", newArgName], newArg);
+  };
+
   const path = [id];
 
-  // console.log(data)
+  // console.log(data);
 
   return (
     <div
@@ -75,6 +107,21 @@ export default memo(function CustomNode({
                 />
               </div>
             ))}
+            {data.list_inputs === true && (
+              <div>
+                <Separator />
+                <div className="p-2 flex flex-row gap-2 items-center">
+                  <Button
+                    variant="secondary"
+                    size="icon-sm"
+                    onClick={handleAddInput}
+                  >
+                    <Plus />
+                  </Button>
+                  Add Input
+                </div>
+              </div>
+            )}
           </div>
           {/* Handle both single and multiple outputs */}
           <Separator />
