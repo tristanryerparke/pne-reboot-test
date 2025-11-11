@@ -5,7 +5,7 @@ import OutputFieldComponent from "./output-field";
 import JsonViewer from "./json-viewer";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import useStore from "../../store";
 
 export default memo(function CustomNode({
@@ -66,6 +66,45 @@ export default memo(function CustomNode({
     updateNodeData([id, "arguments", newArgName], newArg);
   };
 
+  const handleRemoveInput = (argName: string) => {
+    const argNames = Object.keys(data.arguments);
+
+    // Get all numbered arguments and sort them
+    const numberedArgs = argNames
+      .filter((name) => /^\d+$/.test(name))
+      .map((name) => ({
+        name,
+        number: parseInt(name),
+        data: data.arguments[name],
+      }))
+      .sort((a, b) => a.number - b.number);
+
+    // Find the index of the argument to remove
+    const removeIndex = numberedArgs.findIndex((arg) => arg.name === argName);
+    if (removeIndex === -1) return;
+
+    // Create new arguments object without the removed item
+    const newArguments = { ...data.arguments };
+    delete newArguments[argName];
+
+    // Renumber all arguments after the removed one
+    for (let i = removeIndex + 1; i < numberedArgs.length; i++) {
+      const oldName = numberedArgs[i].name;
+      const newName = `${i - 1}`;
+
+      // Copy the data to the new key
+      newArguments[newName] = newArguments[oldName];
+
+      // Delete the old key if it's different
+      if (oldName !== newName) {
+        delete newArguments[oldName];
+      }
+    }
+
+    // Update the entire arguments object
+    updateNodeData([id, "arguments"], newArguments);
+  };
+
   const path = [id];
 
   // console.log(data);
@@ -98,22 +137,47 @@ export default memo(function CustomNode({
       ) : (
         <>
           <div>
-            {Object.entries(data.arguments).map(([argName, argDef], index) => (
-              <div key={argName} className="node-field-input">
-                {index > 0 && <Separator />}
-                <InputFieldComponent
-                  fieldData={argDef}
-                  path={[...path, "arguments", argName]}
-                />
-              </div>
-            ))}
+            {Object.entries(data.arguments).map(([argName, argDef], index) => {
+              // Check if this is a user-added input (numeric key)
+              const isUserAdded = /^\d+$/.test(argName);
+
+              return (
+                <div key={argName} className="node-field-input">
+                  {index > 0 && <Separator />}
+                  <div className="flex items-center">
+                    <div
+                      className={
+                        isUserAdded && data.list_inputs === true
+                          ? "flex-1 mr-1"
+                          : "flex-1 mr-2"
+                      }
+                    >
+                      <InputFieldComponent
+                        fieldData={argDef}
+                        path={[...path, "arguments", argName]}
+                      />
+                    </div>
+                    {isUserAdded && data.list_inputs === true && (
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => handleRemoveInput(argName)}
+                        className="mr-1 flex-shrink-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
             {data.list_inputs === true && (
               <div>
                 <Separator />
                 <div className="p-2 flex flex-row gap-2 items-center">
                   <Button
-                    variant="secondary"
-                    size="icon-sm"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={handleAddInput}
                   >
                     <Plus />

@@ -29,7 +29,7 @@ export default function InputFieldComponent({
       />
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex w-full pl-3 pr-2 py-2 gap-1 overflow-hidden items-center">
+          <div className="flex w-full pl-3 py-2 gap-1 overflow-hidden items-center">
             <div className="flex w-full items-center flex-shrink-0 gap-2">
               <span>
                 {fieldName}
