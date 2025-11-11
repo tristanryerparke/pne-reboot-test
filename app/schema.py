@@ -20,9 +20,9 @@ class FunctionSchema(BaseModel):
     category: list[str]
     doc: str | None = None
     arguments: dict[str, dict[str, Any]]
+    list_inputs: bool = False
     output_style: Literal["single", "multiple"]
     outputs: dict[str, dict[str, Any]]
-    return_value_name: str | None = None
     auto_generated: bool = False
 
 

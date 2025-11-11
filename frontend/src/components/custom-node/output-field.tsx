@@ -7,6 +7,19 @@ interface OutputFieldComponentProps {
   path: (string | number)[];
 }
 
+function formatPropertyType(propType: any): string {
+  if (typeof propType === "string") {
+    return propType;
+  }
+  if (propType.anyOf) {
+    return propType.anyOf.map(formatPropertyType).join(" | ");
+  }
+  if (propType.type === "array" && propType.items) {
+    return `list[${formatPropertyType(propType.items)}]`;
+  }
+  return JSON.stringify(propType);
+}
+
 export default function OutputFieldComponent({
   fieldData,
   path,
@@ -41,7 +54,7 @@ export default function OutputFieldComponent({
           sideOffset={2}
           className="px-2 py-1 text-xs rounded-sm"
         >
-          <span className="text-xs">{fieldData.type}</span>
+          <span className="text-xs">{formatPropertyType(fieldData.type)}</span>
         </TooltipContent>
       </Tooltip>
     </div>

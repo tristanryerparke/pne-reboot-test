@@ -85,9 +85,6 @@ def analyze_function(
     # Check if the function has a custom node_name attribute from decorator
     func_name = getattr(func_obj, "node_name", func_obj.__name__)
 
-    # Check if the function has a custom return_value_name attribute from decorator
-    return_value_name = getattr(func_obj, "return_value_name", None)
-
     return (
         callable_id,
         FunctionSchema(
@@ -98,7 +95,7 @@ def analyze_function(
             arguments=arguments,
             output_style=output_style,
             outputs=outputs,
-            return_value_name=return_value_name,
+            list_inputs=getattr(func_obj, "list_inputs", False),
         ),
         func_obj,
         found_types,
