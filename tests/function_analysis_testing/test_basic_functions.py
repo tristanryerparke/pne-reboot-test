@@ -24,6 +24,7 @@ def test_on_simple_add():
     assert schema.outputs == {"return": {"type": "int"}}
 
     # Make sure we only found the int type
+    d(found_types)
     assert found_types == {"int": {"kind": "builtin", "class": int}}
 
 
@@ -46,6 +47,7 @@ def test_find_float_and_int():
     assert schema.outputs == {"return": {"type": "float"}}
 
     # Make sure we found both float and int types
+    d(found_types)
     assert found_types == {
         "float": {"kind": "builtin", "class": float},
         "int": {"kind": "builtin", "class": int},
