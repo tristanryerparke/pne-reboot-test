@@ -24,7 +24,8 @@ function App() {
   useEffect(() => {
     fetchTypes();
     fetchNodeSchemas();
-  }, [fetchTypes, fetchNodeSchemas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">

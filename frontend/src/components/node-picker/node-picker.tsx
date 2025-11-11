@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { SearchBar } from "@/common/search-bar";
 import { CategoryGroup } from "./category-group";
@@ -42,11 +42,14 @@ function NodePicker() {
   };
 
   const nodeCategories = useMemo(() => {
-    const transformedData = transformNodeFunctionDataToNodes(nodeSchemas);
+    return transformNodeFunctionDataToNodes(nodeSchemas);
+  }, [nodeSchemas]);
 
+  // Clean up invalid nodes and edges when schemas change
+  useEffect(() => {
     // Create a set of valid node types
     const validNodeTypes = new Set(
-      Object.values(transformedData).flatMap((nodes) =>
+      Object.values(nodeCategories).flatMap((nodes) =>
         nodes.map((node) => node.name),
       ),
     );
@@ -64,9 +67,7 @@ function NodePicker() {
           getNodes().some((node) => node.id === edge.target),
       ),
     );
-
-    return transformedData;
-  }, [nodeSchemas, setNodes, setEdges, getNodes]);
+  }, [nodeCategories, setNodes, setEdges, getNodes]);
 
   const fetchNodes = useCallback(() => {
     fetchNodeSchemas();
