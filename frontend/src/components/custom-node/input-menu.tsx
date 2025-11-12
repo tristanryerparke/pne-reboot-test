@@ -4,14 +4,28 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
 interface InputMenuProps {
   onDelete?: () => void;
+  unionTypes?: string[];
+  selectedType?: string;
+  onTypeChange?: (type: string) => void;
 }
 
-export default function InputMenu({ onDelete }: InputMenuProps) {
+export default function InputMenu({
+  onDelete,
+  unionTypes,
+  selectedType,
+  onTypeChange,
+}: InputMenuProps) {
+  const hasUnionTypes = unionTypes && unionTypes.length > 1;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -20,14 +34,32 @@ export default function InputMenu({ onDelete }: InputMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" side="right" sideOffset={5}>
-        <DropdownMenuItem
-          variant="destructive"
-          onClick={onDelete}
-          className="cursor-pointer"
-        >
-          <Trash2 className="h-4 w-4" />
-          Delete
-        </DropdownMenuItem>
+        {hasUnionTypes && (
+          <>
+            <DropdownMenuLabel>Input Type</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              value={selectedType}
+              onValueChange={onTypeChange}
+            >
+              {unionTypes.map((type) => (
+                <DropdownMenuRadioItem key={type} value={type}>
+                  {type}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+            {onDelete && <DropdownMenuSeparator />}
+          </>
+        )}
+        {onDelete && (
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={onDelete}
+            className="cursor-pointer"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

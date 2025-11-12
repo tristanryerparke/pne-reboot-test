@@ -28,21 +28,34 @@ export default memo(function DynamicInput({
     return <div>No data</div>;
   }
 
+  // Handle union types - check if type is an object with anyOf
+  let actualType = inputData.type;
+  if (typeof inputData.type === "object" && inputData.type?.anyOf) {
+    // For union types, use selectedType if available, otherwise default to first type
+    actualType = inputData.selectedType || inputData.type.anyOf[0];
+  }
+
   // Check if we have a specific component for this type
-  const Component = TYPE_COMPONENT_REGISTRY[inputData.type];
+  const Component = TYPE_COMPONENT_REGISTRY[actualType];
   if (Component) {
-    return <Component inputData={inputData} path={path} />;
+    return (
+      <Component inputData={{ ...inputData, type: actualType }} path={path} />
+    );
   }
 
   // Check if this type exists in the store and is a user_model
-  const typeInfo = types[inputData.type];
+  const typeInfo = types[actualType];
   if (typeInfo && typeInfo.kind === "user_model") {
     return (
-      <UserModelDisplay inputData={inputData} path={path} typeInfo={typeInfo} />
+      <UserModelDisplay
+        inputData={{ ...inputData, type: actualType }}
+        path={path}
+        typeInfo={typeInfo}
+      />
     );
   }
 
   // For types without a component, show a generic message
-  console.log("No component for type:", inputData.type);
-  return <div>DynamicInput: {inputData.type}</div>;
+  console.log("No component for type:", actualType);
+  return <div>DynamicInput: {actualType}</div>;
 });

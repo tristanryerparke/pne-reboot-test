@@ -141,16 +141,23 @@ export default memo(function CustomNode({
               // Check if this is a user-added input (numeric key)
               const isUserAdded = /^\d+$/.test(argName);
               const isDynamic = isUserAdded && data.list_inputs === true;
+              // Check if this is a union type (will show menu)
+              const isUnionType =
+                typeof (argDef as any).type === "object" &&
+                (argDef as any).type?.anyOf;
+              const hasMenu = isDynamic || isUnionType;
 
               return (
                 <div key={argName} className="node-field-input">
                   {index > 0 && <Separator />}
-                  <div className={`${!isDynamic ? "pr-2" : ""}`}>
+                  <div className={`${!hasMenu ? "pr-2" : ""}`}>
                     <InputFieldComponent
                       fieldData={argDef}
                       path={[...path, "arguments", argName]}
                       showMenu={isDynamic}
-                      onDelete={() => handleRemoveInput(argName)}
+                      onDelete={
+                        isDynamic ? () => handleRemoveInput(argName) : undefined
+                      }
                     />
                   </div>
                 </div>

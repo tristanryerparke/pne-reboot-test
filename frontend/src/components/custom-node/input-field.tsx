@@ -2,6 +2,7 @@ import { Handle, Position } from "@xyflow/react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import DynamicInput from "./dynamic-input";
 import InputMenu from "./input-menu";
+import useFlowStore from "../../stores/flowStore";
 
 interface InputFieldProps {
   fieldData: any;
@@ -18,10 +19,32 @@ export default function InputFieldComponent({
 }: InputFieldProps) {
   const fieldName = path[2];
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
+  const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
   if (!fieldData) {
     return <div>No field data</div>;
   }
+
+  // Handle union types for display
+  const isUnionType =
+    typeof fieldData.type === "object" && fieldData.type?.anyOf;
+  const unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
+
+  // Get or initialize the selected type from fieldData
+  const selectedType =
+    fieldData.selectedType || (unionTypes ? unionTypes[0] : undefined);
+
+  const displayType = isUnionType
+    ? fieldData.type.anyOf.join(" | ")
+    : fieldData.type;
+
+  // Handler for when user changes the type
+  const handleTypeChange = (newType: string) => {
+    updateNodeData([...path, "selectedType"], newType);
+  };
+
+  // Show menu if explicitly requested OR if it's a union type
+  const shouldShowMenu = showMenu || isUnionType;
 
   return (
     <div className="relative w-full flex items-center">
@@ -50,11 +73,18 @@ export default function InputFieldComponent({
             sideOffset={2}
             className="px-2 py-1 text-xs rounded-sm"
           >
-            <span className="text-xs">{fieldData.type}</span>
+            <span className="text-xs">{displayType}</span>
           </TooltipContent>
         </Tooltip>
       </div>
-      {showMenu && <InputMenu onDelete={onDelete} />}
+      {shouldShowMenu && (
+        <InputMenu
+          onDelete={onDelete}
+          unionTypes={unionTypes}
+          selectedType={selectedType}
+          onTypeChange={handleTypeChange}
+        />
+      )}
     </div>
   );
 }
