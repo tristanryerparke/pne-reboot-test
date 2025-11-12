@@ -3,9 +3,10 @@ import NodeHeader from "./node-header";
 import InputFieldComponent from "./input-field";
 import OutputFieldComponent from "./output-field";
 import JsonViewer from "./json-viewer";
+import InputMenu from "./input-menu";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import useStore from "../../store";
 
 export default memo(function CustomNode({
@@ -140,33 +141,22 @@ export default memo(function CustomNode({
             {Object.entries(data.arguments).map(([argName, argDef], index) => {
               // Check if this is a user-added input (numeric key)
               const isUserAdded = /^\d+$/.test(argName);
+              const isDynamic = isUserAdded && data.list_inputs === true;
 
               return (
                 <div key={argName} className="node-field-input">
                   {index > 0 && <Separator />}
                   <div className="flex items-center">
-                    <div
-                      className={
-                        isUserAdded && data.list_inputs === true
-                          ? "flex-1 mr-1"
-                          : "flex-1 mr-2"
-                      }
-                    >
+                    <div className="flex-1">
                       <InputFieldComponent
                         fieldData={argDef}
                         path={[...path, "arguments", argName]}
                       />
                     </div>
-                    {isUserAdded && data.list_inputs === true && (
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => handleRemoveInput(argName)}
-                        className="mr-1 flex-shrink-0"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    )}
+                    <InputMenu
+                      isDynamic={isDynamic}
+                      onDelete={() => handleRemoveInput(argName)}
+                    />
                   </div>
                 </div>
               );
