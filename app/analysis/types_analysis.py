@@ -69,6 +69,12 @@ def analyze_type(
         ):
             return
 
+        # Special handling for typing.Any
+        if t is typing.Any:
+            if "Any" not in types_dict:
+                types_dict["Any"] = {"kind": "builtin", "class": t}
+            return
+
         # Builtin
         if inspect.isclass(t) and t.__module__ == "builtins":
             tname = t.__name__

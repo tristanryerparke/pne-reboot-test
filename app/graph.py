@@ -110,8 +110,29 @@ def execute_node(node: NodeDataFromFrontend):
     from app.server import CALLABLES
 
     callable = CALLABLES[node.callable_id]
-    args = {k: v["value"] for k, v in node.arguments.items()}
-    return callable(**args)
+
+    # Check if this function has list_inputs enabled
+    if getattr(callable, "list_inputs", False):
+        # For list_inputs functions, collect all _N arguments in order and pass as *args
+        numbered_args = {}
+        other_args = {}
+
+        for k, v in node.arguments.items():
+            # Handle both "_0", "_1" and "0", "1" naming patterns
+            if k.isdigit():
+                numbered_args[int(k)] = v["value"]
+            else:
+                other_args[k] = v["value"]
+
+        # Sort by number and extract values
+        sorted_args = [numbered_args[i] for i in sorted(numbered_args.keys())]
+
+        # Call with positional args for numbered params, kwargs for others
+        return callable(*sorted_args, **other_args)
+    else:
+        # Normal execution with kwargs
+        args = {k: v["value"] for k, v in node.arguments.items()}
+        return callable(**args)
 
 
 def topological_order(graph: Graph) -> list[NodeFromFrontend]:

@@ -25,7 +25,23 @@ def analyze_function(
 
     # Get the input arguments schema of the function and register the types
     arguments = {}
+    list_inputs_type = None
+
     for arg in sig.parameters.values():
+        # Handle *args parameter - extract its type for list_inputs
+        if arg.kind == inspect.Parameter.VAR_POSITIONAL:
+            ann = type_hints.get(arg.name, arg.annotation)
+            if ann is not inspect.Parameter.empty:
+                list_inputs_type = get_type_repr(ann, module_ns, short_repr=True)
+                # Analyze the argument type and merge with found types
+                arg_types = analyze_type(ann, file_path, module_ns)
+                merge_types_dict(found_types, arg_types)
+            continue
+
+        # Skip **kwargs parameters
+        if arg.kind == inspect.Parameter.VAR_KEYWORD:
+            continue
+
         ann = type_hints.get(arg.name, arg.annotation)
         # You need to type annotate!
         if ann is inspect.Parameter.empty:
@@ -85,9 +101,6 @@ def analyze_function(
     # Check if the function has a custom node_name attribute from decorator
     func_name = getattr(func_obj, "node_name", func_obj.__name__)
 
-    # Check if the function has a custom return_value_name attribute from decorator
-    return_value_name = getattr(func_obj, "return_value_name", None)
-
     return (
         callable_id,
         FunctionSchema(
@@ -98,7 +111,8 @@ def analyze_function(
             arguments=arguments,
             output_style=output_style,
             outputs=outputs,
-            return_value_name=return_value_name,
+            list_inputs=getattr(func_obj, "list_inputs", False),
+            list_inputs_type=list_inputs_type,
         ),
         func_obj,
         found_types,
