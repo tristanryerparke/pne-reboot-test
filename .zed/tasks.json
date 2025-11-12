@@ -66,5 +66,9 @@
   {
     "label": "Frontend",
     "command": "cd frontend && bun run dev --host"
+  },
+  {
+    "label": "BrowserTools MCP Server",
+    "command": "bunx @agentdeskai/browser-tools-server@1.2.0"
   }
 ]

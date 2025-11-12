@@ -5,7 +5,7 @@ import {
   ItemTitle,
   ItemActions,
 } from "@/components/ui/item";
-import { type TypeInfo } from "@/store";
+import useStore, { type TypeInfo } from "@/store";
 import { hasDisplayComponent } from "./has-display-component";
 
 interface TypeDisplayProps {
@@ -27,13 +27,14 @@ function formatPropertyType(propType: any): string {
 }
 
 export function TypeDisplay({ typeName, typeInfo }: TypeDisplayProps) {
-  const hasComponent = hasDisplayComponent(typeName);
+  const types = useStore((state) => state.types);
+  const hasComponent = hasDisplayComponent(typeName, types);
 
   return (
     <Item variant="outline" className="p-2 h-fit-content">
       <ItemContent className="gap-0">
         <ItemTitle className="pb-0">{typeName}</ItemTitle>
-        <ItemDescription>
+        <ItemDescription className="line-clamp-none">
           {typeInfo.kind === "user_model" && typeInfo.properties && (
             <span className="block mt-1">
               <span className="block text-xs">
