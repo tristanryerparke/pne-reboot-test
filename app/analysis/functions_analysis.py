@@ -27,7 +27,15 @@ def analyze_function(
 
     # Get file path and module namespace from the function object
     file_path = inspect.getfile(func_obj)
+    abs_file_path = os.path.abspath(file_path)
     module_ns = func_obj.__globals__
+
+    # Get relative path from current working directory
+    try:
+        rel_file_path = os.path.relpath(abs_file_path, os.getcwd())
+    except ValueError:
+        # If on different drives on Windows, use absolute path
+        rel_file_path = abs_file_path
 
     # Inspect the function
     sig = inspect.signature(func_obj)
@@ -120,12 +128,16 @@ def analyze_function(
     # Check if the function has a custom node_name attribute from decorator
     func_name = getattr(func_obj, "node_name", func_obj.__name__)
 
+    # Create category from relative path (without extension)
+    category_path = os.path.splitext(rel_file_path)[0].replace(os.sep, "/").split("/")
+
     return (
         callable_id,
         FunctionSchema(
             name=func_name,
             callable_id=callable_id,
-            category=os.path.splitext(file_path)[0].replace(os.sep, ".").split("."),
+            category=category_path,
+            file_path=abs_file_path,
             doc=inspect.getdoc(func_obj),
             arguments=arguments,
             output_style=output_style,

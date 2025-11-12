@@ -18,6 +18,7 @@ class FunctionSchema(BaseModel):
     name: str
     callable_id: str
     category: list[str]
+    file_path: str
     doc: str | None = None
     arguments: dict[str, dict[str, Any]]
     list_inputs: bool = False
