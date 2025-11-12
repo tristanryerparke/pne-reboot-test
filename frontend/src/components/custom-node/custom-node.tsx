@@ -146,17 +146,18 @@ export default memo(function CustomNode({
               return (
                 <div key={argName} className="node-field-input">
                   {index > 0 && <Separator />}
-                  <div className="flex items-center">
+                  <div
+                    className={`flex items-center ${!isDynamic ? "pr-2" : ""}`}
+                  >
                     <div className="flex-1">
                       <InputFieldComponent
                         fieldData={argDef}
                         path={[...path, "arguments", argName]}
                       />
                     </div>
-                    <InputMenu
-                      isDynamic={isDynamic}
-                      onDelete={() => handleRemoveInput(argName)}
-                    />
+                    {isDynamic && (
+                      <InputMenu onDelete={() => handleRemoveInput(argName)} />
+                    )}
                   </div>
                 </div>
               );
