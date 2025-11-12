@@ -54,9 +54,6 @@ def analyze_file(file_path: str):
         print(f"Module '{file_path}' could not be imported: {e}")
         return {}, {}, {}
 
-    # Get the namespace of the module
-    module_ns: dict[str, Any] = vars(module)
-
     # Find all functions in the module
     funcs = {
         name: obj
@@ -70,9 +67,7 @@ def analyze_file(file_path: str):
 
     # Analyze each function and populate the dictionaries
     for func_name, func_obj in funcs.items():
-        callable_id, func_schema, callable_obj, func_types = analyze_function(
-            func_obj, file_path, module_ns
-        )
+        callable_id, func_schema, callable_obj, func_types = analyze_function(func_obj)
 
         # Store the function schema
         functions_schemas_list.append(func_schema)

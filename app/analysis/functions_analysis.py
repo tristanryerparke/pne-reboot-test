@@ -9,12 +9,25 @@ from app.schema import FunctionSchema, MultipleOutputs
 from .types_analysis import analyze_type, get_type_repr, merge_types_dict
 
 
+class ParameterNotTypeAnnotated(Exception):
+    pass
+
+
 def analyze_function(
     func_obj: Callable,
-    file_path: str,
-    module_ns: Dict[str, Any],
 ) -> Tuple[str, FunctionSchema, Callable, Dict[str, Any]]:
-    """Analyze a function and return its ID, schema, callable, and found types"""
+    """Analyze a function with the inspect module and returns:
+     - A generated id for referencing the function
+     - A schema describing the function for sending to the frontend and creating the node in the UI
+     - The original function object, for when we want to call it with arguments sent from the frontend
+     - A dictionary of type schemas found in the function's argument and return
+    type annotations for sending to the frontend
+
+    """
+
+    # Get file path and module namespace from the function object
+    file_path = inspect.getfile(func_obj)
+    module_ns = func_obj.__globals__
 
     # Inspect the function
     sig = inspect.signature(func_obj)
@@ -26,26 +39,32 @@ def analyze_function(
     # Get the input arguments schema of the function and register the types
     arguments = {}
     list_inputs_type = None
-
     for arg in sig.parameters.values():
+        # =========== PARSE POSITIONAL ARGUMENT TYPE ANNOTATIONS ===========
+        # Some functions may accept a variable number of arguments, but they still need to be typed
+        # Those types need to be registered
         # Handle *args parameter - extract its type for list_inputs
         if arg.kind == inspect.Parameter.VAR_POSITIONAL:
             ann = type_hints.get(arg.name, arg.annotation)
-            if ann is not inspect.Parameter.empty:
-                list_inputs_type = get_type_repr(ann, module_ns, short_repr=True)
-                # Analyze the argument type and merge with found types
-                arg_types = analyze_type(ann, file_path, module_ns)
-                merge_types_dict(found_types, arg_types)
+            if ann is inspect.Parameter.empty:
+                raise ParameterNotTypeAnnotated(
+                    f"Parameter *{arg.name} has no annotation"
+                )
+            list_inputs_type = get_type_repr(ann, module_ns, short_repr=True)
+            # Analyze the argument type and merge with found types
+            arg_types = analyze_type(ann, file_path, module_ns)
+            merge_types_dict(found_types, arg_types)
             continue
 
-        # Skip **kwargs parameters
+        # Skip **kwargs parameters (for now)
         if arg.kind == inspect.Parameter.VAR_KEYWORD:
             continue
 
+        # =========== PARSE NORMAL TYPE ANNOTATIONS ===========
         ann = type_hints.get(arg.name, arg.annotation)
-        # You need to type annotate!
+        # Force the user to type annotate!
         if ann is inspect.Parameter.empty:
-            raise Exception(f"Parameter {arg.name} has no annotation")
+            raise ParameterNotTypeAnnotated(f"Parameter {arg.name} has no annotation")
         arg_entry = {"type": get_type_repr(ann, module_ns, short_repr=True)}
         if arg.default is not inspect.Parameter.empty:
             arg_entry["value"] = arg.default
