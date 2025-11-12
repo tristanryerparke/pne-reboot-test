@@ -13,6 +13,7 @@ import { useCallback } from "react";
 import CustomNode from "./custom-node/custom-node";
 import useFlowStore from "../stores/flowStore";
 import { useTheme } from "./theme-provider";
+import { initializeUnionTypes } from "../utils/add-ui-data";
 
 const nodeTypes: NodeTypes = {
   customNode: CustomNode,
@@ -54,6 +55,9 @@ function NodeGraph() {
         x: event.clientX,
         y: event.clientY,
       });
+
+      // Initialize selectedType for union types in arguments
+      initializeUnionTypes(nodeData);
 
       const newNode: Node = {
         id: crypto.randomUUID(),

@@ -30,7 +30,7 @@ export default function InputFieldComponent({
     typeof fieldData.type === "object" && fieldData.type?.anyOf;
   const unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
 
-  // Get or initialize the selected type from fieldData
+  // Get the selected type from fieldData (should be set by backend)
   const selectedType =
     fieldData.selectedType || (unionTypes ? unionTypes[0] : undefined);
 

@@ -37,6 +37,7 @@ export default function InputMenu({
         {hasUnionTypes && (
           <>
             <DropdownMenuLabel>Input Type</DropdownMenuLabel>
+            <DropdownMenuSeparator />
             <DropdownMenuRadioGroup
               value={selectedType}
               onValueChange={onTypeChange}
