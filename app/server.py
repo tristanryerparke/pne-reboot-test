@@ -65,8 +65,8 @@ async def get_types():
     # d(types)
     types_stripped = {}
     for k, v in TYPES.items():
-        if isinstance(v, dict) and "class" in v:
-            v_copy = {key: value for key, value in v.items() if key != "class"}
+        if isinstance(v, dict) and "_class" in v:
+            v_copy = {key: value for key, value in v.items() if key != "_class"}
         else:
             v_copy = v
         types_stripped[k] = v_copy

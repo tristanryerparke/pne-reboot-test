@@ -34,7 +34,12 @@ def make_deconstructor(cls, type_name, field_names):
 def create_deconstruct_node(
     python_class, type_name, type_def, field_names, field_types, module_ns
 ):
+    import inspect
+
     from ...schema import FunctionSchema
+
+    # Get the file path where the class is defined
+    file_path = inspect.getfile(python_class)
 
     # Build arguments for deconstructor (single input: the instance)
     arguments = {
@@ -55,11 +60,11 @@ def create_deconstruct_node(
         name=f"deconstruct-{type_name}",
         callable_id=callable_id,
         category=type_def["category"],
+        file_path=file_path,
         doc=f"Deconstruct a {type_name} instance into its fields",
         arguments=arguments,
         output_style="multiple",
         outputs=outputs,
-        return_value_name=None,
         auto_generated=True,
     )
 

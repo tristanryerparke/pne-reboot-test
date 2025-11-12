@@ -25,8 +25,8 @@ def test_union():
     # Make sure we found both int and float types
     d(found_types)
     assert found_types == {
-        "int": {"kind": "builtin", "class": int},
-        "float": {"kind": "builtin", "class": float},
+        "int": {"kind": "builtin", "_class": int},
+        "float": {"kind": "builtin", "_class": float},
     }
 
 

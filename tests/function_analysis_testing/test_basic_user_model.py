@@ -29,10 +29,10 @@ def test_user_model_detection():
     # Make sure we found the Point2D UserModel and float type
     d(found_types)
     assert "float" in found_types
-    assert found_types["float"] == {"kind": "builtin", "class": float}
+    assert found_types["float"] == {"kind": "builtin", "_class": float}
     assert "Point2D" in found_types
     assert found_types["Point2D"]["kind"] == "user_model"
-    assert found_types["Point2D"]["class"] == Point2D
+    assert found_types["Point2D"]["_class"] == Point2D
     assert found_types["Point2D"]["properties"] == {"x": "float", "y": "float"}
 
 

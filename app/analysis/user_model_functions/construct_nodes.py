@@ -17,9 +17,14 @@ def make_constructor(cls, type_name):
 def create_construct_node(
     python_class, type_name, type_def, field_names, field_types, module_ns
 ):
+    import inspect
+
     from pydantic_core import PydanticUndefined
 
     from ...schema import FunctionSchema
+
+    # Get the file path where the class is defined
+    file_path = inspect.getfile(python_class)
 
     # Build arguments for constructor
     arguments = {}
@@ -47,11 +52,11 @@ def create_construct_node(
         name=f"construct-{type_name}",
         callable_id=callable_id,
         category=type_def["category"],
+        file_path=file_path,
         doc=f"Construct a {type_name} instance",
         arguments=arguments,
         output_style="single",
         outputs=outputs,
-        return_value_name=None,
         auto_generated=True,
     )
 

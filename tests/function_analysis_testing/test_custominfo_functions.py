@@ -32,7 +32,7 @@ def test_add_with_docstring():
 
     # Make sure we only found the int type
     d(found_types)
-    assert found_types == {"int": {"kind": "builtin", "class": int}}
+    assert found_types == {"int": {"kind": "builtin", "_class": int}}
 
 
 def test_add_with_custom_name():
@@ -55,7 +55,7 @@ def test_add_with_custom_name():
 
     # Make sure we only found the int type
     d(found_types)
-    assert found_types == {"int": {"kind": "builtin", "class": int}}
+    assert found_types == {"int": {"kind": "builtin", "_class": int}}
 
 
 def test_custom_return_name():
@@ -78,7 +78,7 @@ def test_custom_return_name():
 
     # Make sure we only found the float type
     d(found_types)
-    assert found_types == {"float": {"kind": "builtin", "class": float}}
+    assert found_types == {"float": {"kind": "builtin", "_class": float}}
 
 
 if __name__ == "__main__":

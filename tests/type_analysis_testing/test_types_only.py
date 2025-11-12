@@ -101,12 +101,16 @@ def test_user_type_alias():
     assert types_dict["Number"]["type"] == {"anyOf": ["int", "float"]}
     # Check that category is correct
     assert types_dict["Number"]["category"] == ["tests", "assets", "types_only"]
+    # Check that _class field exists
+    assert "_class" in types_dict["Number"]
 
     # Check that constituent types (int, float) are also in the types_dict
     assert "int" in types_dict
     assert types_dict["int"]["kind"] == "builtin"
+    assert "_class" in types_dict["int"]
     assert "float" in types_dict
     assert types_dict["float"]["kind"] == "builtin"
+    assert "_class" in types_dict["float"]
 
 
 def test_list_of_user_type_alias():
@@ -133,18 +137,22 @@ def test_list_of_user_type_alias():
         "items": {"anyOf": ["int", "float"]},
     }
     assert types_dict["ListOfNumbers"]["category"] == ["tests", "assets", "types_only"]
+    assert "_class" in types_dict["ListOfNumbers"]
 
     # Check that the referenced Number alias is also in the types_dict
     assert "Number" in types_dict
     assert types_dict["Number"]["kind"] == "user_alias"
     assert types_dict["Number"]["type"] == {"anyOf": ["int", "float"]}
     assert types_dict["Number"]["category"] == ["tests", "assets", "types_only"]
+    assert "_class" in types_dict["Number"]
 
     # Check that constituent types (int, float) are also in the types_dict
     assert "int" in types_dict
     assert types_dict["int"]["kind"] == "builtin"
+    assert "_class" in types_dict["int"]
     assert "float" in types_dict
     assert types_dict["float"]["kind"] == "builtin"
+    assert "_class" in types_dict["float"]
 
 
 def test_user_model():
@@ -175,14 +183,18 @@ def test_user_model():
         "zcoord": "float",
         "feedrate": "int",
     }
+    assert "_class" in types_dict["Command"]
 
     # Check that the property types are also in the types_dict
     assert "str" in types_dict
     assert types_dict["str"]["kind"] == "builtin"
+    assert "_class" in types_dict["str"]
     assert "float" in types_dict
     assert types_dict["float"]["kind"] == "builtin"
+    assert "_class" in types_dict["float"]
     assert "int" in types_dict
     assert types_dict["int"]["kind"] == "builtin"
+    assert "_class" in types_dict["int"]
 
 
 def test_simple_generic():

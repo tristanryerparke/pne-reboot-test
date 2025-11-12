@@ -15,7 +15,7 @@ def create_const_deconst_models(types):
     model_callables = {}
 
     for type_name, type_def in types.items():
-        python_class = type_def["class"]
+        python_class = type_def["_class"]
         d(python_class)
 
         # find user_models

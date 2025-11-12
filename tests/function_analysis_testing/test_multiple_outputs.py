@@ -32,7 +32,7 @@ def test_integer_division_multiple_outputs():
 
     # Make sure we found the int type
     d(found_types)
-    assert found_types == {"int": {"kind": "builtin", "class": int}}
+    assert found_types == {"int": {"kind": "builtin", "_class": int}}
 
 
 def test_integer_division_single_output():
@@ -56,7 +56,7 @@ def test_integer_division_single_output():
 
     # Make sure we only found the int type
     d(found_types)
-    assert found_types == {"int": {"kind": "builtin", "class": int}}
+    assert found_types == {"int": {"kind": "builtin", "_class": int}}
 
 
 if __name__ == "__main__":

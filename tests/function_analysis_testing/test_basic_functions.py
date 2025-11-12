@@ -26,7 +26,7 @@ def test_on_simple_add():
 
     # Make sure we only found the int type
     d(found_types)
-    assert found_types == {"int": {"kind": "builtin", "class": int}}
+    assert found_types == {"int": {"kind": "builtin", "_class": int}}
 
 
 def test_find_float_and_int():
@@ -50,8 +50,8 @@ def test_find_float_and_int():
     # Make sure we found both float and int types
     d(found_types)
     assert found_types == {
-        "float": {"kind": "builtin", "class": float},
-        "int": {"kind": "builtin", "class": int},
+        "float": {"kind": "builtin", "_class": float},
+        "int": {"kind": "builtin", "_class": int},
     }
 
 
@@ -76,8 +76,8 @@ def test_default_value():
     # Make sure we found both float and int types
     d(found_types)
     assert found_types == {
-        "float": {"kind": "builtin", "class": float},
-        "int": {"kind": "builtin", "class": int},
+        "float": {"kind": "builtin", "_class": float},
+        "int": {"kind": "builtin", "_class": int},
     }
 
 

@@ -77,7 +77,7 @@ def analyze_type(
         # Special handling for typing.Any
         if t is typing.Any:
             if "Any" not in types_dict:
-                types_dict["Any"] = {"kind": "builtin", "class": t}
+                types_dict["Any"] = {"kind": "builtin", "_class": t}
             return
 
         # Handle types.UnionType (int | float syntax) - must come before builtin check
@@ -88,7 +88,7 @@ def analyze_type(
                     if name not in types_dict:
                         types_dict[name] = {
                             "kind": "user_alias",
-                            "class": t,
+                            "_class": t,
                             "type": get_type_repr(t, module_ns, short_repr=False),
                             "category": os.path.splitext(file_path)[0]
                             .replace(os.sep, ".")
@@ -105,7 +105,7 @@ def analyze_type(
         if inspect.isclass(t) and t.__module__ == "builtins":
             tname = t.__name__
             if tname not in types_dict:
-                types_dict[tname] = {"kind": "builtin", "class": t}
+                types_dict[tname] = {"kind": "builtin", "_class": t}
 
         # User Model types(detected by derivation from our special UserModel class)
         elif inspect.isclass(t) and issubclass(t, UserModel) and t is not UserModel:
@@ -114,7 +114,7 @@ def analyze_type(
                     if name not in types_dict:
                         entry = {
                             "kind": "user_model",
-                            "class": t,
+                            "_class": t,
                             "category": os.path.splitext(file_path)[0]
                             .replace(os.sep, ".")
                             .split("."),
@@ -148,7 +148,7 @@ def analyze_type(
                             # Use short_repr=False to expand unions
                             types_dict[name] = {
                                 "kind": "user_alias",
-                                "class": t,
+                                "_class": t,
                                 "type": get_type_repr(t, module_ns, short_repr=False),
                                 "category": os.path.splitext(file_path)[0]
                                 .replace(os.sep, ".")
