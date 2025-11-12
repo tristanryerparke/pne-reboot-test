@@ -39,6 +39,7 @@ export interface NodeFunctionData {
   return: {
     type: string;
   };
+  auto_generated: boolean;
 }
 
 export interface NodesResponse {
