@@ -164,8 +164,8 @@ export default memo(function CustomNode({
             })}
             {data.list_inputs === true && (
               <div>
-                <Separator />
-                <div className="p-2 flex flex-row gap-2 items-center">
+                {Object.keys(data.arguments).length !== 0 && <Separator />}
+                <div className="p-2 py-1.5 flex flex-row gap-2 items-center">
                   <Button
                     variant="ghost"
                     size="icon-xs"

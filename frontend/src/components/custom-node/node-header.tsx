@@ -51,7 +51,7 @@ export default memo(function NodeHeader({
           className="flex justify-center items-center w-fit h-fit"
           nodeId={nodeId}
           minWidth={minWidth || data.min_width}
-          maxWidth={data.max_width}
+          maxWidth={750}
           onResizeStart={onResizeStart}
         >
           <Button
