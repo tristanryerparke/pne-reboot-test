@@ -1,0 +1,212 @@
+from devtools import debug as d
+
+from app.analysis.types_analysis import analyze_type, get_type_repr
+from tests.assets.types_only import (
+    basic_single_types,
+    basic_union_types,
+    differing_union_types,
+    dummy_function_for_accessing_globals,
+    simple_generic,
+    unions_in_list,
+    user_model_aliases,
+    user_type_aliases,
+)
+
+file_path = "tests/assets/types_only.py"
+
+module_ns = dummy_function_for_accessing_globals.__globals__
+
+
+def test_basic_types():
+    """Test that basic builtin types are represented correctly."""
+
+    for typename, type_obj in basic_single_types.items():
+        print(f"{typename}: {type_obj}")
+        repr_result = get_type_repr(type_obj, module_ns)
+        d(repr_result)
+
+        # Basic types should be represented as their string name
+        assert repr_result == typename
+
+
+def test_differing_union_types():
+    """Test that union types (both typing.Union and | syntax) produce the anyOf structure."""
+
+    for typename, type_obj in differing_union_types.items():
+        print(f"{typename}: {type_obj}")
+        repr_result = get_type_repr(type_obj, module_ns)
+        d(repr_result)
+
+        # Both union syntaxes should produce the same anyOf structure
+        assert repr_result == {"anyOf": ["int", "float"]}
+
+
+def test_basic_union_types():
+    """Test that basic union types are represented correctly."""
+
+    # Simple int | str union type
+    typename = "int | str"
+    repr_result = get_type_repr(basic_union_types[typename], module_ns)
+    d(repr_result)
+    assert repr_result == {"anyOf": ["int", "str"]}
+
+    # Simple int | float union type
+    typename = "int | float"
+    repr_result = get_type_repr(basic_union_types[typename], module_ns)
+    d(repr_result)
+    assert repr_result == {"anyOf": ["int", "float"]}
+
+    # Simple int | bool | str union type
+    typename = "int | bool | str"
+    repr_result = get_type_repr(basic_union_types[typename], module_ns)
+    d(repr_result)
+    assert repr_result == {"anyOf": ["int", "bool", "str"]}
+
+
+def test_unions_in_list():
+    """Test that union types in a list are represented correctly."""
+
+    # List of int | float union type
+    typename = "list[int | float]"
+    repr_result = get_type_repr(unions_in_list[typename], module_ns)
+    d(repr_result)
+    assert repr_result == {"type": "array", "items": {"anyOf": ["int", "float"]}}
+
+    # List of int | bool | str union type
+    typename = "list[int | bool | str]"
+    repr_result = get_type_repr(unions_in_list[typename], module_ns)
+    d(repr_result)
+    assert repr_result == {"type": "array", "items": {"anyOf": ["int", "bool", "str"]}}
+
+
+def test_user_type_alias():
+    """Test that user-defined type aliases are analyzed correctly."""
+
+    # Get the Number type alias
+    typename = "Number"
+    type_obj = user_type_aliases[typename]
+
+    # Validate the repr
+    repr_result = get_type_repr(type_obj, module_ns)
+    d(repr_result)
+    assert repr_result == "Number"
+
+    # Validate the types were properly parsed
+    types_dict = analyze_type(type_obj, file_path, module_ns)
+    d(types_dict)
+
+    # Check that Number is recognized as a user alias
+    assert "Number" in types_dict
+    assert types_dict["Number"]["kind"] == "user_alias"
+    assert types_dict["Number"]["type"] == {"anyOf": ["int", "float"]}
+    # Check that category is correct
+    assert types_dict["Number"]["category"] == ["tests", "assets", "types_only"]
+
+    # Check that constituent types (int, float) are also in the types_dict
+    assert "int" in types_dict
+    assert types_dict["int"]["kind"] == "builtin"
+    assert "float" in types_dict
+    assert types_dict["float"]["kind"] == "builtin"
+
+
+def test_list_of_user_type_alias():
+    """Test that lists of user-defined type aliases are analyzed correctly."""
+
+    # Get the ListOfNumbers type alias
+    typename = "ListOfNumbers"
+    type_obj = user_type_aliases[typename]
+
+    # Validate the repr
+    repr_result = get_type_repr(type_obj, module_ns)
+    d(repr_result)
+    assert repr_result == "ListOfNumbers"
+
+    # Validate the types were properly parsed
+    types_dict = analyze_type(type_obj, file_path, module_ns)
+    d(types_dict)
+
+    # Check that ListOfNumbers is recognized as a user alias
+    assert "ListOfNumbers" in types_dict
+    assert types_dict["ListOfNumbers"]["kind"] == "user_alias"
+    assert types_dict["ListOfNumbers"]["type"] == {
+        "type": "array",
+        "items": {"anyOf": ["int", "float"]},
+    }
+    assert types_dict["ListOfNumbers"]["category"] == ["tests", "assets", "types_only"]
+
+    # Check that the referenced Number alias is also in the types_dict
+    assert "Number" in types_dict
+    assert types_dict["Number"]["kind"] == "user_alias"
+    assert types_dict["Number"]["type"] == {"anyOf": ["int", "float"]}
+    assert types_dict["Number"]["category"] == ["tests", "assets", "types_only"]
+
+    # Check that constituent types (int, float) are also in the types_dict
+    assert "int" in types_dict
+    assert types_dict["int"]["kind"] == "builtin"
+    assert "float" in types_dict
+    assert types_dict["float"]["kind"] == "builtin"
+
+
+def test_user_model():
+    """Test that user-defined models are analyzed correctly."""
+
+    # Get the Command user model
+    typename = "Command"
+    type_obj = user_model_aliases[typename]
+
+    # Validate the repr
+    repr_result = get_type_repr(type_obj, module_ns)
+    d(repr_result)
+    assert repr_result == "Command"
+
+    # Validate the types were properly parsed
+    types_dict = analyze_type(type_obj, file_path, module_ns)
+    d(types_dict)
+
+    # Check that Command is recognized as a user model
+    assert "Command" in types_dict
+    assert types_dict["Command"]["kind"] == "user_model"
+    assert types_dict["Command"]["category"] == ["tests", "assets", "types_only"]
+    assert types_dict["Command"]["properties"] == {
+        "body": "str",
+        "comment": "str",
+        "xcoord": "float",
+        "ycoord": "float",
+        "zcoord": "float",
+        "feedrate": "int",
+    }
+
+    # Check that the property types are also in the types_dict
+    assert "str" in types_dict
+    assert types_dict["str"]["kind"] == "builtin"
+    assert "float" in types_dict
+    assert types_dict["float"]["kind"] == "builtin"
+    assert "int" in types_dict
+    assert types_dict["int"]["kind"] == "builtin"
+
+
+def test_simple_generic():
+    """Test that a simple generic type like list[int] triggers the final if block."""
+
+    typename = "list[int]"
+    type_obj = simple_generic[typename]
+
+    print(f"\n{'=' * 60}")
+    print(f"Testing: {typename}")
+    print(f"Type object: {type_obj}")
+    print(f"{'=' * 60}\n")
+
+    # Analyze the type
+    types_dict = analyze_type(type_obj, file_path, module_ns)
+    d(types_dict)
+
+
+if __name__ == "__main__":
+    test_basic_types()
+    test_differing_union_types()
+    test_basic_union_types()
+    test_unions_in_list()
+    test_user_type_alias()
+    test_list_of_user_type_alias()
+    test_user_model()
+    test_simple_generic()

@@ -23,15 +23,18 @@ def get_type_repr(tp, module_ns, short_repr=True):
     # Handle types.UnionType (int | float style)
     if isinstance(tp, types.UnionType):
         return {
-            "anyOf": [get_type_repr(arg, module_ns, short_repr) for arg in tp.__args__]
+            "anyOf": [
+                get_type_repr(param, module_ns, short_repr) for param in tp.__args__
+            ]
         }
+    # Handle regular unions and user aliases (Union[int, float], Number = int | float)
     if hasattr(tp, "__origin__"):
         origin: Any = tp.__origin__
         # print(origin)
         if origin is typing.Union:
             return {
                 "anyOf": [
-                    get_type_repr(arg, module_ns, short_repr) for arg in tp.__args__
+                    get_type_repr(param, module_ns, short_repr) for param in tp.__args__
                 ]
             }
         elif origin in (list, typing.List):
@@ -57,11 +60,13 @@ def analyze_type(
 
     def _add_type_recursive(t: Any):
         """Internal recursive function to build types_dict."""
+
+        # Skip types that have already been processed
         if t in found_types_set:
             return
         found_types_set.add(t)
 
-        # Skip types that derive from MultipleOutputs
+        # Skip types that derive from our special class MultipleOutputs
         if (
             inspect.isclass(t)
             and issubclass(t, MultipleOutputs)
@@ -75,12 +80,34 @@ def analyze_type(
                 types_dict["Any"] = {"kind": "builtin", "class": t}
             return
 
-        # Builtin
+        # Handle types.UnionType (int | float syntax) - must come before builtin check
+        if isinstance(t, types.UnionType):
+            # Check if this union is a named alias in the module
+            for name, val in module_ns.items():
+                if val is t and name.isidentifier():
+                    if name not in types_dict:
+                        types_dict[name] = {
+                            "kind": "user_alias",
+                            "class": t,
+                            "type": get_type_repr(t, module_ns, short_repr=False),
+                            "category": os.path.splitext(file_path)[0]
+                            .replace(os.sep, ".")
+                            .split("."),
+                        }
+                    break
+
+            # Recursively add each constituent type of the union
+            for arg in t.__args__:
+                _add_type_recursive(arg)
+            return
+
+        # Builtin type
         if inspect.isclass(t) and t.__module__ == "builtins":
             tname = t.__name__
             if tname not in types_dict:
                 types_dict[tname] = {"kind": "builtin", "class": t}
-        # User Model (detected by UserModel derivation)
+
+        # User Model types(detected by derivation from our special UserModel class)
         elif inspect.isclass(t) and issubclass(t, UserModel) and t is not UserModel:
             for name, val in module_ns.items():
                 if val is t and name.isidentifier():
@@ -102,7 +129,8 @@ def analyze_type(
                                 _add_type_recursive(field_type)
                         types_dict[name] = entry
                     break
-        # Other user classes (not derived from UserModel)
+
+        # Throw error on other user classes (not derived from UserModel)
         elif inspect.isclass(t):
             for name, val in module_ns.items():
                 if val is t and name.isidentifier():
@@ -110,7 +138,8 @@ def analyze_type(
                         f"Class '{name}' is not derived from UserModel. "
                         f"All user-defined classes must inherit from UserModel."
                     )
-        # User alias (including typing.Union, etc. if defined as an alias in the module)
+
+        # User alias types (e.g. Number = int | float, Number = Union[int, float])
         else:
             for name, val in module_ns.items():
                 if val is t and name.isidentifier():
@@ -131,10 +160,15 @@ def analyze_type(
                                     _add_type_recursive(arg)
                         break
 
-        # Recursively add types for generics/aliases
+        # Lists of user-defined types(e.g., list[int])
         if hasattr(t, "__origin__") and hasattr(t, "__args__"):
-            for arg in t.__args__:
-                _add_type_recursive(arg)
+            origin = getattr(t, "__origin__", None)
+            # We only expect list/typing.List here; other generics should be handled above
+            if origin in (list, typing.List):
+                for arg in getattr(t, "__args__", ()):
+                    _add_type_recursive(arg)
+            else:
+                raise ValueError(f"No way to build a schema for this type: {origin}")
 
     _add_type_recursive(tp)
     return types_dict
