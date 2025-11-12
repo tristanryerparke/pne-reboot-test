@@ -7,7 +7,7 @@ import InputMenu from "./input-menu";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
-import useStore from "../../store";
+import useFlowStore from "../../stores/flowStore";
 
 export default memo(function CustomNode({
   data,
@@ -20,7 +20,7 @@ export default memo(function CustomNode({
   const [isResized, setIsResized] = useState(false);
   const [fitWidth, setFitWidth] = useState<number | undefined>(undefined);
   const nodeRef = useRef<HTMLDivElement>(null);
-  const updateNodeData = useStore((state) => state.updateNodeData);
+  const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
   // Measure the fit width when not resized
   useEffect(() => {

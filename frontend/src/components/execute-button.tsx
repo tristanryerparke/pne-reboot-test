@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { LoaderIcon } from "lucide-react";
-import useStore from "../store";
+import useFlowStore from "../stores/flowStore";
 import { useState, useCallback } from "react";
 import { stripGraphForExecute } from "../utils/strip-graph";
 import { type Graph } from "../utils/strip-graph";
 
 export default function ExecuteMenu() {
   const [loading, setLoading] = useState(false);
-  const nodes = useStore((state) => state.nodes);
-  const edges = useStore((state) => state.edges);
-  const updateNodeData = useStore((state) => state.updateNodeData);
+  const nodes = useFlowStore((state) => state.nodes);
+  const edges = useFlowStore((state) => state.edges);
+  const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
   const execute = useCallback(async () => {
     setLoading(true);

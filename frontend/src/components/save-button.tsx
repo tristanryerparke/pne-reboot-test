@@ -1,8 +1,8 @@
 import { Button } from "./ui/button";
-import useStore from "../store";
+import useFlowStore from "../stores/flowStore";
 
 export default function SaveButton() {
-  const { rfInstance } = useStore();
+  const { rfInstance } = useFlowStore();
 
   const onSave = () => {
     if (rfInstance) {

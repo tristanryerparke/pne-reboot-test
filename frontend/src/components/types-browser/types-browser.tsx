@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { SearchBar } from "@/common/search-bar";
 import { KindGroup } from "./kind-group";
-import useStore, { type TypeInfo } from "@/store";
+import useTypesStore, { type TypeInfo } from "@/stores/typesStore";
 
 export interface UnionType {
   anyOf: string[];
@@ -12,8 +12,8 @@ export interface TypesByKind {
 }
 
 export function TypesBrowser() {
-  const types = useStore((state) => state.types);
-  const fetchTypes = useStore((state) => state.fetchTypes);
+  const types = useTypesStore((state) => state.types);
+  const fetchTypes = useTypesStore((state) => state.fetchTypes);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {

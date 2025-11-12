@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { JsonViewer as BaseJsonViewer } from "../ui/json-tree-viewer";
-import { useNodeData } from "../../store";
+import { useNodeData } from "../../stores/flowStore";
 
 interface JsonViewerProps {
   data: any;

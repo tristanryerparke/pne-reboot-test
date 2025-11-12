@@ -5,7 +5,7 @@ import {
   ItemTitle,
   ItemActions,
 } from "@/components/ui/item";
-import useStore, { type TypeInfo } from "@/store";
+import useTypesStore, { type TypeInfo } from "@/stores/typesStore";
 import { hasDisplayComponent } from "./has-display-component";
 
 interface TypeDisplayProps {
@@ -27,7 +27,7 @@ function formatPropertyType(propType: any): string {
 }
 
 export function TypeDisplay({ typeName, typeInfo }: TypeDisplayProps) {
-  const types = useStore((state) => state.types);
+  const types = useTypesStore((state) => state.types);
   const hasComponent = hasDisplayComponent(typeName, types);
 
   return (

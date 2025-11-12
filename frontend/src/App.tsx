@@ -15,11 +15,12 @@ import ExecuteButton from "./components/execute-button";
 import SaveButton from "./components/save-button";
 import { LoadButton } from "./components/load-button";
 import { useEffect } from "react";
-import useStore from "./store";
+import useTypesStore from "./stores/typesStore";
+import useSchemasStore from "./stores/schemasStore";
 
 function App() {
-  const fetchTypes = useStore((state) => state.fetchTypes);
-  const fetchNodeSchemas = useStore((state) => state.fetchNodeSchemas);
+  const fetchTypes = useTypesStore((state) => state.fetchTypes);
+  const fetchNodeSchemas = useSchemasStore((state) => state.fetchNodeSchemas);
 
   useEffect(() => {
     fetchTypes();

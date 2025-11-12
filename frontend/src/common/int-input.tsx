@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { NumberInput } from "../components/ui/number-input";
-import useStore from "../store";
+import useFlowStore from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
 import { useControlledDebounce } from "../hooks/useControlledDebounce";
 
@@ -10,7 +10,7 @@ interface IntInputProps {
 }
 
 export default memo(function IntInput({ inputData, path }: IntInputProps) {
-  const updateNodeData = useStore((state) => state.updateNodeData);
+  const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
   // Use current value if it exists, otherwise use default_value, otherwise undefined
   const externalValue =

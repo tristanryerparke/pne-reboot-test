@@ -2,7 +2,7 @@ import { memo } from "react";
 import FloatInput from "../../common/float-input";
 import IntInput from "../../common/int-input";
 import UserModelDisplay from "../../common/user-model-display";
-import useStore from "@/store";
+import useTypesStore from "@/stores/typesStore";
 
 interface DynamicInputProps {
   inputData: any;
@@ -22,7 +22,7 @@ export default memo(function DynamicInput({
   inputData,
   path,
 }: DynamicInputProps) {
-  const types = useStore((state) => state.types);
+  const types = useTypesStore((state) => state.types);
 
   if (!inputData) {
     return <div>No data</div>;

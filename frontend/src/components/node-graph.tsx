@@ -11,7 +11,7 @@ import {
 } from "@xyflow/react";
 import { useCallback } from "react";
 import CustomNode from "./custom-node/custom-node";
-import useStore from "../store";
+import useFlowStore from "../stores/flowStore";
 import { useTheme } from "./theme-provider";
 
 const nodeTypes: NodeTypes = {
@@ -28,7 +28,7 @@ function NodeGraph() {
     onConnect,
     setNodes,
     setRfInstance,
-  } = useStore();
+  } = useFlowStore();
 
   const { screenToFlowPosition } = useReactFlow();
 

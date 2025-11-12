@@ -1,10 +1,10 @@
 import { Button } from "./ui/button";
-import useStore from "../store";
+import useFlowStore from "../stores/flowStore";
 import { useReactFlow } from "@xyflow/react";
 import { useRef } from "react";
 
 export const LoadButton = () => {
-  const { setNodes, setEdges } = useStore();
+  const { setNodes, setEdges } = useFlowStore();
   const { setViewport } = useReactFlow();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

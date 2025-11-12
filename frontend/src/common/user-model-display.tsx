@@ -1,5 +1,5 @@
 import SingleLineTextDisplay from "./single-line-text-display";
-import { type TypeInfo } from "@/store";
+import { type TypeInfo } from "@/stores/typesStore";
 import { useNodeConnections } from "@xyflow/react";
 
 interface UserModelDisplayProps {
