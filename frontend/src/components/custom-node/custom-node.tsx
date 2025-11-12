@@ -3,7 +3,6 @@ import NodeHeader from "./node-header";
 import InputFieldComponent from "./input-field";
 import OutputFieldComponent from "./output-field";
 import JsonViewer from "./json-viewer";
-import InputMenu from "./input-menu";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
@@ -146,18 +145,13 @@ export default memo(function CustomNode({
               return (
                 <div key={argName} className="node-field-input">
                   {index > 0 && <Separator />}
-                  <div
-                    className={`flex items-center ${!isDynamic ? "pr-2" : ""}`}
-                  >
-                    <div className="flex-1">
-                      <InputFieldComponent
-                        fieldData={argDef}
-                        path={[...path, "arguments", argName]}
-                      />
-                    </div>
-                    {isDynamic && (
-                      <InputMenu onDelete={() => handleRemoveInput(argName)} />
-                    )}
+                  <div className={`${!isDynamic ? "pr-2" : ""}`}>
+                    <InputFieldComponent
+                      fieldData={argDef}
+                      path={[...path, "arguments", argName]}
+                      showMenu={isDynamic}
+                      onDelete={() => handleRemoveInput(argName)}
+                    />
                   </div>
                 </div>
               );
