@@ -1,6 +1,7 @@
 from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
+from examples.basic_defaultvalue import nth_root
 from examples.basic_percentage import percentage
 from examples.integer_math import add
 
@@ -54,6 +55,33 @@ def test_find_float_and_int():
     }
 
 
+def test_default_value():
+    """Test the analysis of the nth_root function from examples.basic_defaultvalue and confirm the schema and found types are correct."""
+
+    # Make sure the function works as expected
+    assert nth_root(8, 3) == 2.0
+
+    _, schema, _, found_types = analyze_function(nth_root)
+    d(schema)
+
+    # check that the key parts of the schema are being correctly parsed
+    assert schema.name == "nth_root"
+    assert schema.arguments == {
+        "x": {"type": "float", "value": None},
+        "root": {"type": "int", "value": 2},
+    }
+    assert schema.output_style == "single"
+    assert schema.outputs == {"return": {"type": "float"}}
+
+    # Make sure we found both float and int types
+    d(found_types)
+    assert found_types == {
+        "float": {"kind": "builtin", "class": float},
+        "int": {"kind": "builtin", "class": int},
+    }
+
+
 if __name__ == "__main__":
     test_on_simple_add()
     test_find_float_and_int()
+    test_default_value()

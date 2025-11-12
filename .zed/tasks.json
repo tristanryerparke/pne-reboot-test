@@ -70,5 +70,9 @@
   {
     "label": "BrowserTools MCP Server",
     "command": "bunx @agentdeskai/browser-tools-server@1.2.0"
+  },
+  {
+    "label": "Kill Backend on 8000",
+    "command": "lsof -ti:8000 | xargs kill -9"
   }
 ]
