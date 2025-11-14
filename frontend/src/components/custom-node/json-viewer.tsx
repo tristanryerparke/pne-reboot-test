@@ -4,12 +4,12 @@ import { useNodeData } from "../../stores/flowStore";
 
 interface JsonViewerProps {
   data: any;
-  path: (string | number)[];
+  className?: string;
 }
 
-export default memo(function JsonViewer({ data, path }: JsonViewerProps) {
+export default memo(function JsonViewer({ data, className }: JsonViewerProps) {
   return (
-    <div className={`p-2`}>
+    <div className={`p-2 ${className || ""}`}>
       <BaseJsonViewer
         className="w-full h-full"
         data={data}

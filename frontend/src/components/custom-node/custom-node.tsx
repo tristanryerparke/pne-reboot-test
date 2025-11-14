@@ -62,7 +62,7 @@ export default memo(function CustomNode({
       />
       <Separator />
       {isJsonView ? (
-        <JsonViewer data={data} path={[id]} />
+        <JsonViewer className="w-full" data={data} />
       ) : (
         <>
           <Inputs data={data} nodeId={id} path={path} />
