@@ -47,6 +47,7 @@ def analyze_function(
     # Get the input arguments schema of the function and register the types
     arguments = {}
     list_inputs_type = None
+    dict_inputs_type = None
     for arg in sig.parameters.values():
         # =========== PARSE POSITIONAL ARGUMENT TYPE ANNOTATIONS ===========
         # Some functions may accept a variable number of arguments, but they still need to be typed
@@ -64,8 +65,17 @@ def analyze_function(
             merge_types_dict(found_types, arg_types)
             continue
 
-        # Skip **kwargs parameters (for now)
+        # Handle **kwargs parameter - extract its type for dict_inputs
         if arg.kind == inspect.Parameter.VAR_KEYWORD:
+            ann = type_hints.get(arg.name, arg.annotation)
+            if ann is inspect.Parameter.empty:
+                raise ParameterNotTypeAnnotated(
+                    f"Parameter **{arg.name} has no annotation"
+                )
+            dict_inputs_type = get_type_repr(ann, module_ns, short_repr=True)
+            # Analyze the argument type and merge with found types
+            arg_types = analyze_type(ann, file_path, module_ns)
+            merge_types_dict(found_types, arg_types)
             continue
 
         # =========== PARSE NORMAL TYPE ANNOTATIONS ===========
@@ -144,6 +154,8 @@ def analyze_function(
             outputs=outputs,
             list_inputs=getattr(func_obj, "list_inputs", False),
             list_inputs_type=list_inputs_type,
+            dict_inputs=getattr(func_obj, "dict_inputs", False),
+            dict_inputs_type=dict_inputs_type,
         ),
         func_obj,
         found_types,

@@ -70,13 +70,13 @@ def test_unions_in_list():
     typename = "list[int | float]"
     repr_result = get_type_repr(unions_in_list[typename], module_ns)
     d(repr_result)
-    assert repr_result == {"type": "array", "items": {"anyOf": ["int", "float"]}}
+    assert repr_result == {"type": "list", "items": {"anyOf": ["int", "float"]}}
 
     # List of int | bool | str union type
     typename = "list[int | bool | str]"
     repr_result = get_type_repr(unions_in_list[typename], module_ns)
     d(repr_result)
-    assert repr_result == {"type": "array", "items": {"anyOf": ["int", "bool", "str"]}}
+    assert repr_result == {"type": "list", "items": {"anyOf": ["int", "bool", "str"]}}
 
 
 def test_user_type_alias():

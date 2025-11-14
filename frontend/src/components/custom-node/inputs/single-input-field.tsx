@@ -1,22 +1,32 @@
 import { Handle, Position } from "@xyflow/react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import DynamicInput from "./dynamic-input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
+import InputRenderer from "./input-renderer";
 import InputMenu from "./input-menu";
-import useFlowStore from "../../stores/flowStore";
+import useFlowStore from "../../../stores/flowStore";
+import {
+  Editable,
+  EditableArea,
+  EditablePreview,
+  EditableInput,
+} from "../../ui/editable";
 
-interface InputFieldProps {
+interface SingleInputFieldProps {
   fieldData: any;
   path: (string | number)[];
   showMenu?: boolean;
   onDelete?: () => void;
+  isEditableKey?: boolean;
+  onKeyChange?: (newKey: string) => void;
 }
 
-export default function InputFieldComponent({
+export default function SingleInputField({
   fieldData,
   path,
   showMenu = false,
   onDelete,
-}: InputFieldProps) {
+  isEditableKey = false,
+  onKeyChange,
+}: SingleInputFieldProps) {
   const fieldName = path[2];
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
@@ -60,11 +70,24 @@ export default function InputFieldComponent({
           <TooltipTrigger asChild>
             <div className="flex w-full pl-3 py-2 gap-1 overflow-hidden items-center">
               <div className="flex w-full items-center flex-shrink-0 gap-2">
-                <span>
-                  {fieldName}
-                  {": "}
-                </span>
-                <DynamicInput inputData={fieldData} path={path} />
+                {isEditableKey ? (
+                  <Editable
+                    value={String(fieldName)}
+                    onSubmit={onKeyChange}
+                    placeholder="key"
+                    autosize
+                    className="gap-0 flex-shrink-0"
+                  >
+                    <EditableArea className="inline-block w-auto min-w-0 flex-shrink-0 edit:pr-5">
+                      <EditablePreview className="border-0 px-0 py-0 focus-visible:ring-0 text-base md:text-sm whitespace-nowrap" />
+                      <EditableInput className="px-1 py-0 min-w-[3ch]" />
+                    </EditableArea>
+                  </Editable>
+                ) : (
+                  <span>{fieldName}</span>
+                )}
+                <span>: </span>
+                <InputRenderer inputData={fieldData} path={path} />
               </div>
             </div>
           </TooltipTrigger>

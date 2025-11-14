@@ -1,4 +1,4 @@
-import { TYPE_COMPONENT_REGISTRY } from "../custom-node/dynamic-input";
+import { TYPE_COMPONENT_REGISTRY } from "../custom-node/inputs/input-renderer";
 import type { TypeInfo } from "@/stores/typesStore";
 
 export function hasDisplayComponent(

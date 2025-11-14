@@ -129,6 +129,12 @@ def execute_node(node: NodeDataFromFrontend):
 
         # Call with positional args for numbered params, kwargs for others
         return callable(*sorted_args, **other_args)
+    # Check if this function has dict_inputs enabled
+    elif getattr(callable, "dict_inputs", False):
+        # For dict_inputs functions, all arguments are passed as **kwargs
+        # The frontend should send them with their key names
+        args = {k: v["value"] for k, v in node.arguments.items()}
+        return callable(**args)
     else:
         # Normal execution with kwargs
         args = {k: v["value"] for k, v in node.arguments.items()}

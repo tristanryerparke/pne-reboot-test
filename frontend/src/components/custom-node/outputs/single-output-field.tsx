@@ -1,8 +1,8 @@
 import { Handle, Position } from "@xyflow/react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import DynamicOutput from "./dynamic_output";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
+import OutputRenderer from "./output-renderer";
 
-interface OutputFieldComponentProps {
+interface SingleOutputFieldProps {
   fieldData: Record<string, any> | undefined;
   path: (string | number)[];
 }
@@ -14,16 +14,16 @@ function formatPropertyType(propType: any): string {
   if (propType.anyOf) {
     return propType.anyOf.map(formatPropertyType).join(" | ");
   }
-  if (propType.type === "array" && propType.items) {
+  if (propType.type === "list" && propType.items) {
     return `list[${formatPropertyType(propType.items)}]`;
   }
   return JSON.stringify(propType);
 }
 
-export default function OutputFieldComponent({
+export default function SingleOutputField({
   fieldData,
   path,
-}: OutputFieldComponentProps) {
+}: SingleOutputFieldProps) {
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
   // Extract the output name from the path (last element)
   const outputName = path[path.length - 1];
@@ -45,7 +45,7 @@ export default function OutputFieldComponent({
           <div className="flex w-full pl-3 pr-2 py-2 gap-1 overflow-hidden items-center justify-end">
             <div className="w-full flex items-center flex-shrink-0 gap-2">
               <span>{outputName}:</span>
-              <DynamicOutput outputData={fieldData} />
+              <OutputRenderer outputData={fieldData} />
             </div>
           </div>
         </TooltipTrigger>

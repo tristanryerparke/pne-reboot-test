@@ -8,6 +8,7 @@ def add_node_options(
     node_name: str | None = None,
     return_value_name: str | None = None,
     list_inputs: bool = False,
+    dict_inputs: bool = False,
 ):
     def decorator(func: F) -> F:
         @wraps(func)
@@ -21,6 +22,9 @@ def add_node_options(
             wrapper.return_value_name = return_value_name  # type: ignore
         if list_inputs:
             wrapper.list_inputs = list_inputs  # type: ignore
+        if dict_inputs:
+            wrapper.dict_inputs = dict_inputs  # type: ignore
+
         return cast(F, wrapper)
 
     return decorator

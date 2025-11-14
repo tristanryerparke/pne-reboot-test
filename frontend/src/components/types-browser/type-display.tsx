@@ -20,7 +20,7 @@ function formatPropertyType(propType: any): string {
   if (propType.anyOf) {
     return propType.anyOf.map(formatPropertyType).join(" | ");
   }
-  if (propType.type === "array" && propType.items) {
+  if (propType.type === "list" && propType.items) {
     return `list[${formatPropertyType(propType.items)}]`;
   }
   return JSON.stringify(propType);

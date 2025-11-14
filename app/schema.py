@@ -23,6 +23,8 @@ class FunctionSchema(BaseModel):
     arguments: dict[str, dict[str, Any]]
     list_inputs: bool = False
     list_inputs_type: str | None = None
+    dict_inputs: bool = False
+    dict_inputs_type: str | None = None
     output_style: Literal["single", "multiple"]
     outputs: dict[str, dict[str, Any]]
     auto_generated: bool = False

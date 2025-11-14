@@ -1,10 +1,10 @@
 import { memo } from "react";
-import FloatInput from "../../common/float-input";
-import IntInput from "../../common/int-input";
-import UserModelDisplay from "../../common/user-model-display";
+import FloatInput from "../../../common/float-input";
+import IntInput from "../../../common/int-input";
+import UserModelDisplay from "../../../common/user-model-display";
 import useTypesStore from "@/stores/typesStore";
 
-interface DynamicInputProps {
+interface InputRendererProps {
   inputData: any;
   path: (string | number)[];
 }
@@ -12,16 +12,16 @@ interface DynamicInputProps {
 // Add more input types here
 export const TYPE_COMPONENT_REGISTRY: Record<
   string,
-  React.ComponentType<DynamicInputProps>
+  React.ComponentType<InputRendererProps>
 > = {
   float: FloatInput,
   int: IntInput,
 };
 
-export default memo(function DynamicInput({
+export default memo(function InputRenderer({
   inputData,
   path,
-}: DynamicInputProps) {
+}: InputRendererProps) {
   const types = useTypesStore((state) => state.types);
 
   if (!inputData) {
@@ -57,5 +57,5 @@ export default memo(function DynamicInput({
 
   // For types without a component, show a generic message
   console.log("No component for type:", actualType);
-  return <div>DynamicInput: {actualType}</div>;
+  return <div>InputRenderer: {actualType}</div>;
 });

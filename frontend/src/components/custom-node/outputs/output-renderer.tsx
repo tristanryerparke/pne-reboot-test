@@ -1,12 +1,14 @@
 import { memo } from "react";
-import SingleLineTextDisplay from "../../common/single-line-text-display";
+import SingleLineTextDisplay from "../../../common/single-line-text-display";
 import useTypesStore from "@/stores/typesStore";
 
-interface DynamicOutputProps {
+interface OutputRendererProps {
   outputData: any;
 }
 
-export default memo(function DynamicOutput({ outputData }: DynamicOutputProps) {
+export default memo(function OutputRenderer({
+  outputData,
+}: OutputRendererProps) {
   const types = useTypesStore((state) => state.types);
 
   const displayValue = () => {

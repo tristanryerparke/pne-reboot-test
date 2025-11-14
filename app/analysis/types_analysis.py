@@ -39,8 +39,13 @@ def get_type_repr(tp, module_ns, short_repr=True):
             }
         elif origin in (list, typing.List):
             return {
-                "type": "array",
+                "type": "list",
                 "items": get_type_repr(tp.__args__[0], module_ns, short_repr),
+            }
+        elif origin in (dict, typing.Dict):
+            return {
+                "type": "dict",
+                "items": get_type_repr(tp.__args__[1], module_ns, short_repr),
             }
         else:
             raise ValueError("Unknown origin", tp)
@@ -160,11 +165,14 @@ def analyze_type(
                                     _add_type_recursive(arg)
                         break
 
-        # Lists of user-defined types(e.g., list[int])
+        # Lists and dicts of user-defined types (e.g., list[int], dict[str, float])
         if hasattr(t, "__origin__") and hasattr(t, "__args__"):
             origin = getattr(t, "__origin__", None)
-            # We only expect list/typing.List here; other generics should be handled above
+            # We only expect list/typing.List and dict/typing.Dict here; other generics should be handled above
             if origin in (list, typing.List):
+                for arg in getattr(t, "__args__", ()):
+                    _add_type_recursive(arg)
+            elif origin in (dict, typing.Dict):
                 for arg in getattr(t, "__args__", ()):
                     _add_type_recursive(arg)
             else:
