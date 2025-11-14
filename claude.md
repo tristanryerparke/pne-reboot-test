@@ -41,3 +41,6 @@ def test_on_simple_add():
 
 if __name__ == "__main__":
     test_on_simple_add()
+
+
+6. You can use the app's cli to run the backend analysis functions like so: uv run pne-run-analyze examples/basic_dynamic_inputs.py -v

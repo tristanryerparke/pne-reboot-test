@@ -26,7 +26,13 @@ def analyze_function(
     """
 
     # Get file path and module namespace from the function object
-    file_path = inspect.getfile(func_obj)
+    # If function is wrapped by a decorator (like @add_node_options),
+    # get the original function's file path
+    original_func = func_obj
+    while hasattr(original_func, "__wrapped__"):
+        original_func = original_func.__wrapped__
+
+    file_path = inspect.getfile(original_func)
     abs_file_path = os.path.abspath(file_path)
     module_ns = func_obj.__globals__
 
