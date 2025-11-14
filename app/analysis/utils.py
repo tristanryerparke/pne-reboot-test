@@ -119,6 +119,26 @@ def analyze_files(py_files: list[str], base_dir: str):
     return all_function_schemas, all_callables, all_types
 
 
-def analyze_file_structure(search_path: str):
-    py_files_flat = find_python_files(search_path)
-    return analyze_files(py_files_flat, search_path)
+def analyze_file_structure(search_paths: str | list[str]):
+    if isinstance(search_paths, str):
+        search_paths = [search_paths]
+
+    py_files_flat = []
+    base_dirs = set()
+
+    for search_path in search_paths:
+        py_files_flat.extend(find_python_files(search_path))
+
+        if os.path.isdir(search_path):
+            base_dirs.add(search_path)
+        else:
+            base_dirs.add(os.path.dirname(search_path))
+
+    # Use the common base directory or the first one
+    base_dir = (
+        os.path.commonpath(list(base_dirs))
+        if len(base_dirs) > 1
+        else list(base_dirs)[0]
+    )
+
+    return analyze_files(py_files_flat, base_dir)

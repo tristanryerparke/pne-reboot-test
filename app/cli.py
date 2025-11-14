@@ -5,7 +5,9 @@ def main():
     import uvicorn
 
     parser = argparse.ArgumentParser(description="Run the Python Node Editor backend")
-    parser.add_argument("path", help="Path to analyze for functions and types")
+    parser.add_argument(
+        "path", help="Comma-separated paths to analyze for functions and types"
+    )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose output"
     )
@@ -23,7 +25,7 @@ def main():
     app.server.VERBOSE = args.verbose
     app.graph.VERBOSE = args.verbose
 
-    # Reconstruct sys.argv for the lifespan handler to read the path
+    # Reconstruct sys.argv for the lifespan handler to read the paths
     sys.argv = [sys.argv[0], args.path]
 
     from app.server import app as fastapi_app
@@ -32,29 +34,39 @@ def main():
 
 
 def analyze():
+    import argparse
     import os
-    import sys
 
     from devtools import debug as d
 
     from app.analysis.utils import analyze_file_structure
 
-    args = sys.argv[1:]
-    if len(args) == 0:
-        print("No arguments provided")
-        print("Usage: uv run pne-run-analyze <path_to_analyze>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Analyze Python files for functions and types"
+    )
+    parser.add_argument(
+        "path", help="Comma-separated paths to analyze for functions and types"
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Enable verbose output"
+    )
 
-    search_path: str = args[0]
-    if not os.path.exists(search_path):
-        print(f"The path {search_path} does not exist")
-        sys.exit(1)
+    args = parser.parse_args()
 
-    print(f"Analyzing: {search_path}")
-    function_schemas, callables, types = analyze_file_structure(search_path)
+    search_paths = [p.strip() for p in args.path.split(",")]
+
+    for search_path in search_paths:
+        if not os.path.exists(search_path):
+            print(f"The path {search_path} does not exist")
+            exit(1)
+
+    print(f"Analyzing: {', '.join(search_paths)}")
+    function_schemas, callables, types = analyze_file_structure(search_paths)
 
     print(f"\nFound {len(function_schemas)} functions and {len(types)} types")
-    print("\nFUNCTION_SCHEMAS:")
-    d(function_schemas)
-    print("\nTYPES:")
-    d(types)
+
+    if args.verbose:
+        print("\nFUNCTION_SCHEMAS:")
+        d(function_schemas)
+        print("\nTYPES:")
+        d(types)

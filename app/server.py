@@ -17,18 +17,21 @@ VERBOSE = False
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager to load functions and types from the provided path argument"""
+    """Lifespan context manager to load functions and types from the provided path arguments"""
     global FUNCTION_SCHEMAS, CALLABLES, TYPES
     args = sys.argv[1:]
     if len(args) == 0:
         print("No arguments provided")
         sys.exit(1)
-    search_path: str = args[0]
-    if not os.path.exists(search_path):
-        print(f"The path {search_path} does not exist")
-        sys.exit(1)
+    search_paths_input: str = args[0]
+    search_paths = [p.strip() for p in search_paths_input.split(",")]
 
-    function_schemas, callables, types = analyze_file_structure(search_path)
+    for search_path in search_paths:
+        if not os.path.exists(search_path):
+            print(f"The path {search_path} does not exist")
+            sys.exit(1)
+
+    function_schemas, callables, types = analyze_file_structure(search_paths)
     FUNCTION_SCHEMAS.extend(function_schemas)
     CALLABLES.update(callables)
     TYPES.update(types)
