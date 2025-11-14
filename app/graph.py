@@ -113,22 +113,29 @@ def execute_node(node: NodeDataFromFrontend):
 
     # Check if this function has list_inputs enabled
     if getattr(callable, "list_inputs", False):
-        # For list_inputs functions, collect all _N arguments in order and pass as *args
+        # For list_inputs functions:
+        # - Named parameters (e.g., arg1) are passed as positional args first
+        # - Numbered parameters (0, 1, 2...) are passed as *args after
         numbered_args = {}
-        other_args = {}
+        named_args = {}
 
         for k, v in node.arguments.items():
             # Handle both "_0", "_1" and "0", "1" naming patterns
             if k.isdigit():
                 numbered_args[int(k)] = v["value"]
             else:
-                other_args[k] = v["value"]
+                named_args[k] = v["value"]
 
-        # Sort by number and extract values
-        sorted_args = [numbered_args[i] for i in sorted(numbered_args.keys())]
+        # Sort numbered args by index
+        sorted_numbered_args = [numbered_args[i] for i in sorted(numbered_args.keys())]
 
-        # Call with positional args for numbered params, kwargs for others
-        return callable(*sorted_args, **other_args)
+        # Get named args values in order (maintain dict order from frontend)
+        named_args_values = list(named_args.values())
+
+        # Combine: named parameters first, then dynamic numbered inputs
+        all_args = named_args_values + sorted_numbered_args
+
+        return callable(*all_args)
     # Check if this function has dict_inputs enabled
     elif getattr(callable, "dict_inputs", False):
         # For dict_inputs functions, all arguments are passed as **kwargs

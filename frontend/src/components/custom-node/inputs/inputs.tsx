@@ -14,7 +14,7 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
   // For *args and **kwargs python functions we can add and remove inputs here on the frontend
-  const handleAddInput = () => {
+  const handleAddNumberedInput = () => {
     const argNames = Object.keys(data.arguments);
     const argNumbers = argNames
       .map((name) => {
@@ -32,13 +32,13 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
 
     const newArg = {
       type: data.list_inputs_type || data.arguments[argNames[0]]?.type,
-      default_value: data.arguments[argNames[0]]?.default_value,
+      value: null,
     };
 
     updateNodeData([nodeId, "arguments", newArgName], newArg);
   };
 
-  const handleRemoveInput = (argName: string) => {
+  const handleRemoveNumberedInput = (argName: string) => {
     const argNames = Object.keys(data.arguments);
 
     const numberedArgs = argNames
@@ -112,9 +112,31 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
     updateNodeData([nodeId, "arguments"], newArguments);
   };
 
+  // Sort arguments to maintain proper order:
+  // 1. Named arguments (non-numeric) come first, in their original order
+  // 2. Numbered arguments (from *args) come after, sorted numerically
+  const sortedArguments = Object.entries(data.arguments).sort(
+    ([nameA], [nameB]) => {
+      const isNumericA = /^\d+$/.test(nameA);
+      const isNumericB = /^\d+$/.test(nameB);
+
+      // If both are numeric, sort by number
+      if (isNumericA && isNumericB) {
+        return parseInt(nameA) - parseInt(nameB);
+      }
+
+      // Named arguments come before numeric ones
+      if (!isNumericA && isNumericB) return -1;
+      if (isNumericA && !isNumericB) return 1;
+
+      // Both are named, maintain original order (stable sort)
+      return 0;
+    },
+  );
+
   return (
     <div>
-      {Object.entries(data.arguments).map(([argName, argDef], index) => {
+      {sortedArguments.map(([argName, argDef], index) => {
         const isListInput = /^\d+$/.test(argName);
         const isListDynamic = isListInput && data.list_inputs === true;
 
@@ -136,7 +158,7 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
                 showMenu={isListDynamic || isDictDynamic}
                 onDelete={
                   isListDynamic
-                    ? () => handleRemoveInput(argName)
+                    ? () => handleRemoveNumberedInput(argName)
                     : isDictDynamic
                       ? () => handleRemoveDictInput(argName)
                       : undefined
@@ -156,7 +178,11 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
         <div>
           {Object.keys(data.arguments).length !== 0 && <Separator />}
           <div className="p-2 py-1.5 flex flex-row gap-2 items-center">
-            <Button variant="ghost" size="icon-xs" onClick={handleAddInput}>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={handleAddNumberedInput}
+            >
               <Plus />
             </Button>
             Add Input
