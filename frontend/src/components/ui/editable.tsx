@@ -501,7 +501,7 @@ function EditablePreview(props: EditablePreviewProps) {
       onFocus={onFocus}
       onKeyDown={onKeyDown}
       className={cn(
-        "cursor-text truncate rounded-sm border border-neutral-200 border-transparent py-1 text-base focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-neutral-950 data-disabled:cursor-not-allowed data-readonly:cursor-default data-empty:text-neutral-500 data-disabled:opacity-50 md:text-sm dark:border-neutral-800 dark:focus-visible:ring-neutral-300 dark:data-empty:text-neutral-400",
+        "cursor-text truncate rounded-sm border border-neutral-200 px-3 py-1 text-base focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-neutral-950 data-disabled:cursor-not-allowed data-readonly:cursor-default data-empty:text-neutral-500 data-disabled:opacity-50 md:text-sm dark:border-neutral-800 dark:focus-visible:ring-neutral-300 dark:data-empty:text-neutral-400",
         className,
       )}
     >
@@ -660,7 +660,7 @@ function EditableInput(props: EditableInputProps) {
       onChange={onChange}
       onKeyDown={onKeyDown}
       className={cn(
-        "flex rounded-sm border border-neutral-200 bg-transparent py-1 text-base shadow-xs transition-colors file:border-0 file:bg-transparent file:font-medium file:text-neutral-950 file:text-sm placeholder:text-neutral-500 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:border-neutral-800 dark:file:text-neutral-50 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300",
+        "flex rounded-sm border border-neutral-200 bg-transparent px-3 py-1 text-base shadow-xs transition-colors file:border-0 file:bg-transparent file:font-medium file:text-neutral-950 file:text-sm placeholder:text-neutral-500 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:border-neutral-800 dark:file:text-neutral-50 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300",
         context.autosize ? "w-auto" : "w-full",
         className,
       )}

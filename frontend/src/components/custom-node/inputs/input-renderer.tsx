@@ -1,9 +1,11 @@
 import { memo } from "react";
 import FloatInput from "../../../common/float-input";
 import IntInput from "../../../common/int-input";
+import StringInput from "../../../common/string-input";
 import UserModelDisplay from "../../../common/user-model-display";
 import useTypesStore from "@/stores/typesStore";
 import ListDisplay from "@/common/list-display";
+import DictDisplay from "@/common/dict-display";
 
 interface InputRendererProps {
   inputData: any;
@@ -17,6 +19,7 @@ export const TYPE_COMPONENT_REGISTRY: Record<
 > = {
   float: FloatInput,
   int: IntInput,
+  str: StringInput,
 };
 
 export default memo(function InputRenderer({
@@ -66,9 +69,14 @@ export default memo(function InputRenderer({
         />
       );
     }
-    // if (actualType.structure_type === "dict") {
-    //   return <DictDisplay inputData={{ ...inputData, type: actualType }} path={path} />;
-    // }
+    if (actualType.structure_type === "dict") {
+      return (
+        <DictDisplay
+          inputData={{ ...inputData, type: actualType }}
+          path={path}
+        />
+      );
+    }
   }
 
   // For types without a component, show a generic message

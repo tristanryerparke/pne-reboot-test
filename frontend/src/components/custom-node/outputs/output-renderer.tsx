@@ -29,6 +29,17 @@ export default memo(function OutputRenderer({
 
       // Handle different types of values
       if (typeof outputData.value === "object") {
+        // Handle dicts (plain objects) without quotes on keys
+        if (!Array.isArray(outputData.value) && outputData.value !== null) {
+          const entries = Object.entries(outputData.value)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(", ");
+          return `{${entries}}`;
+        }
+        // Handle arrays
+        if (Array.isArray(outputData.value)) {
+          return `[${outputData.value.join(", ")}]`;
+        }
         return JSON.stringify(outputData.value);
       }
       return String(outputData.value);

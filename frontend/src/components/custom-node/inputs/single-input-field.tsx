@@ -10,6 +10,7 @@ import {
   EditableInput,
 } from "../../ui/editable";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
+import { useRef, useLayoutEffect, useState } from "react";
 
 interface SingleInputFieldProps {
   fieldData: any;
@@ -31,6 +32,16 @@ export default function SingleInputField({
   const fieldName = path[2];
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
+  const measureRef = useRef<HTMLSpanElement>(null);
+  const [textWidth, setTextWidth] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (measureRef.current) {
+      // Measure the text width including padding and border, plus extra space for comfortable editing
+      const width = measureRef.current.offsetWidth + 1; // Add 8px extra space
+      setTextWidth(width);
+    }
+  }, [fieldName]);
 
   if (!fieldData) {
     return <div>No field data</div>;
@@ -70,18 +81,31 @@ export default function SingleInputField({
             <div className="flex w-full pl-3 py-2 gap-1 overflow-hidden items-center">
               <div className="flex w-full items-center flex-shrink-0 gap-2">
                 {isEditableKey ? (
-                  <Editable
-                    value={String(fieldName)}
-                    onSubmit={onKeyChange}
-                    placeholder="key"
-                    autosize
-                    className="gap-0 flex-shrink-0"
-                  >
-                    <EditableArea className="inline-block w-auto min-w-0 flex-shrink-0 edit:pr-5">
-                      <EditablePreview className="border-0 px-0 py-0 focus-visible:ring-0 text-base md:text-sm whitespace-nowrap" />
-                      <EditableInput className="px-1 py-0 min-w-[3ch]" />
-                    </EditableArea>
-                  </Editable>
+                  <>
+                    <span
+                      ref={measureRef}
+                      className="invisible absolute border border-transparent px-1 py-0 shadow-xs text-base md:text-sm whitespace-nowrap"
+                      aria-hidden="true"
+                    >
+                      {fieldName}
+                    </span>
+                    <Editable
+                      value={String(fieldName)}
+                      onSubmit={onKeyChange}
+                      placeholder="key"
+                      className="gap-0 flex-shrink-0"
+                    >
+                      <EditableArea
+                        className="inline-block min-w-0 flex-shrink-0"
+                        style={
+                          textWidth ? { width: `${textWidth}px` } : undefined
+                        }
+                      >
+                        <EditablePreview className="border border-transparent px-1 py-0 shadow-xs focus-visible:ring-0 text-base md:text-sm whitespace-nowrap" />
+                        <EditableInput className="border border-neutral-200 px-1 py-0 w-full" />
+                      </EditableArea>
+                    </Editable>
+                  </>
                 ) : (
                   <span>{fieldName}</span>
                 )}
