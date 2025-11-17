@@ -79,7 +79,7 @@ export default function SingleInputField({
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex w-full pl-3 py-2 gap-1 overflow-hidden items-center">
-              <div className="flex w-full items-center flex-shrink-0 gap-2">
+              <div className="flex min-w-0 items-center gap-2 flex-1">
                 {isEditableKey ? (
                   <>
                     <span
@@ -107,10 +107,12 @@ export default function SingleInputField({
                     </Editable>
                   </>
                 ) : (
-                  <span>{fieldName}</span>
+                  <span className="flex-shrink-0">{fieldName}</span>
                 )}
-                <span>: </span>
-                <InputRenderer inputData={fieldData} path={path} />
+                <span className="flex-shrink-0">: </span>
+                <div className="min-w-0 flex-1">
+                  <InputRenderer inputData={fieldData} path={path} />
+                </div>
               </div>
             </div>
           </TooltipTrigger>

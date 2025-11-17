@@ -37,7 +37,7 @@ export default memo(function NodeHeader({
         >
           {isJsonView ? <FileText size={14} /> : <Code size={14} />}
         </Button>
-        <NodeResizeControl
+        {/* <NodeResizeControl
           style={{
             all: "unset",
             justifyContent: "center",
@@ -61,7 +61,7 @@ export default memo(function NodeHeader({
           >
             <ArrowLeftRight size={14} />
           </Button>
-        </NodeResizeControl>
+        </NodeResizeControl> */}
       </div>
     </div>
   );

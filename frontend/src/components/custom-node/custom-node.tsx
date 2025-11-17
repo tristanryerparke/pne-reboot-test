@@ -13,26 +13,9 @@ export default memo(function CustomNode({
   id: string;
 }) {
   const [isJsonView, setIsJsonView] = useState(false);
-  const [isResized, setIsResized] = useState(false);
-  const [fitWidth, setFitWidth] = useState<number | undefined>(undefined);
   const nodeRef = useRef<HTMLDivElement>(null);
 
-  // Measure the fit width when not resized
-  useEffect(() => {
-    if (!isResized && nodeRef.current) {
-      const width = nodeRef.current.offsetWidth;
-      setFitWidth(width);
-    }
-  }, [isResized, isJsonView]);
-
   const toggleView = () => setIsJsonView(!isJsonView);
-
-  const handleResizeStart = () => {
-    if (nodeRef.current && !fitWidth) {
-      setFitWidth(nodeRef.current.offsetWidth);
-    }
-    setIsResized(true);
-  };
 
   const path = [id];
 
@@ -41,24 +24,13 @@ export default memo(function CustomNode({
   return (
     <div
       ref={nodeRef}
-      className={`${
-        isResized
-          ? "relative h-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
-          : "relative w-fit h-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
-      }`}
-      style={{
-        maxHeight: "fit-content",
-        overflowY: "visible",
-        resize: "horizontal",
-      }}
+      className="relative w-fit h-fit min-w-[250px] shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
     >
       <NodeHeader
         data={data}
         nodeId={id}
         isJsonView={isJsonView}
         onToggleView={toggleView}
-        onResizeStart={handleResizeStart}
-        minWidth={fitWidth}
       />
       <Separator />
       {isJsonView ? (
