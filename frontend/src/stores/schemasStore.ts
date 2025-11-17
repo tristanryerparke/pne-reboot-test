@@ -12,6 +12,10 @@ export interface NodeFunctionData {
       default_value?: any;
     }
   >;
+  dynamic_input_type?: {
+    structure_type: string;
+    items: string;
+  };
   return: {
     type: string;
   };

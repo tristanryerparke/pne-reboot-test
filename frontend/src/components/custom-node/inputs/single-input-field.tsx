@@ -9,6 +9,7 @@ import {
   EditablePreview,
   EditableInput,
 } from "../../ui/editable";
+import { formatTypeForDisplay } from "@/utils/type-formatting";
 
 interface SingleInputFieldProps {
   fieldData: any;
@@ -44,9 +45,7 @@ export default function SingleInputField({
   const selectedType =
     fieldData.selectedType || (unionTypes ? unionTypes[0] : undefined);
 
-  const displayType = isUnionType
-    ? fieldData.type.anyOf.join(" | ")
-    : fieldData.type;
+  const displayType = formatTypeForDisplay(fieldData.type);
 
   // Handler for when user changes the type
   const handleTypeChange = (newType: string) => {

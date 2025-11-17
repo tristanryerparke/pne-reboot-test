@@ -3,6 +3,7 @@ import FloatInput from "../../../common/float-input";
 import IntInput from "../../../common/int-input";
 import UserModelDisplay from "../../../common/user-model-display";
 import useTypesStore from "@/stores/typesStore";
+import ListDisplay from "@/common/list-display";
 
 interface InputRendererProps {
   inputData: any;
@@ -55,7 +56,22 @@ export default memo(function InputRenderer({
     );
   }
 
+  // Handle complex types like object and list
+  if (typeof actualType === "object" && actualType.structure_type) {
+    if (actualType.structure_type === "list") {
+      return (
+        <ListDisplay
+          inputData={{ ...inputData, type: actualType }}
+          path={path}
+        />
+      );
+    }
+    // if (actualType.structure_type === "dict") {
+    //   return <DictDisplay inputData={{ ...inputData, type: actualType }} path={path} />;
+    // }
+  }
+
   // For types without a component, show a generic message
   console.log("No component for type:", actualType);
-  return <div>InputRenderer: {actualType}</div>;
+  return <div>InputRenderer: {JSON.stringify(inputData)}</div>;
 });

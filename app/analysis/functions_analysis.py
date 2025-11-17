@@ -65,8 +65,8 @@ def analyze_function(
                     f"Parameter *{arg.name} has no annotation"
                 )
             dynamic_input_type = {
-                "dynamic_type": "list",
-                "value_type": get_type_repr(ann, module_ns, short_repr=True),
+                "structure_type": "list",
+                "items": get_type_repr(ann, module_ns, short_repr=True),
             }
             # Analyze the argument type and merge with found types
             arg_types = analyze_type(ann, file_path, module_ns)
@@ -81,8 +81,8 @@ def analyze_function(
                     f"Parameter **{arg.name} has no annotation"
                 )
             dynamic_input_type = {
-                "dynamic_type": "dict",
-                "value_type": get_type_repr(ann, module_ns, short_repr=True),
+                "structure_type": "dict",
+                "items": get_type_repr(ann, module_ns, short_repr=True),
             }
             # Analyze the argument type and merge with found types
             arg_types = analyze_type(ann, file_path, module_ns)

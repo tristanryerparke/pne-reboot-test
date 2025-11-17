@@ -31,9 +31,7 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
     const newArgName = `${nextNumber}`;
 
     const newArg = {
-      type:
-        data.dynamic_input_type?.value_type ||
-        data.arguments[argNames[0]]?.type,
+      type: data.dynamic_input_type?.items || data.arguments[argNames[0]]?.type,
       value: null,
     };
 
@@ -86,7 +84,7 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
     const newArgName = `key_${nextNumber}`;
 
     const newArg = {
-      type: data.dynamic_input_type?.value_type || "str",
+      type: data.dynamic_input_type?.items || "str",
       _isDictInput: true,
     };
 
@@ -141,11 +139,11 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
       {sortedArguments.map(([argName, argDef], index) => {
         const isListInput = /^\d+$/.test(argName);
         const isListDynamic =
-          isListInput && data.dynamic_input_type?.dynamic_type === "list";
+          isListInput && data.dynamic_input_type?.structure_type === "list";
 
         const isDictDynamic =
           (argDef as any)._isDictInput === true &&
-          data.dynamic_input_type?.dynamic_type === "dict";
+          data.dynamic_input_type?.structure_type === "dict";
 
         const isUnionType =
           typeof (argDef as any).type === "object" &&
@@ -178,7 +176,7 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
           </div>
         );
       })}
-      {data.dynamic_input_type?.dynamic_type === "list" && (
+      {data.dynamic_input_type?.structure_type === "list" && (
         <div>
           {Object.keys(data.arguments).length !== 0 && <Separator />}
           <div className="p-2 py-1.5 flex flex-row gap-2 items-center">
@@ -193,7 +191,7 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
           </div>
         </div>
       )}
-      {data.dynamic_input_type?.dynamic_type === "dict" && (
+      {data.dynamic_input_type?.structure_type === "dict" && (
         <div>
           {Object.keys(data.arguments).length !== 0 && <Separator />}
           <div className="p-2 py-1.5 flex flex-row gap-2 items-center text-sm">

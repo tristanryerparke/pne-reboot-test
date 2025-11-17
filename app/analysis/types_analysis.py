@@ -39,12 +39,12 @@ def get_type_repr(tp, module_ns, short_repr=True):
             }
         elif origin in (list, typing.List):
             return {
-                "type": "list",
+                "structure_type": "list",
                 "items": get_type_repr(tp.__args__[0], module_ns, short_repr),
             }
         elif origin in (dict, typing.Dict):
             return {
-                "type": "dict",
+                "structure_type": "dict",
                 "items": get_type_repr(tp.__args__[1], module_ns, short_repr),
             }
         else:
