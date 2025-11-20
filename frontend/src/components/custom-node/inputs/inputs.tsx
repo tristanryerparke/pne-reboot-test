@@ -1,8 +1,7 @@
 import SingleInputField from "./single-input-field";
 import { Separator } from "../../ui/separator";
-import { Button } from "../../ui/button";
-import { Plus } from "lucide-react";
-import useFlowStore from "../../../stores/flowStore";
+import ListDynamicInputs from "./dynamic/list-dynamic-inputs";
+import DictDynamicInputs from "./dynamic/dict-dynamic-inputs";
 
 interface InputsProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -12,54 +11,6 @@ interface InputsProps {
 }
 
 export default function Inputs({ data, nodeId, path }: InputsProps) {
-  const updateNodeData = useFlowStore((state) => state.updateNodeData);
-
-  // For *args and **kwargs python functions we can add and remove inputs here on the frontend
-  const handleAddNumberedInput = () => {
-    const argNames = Object.keys(data.arguments);
-    const argNumbers = argNames
-      .map((name) => {
-        if (/^\d+$/.test(name)) {
-          return parseInt(name);
-        } else if (name.startsWith("_") && /^\d+$/.test(name.substring(1))) {
-          return parseInt(name.substring(1));
-        }
-        return NaN;
-      })
-      .filter((num) => !isNaN(num));
-
-    const nextNumber = argNumbers.length > 0 ? Math.max(...argNumbers) + 1 : 0;
-    const newArgName = `${nextNumber}`;
-
-    const newArg = {
-      type: data.dynamic_input_type?.items || data.arguments[argNames[0]]?.type,
-      value: null,
-    };
-
-    updateNodeData([nodeId, "arguments", newArgName], newArg);
-  };
-
-  const handleAddDictInput = () => {
-    const argNames = Object.keys(data.arguments);
-    const keyPattern = /^key_(\d+)$/;
-    const keyNumbers = argNames
-      .map((name) => {
-        const match = name.match(keyPattern);
-        return match ? parseInt(match[1]) : NaN;
-      })
-      .filter((num) => !isNaN(num));
-
-    const nextNumber = keyNumbers.length > 0 ? Math.max(...keyNumbers) + 1 : 0;
-    const newArgName = `key_${nextNumber}`;
-
-    const newArg = {
-      type: data.dynamic_input_type?.items || "str",
-      _isDictInput: true,
-    };
-
-    updateNodeData([nodeId, "arguments", newArgName], newArg);
-  };
-
   // Sort arguments to maintain proper order:
   // 1. Named arguments (non-numeric) come first, in their original order
   // 2. Numbered arguments (from *args) come after, sorted numerically
@@ -82,6 +33,8 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
     },
   );
 
+  const hasExistingArguments = Object.keys(data.arguments).length !== 0;
+
   return (
     <div>
       {sortedArguments.map(([argName, argDef], index) => {
@@ -97,30 +50,18 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
         );
       })}
       {data.dynamic_input_type?.structure_type === "list" && (
-        <div>
-          {Object.keys(data.arguments).length !== 0 && <Separator />}
-          <div className="p-2 py-1.5 flex flex-row gap-2 items-center">
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={handleAddNumberedInput}
-            >
-              <Plus />
-            </Button>
-            Add Input
-          </div>
-        </div>
+        <ListDynamicInputs
+          data={data}
+          nodeId={nodeId}
+          hasExistingArguments={hasExistingArguments}
+        />
       )}
       {data.dynamic_input_type?.structure_type === "dict" && (
-        <div>
-          {Object.keys(data.arguments).length !== 0 && <Separator />}
-          <div className="p-2 py-1.5 flex flex-row gap-2 items-center text-sm">
-            <Button variant="ghost" size="icon-xs" onClick={handleAddDictInput}>
-              <Plus />
-            </Button>
-            Add Key / Value Input
-          </div>
-        </div>
+        <DictDynamicInputs
+          data={data}
+          nodeId={nodeId}
+          hasExistingArguments={hasExistingArguments}
+        />
       )}
     </div>
   );

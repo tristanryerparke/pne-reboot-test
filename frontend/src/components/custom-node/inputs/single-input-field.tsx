@@ -2,16 +2,9 @@ import { Handle, Position } from "@xyflow/react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 import InputRenderer from "./input-renderer";
 import InputMenu from "./input-menu";
-import useFlowStore from "../../../stores/flowStore";
-import {
-  Editable,
-  EditableArea,
-  EditablePreview,
-  EditableInput,
-} from "../../ui/editable";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
-import { useRef, useLayoutEffect, useState } from "react";
 import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
+import EditableKey from "./dynamic/editable-key";
 
 interface SingleInputFieldProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,11 +19,8 @@ export default function SingleInputField({
   path,
   nodeData,
 }: SingleInputFieldProps) {
-  const updateNodeData = useFlowStore((state) => state.updateNodeData);
   const fieldName = path[2];
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
-  const measureRef = useRef<HTMLSpanElement>(null);
-  const [textWidth, setTextWidth] = useState<number | null>(null);
 
   // Detect if this is a dynamic list input
   const argName = String(fieldName);
@@ -43,14 +33,6 @@ export default function SingleInputField({
     fieldData._isDictInput === true &&
     nodeData.dynamic_input_type?.structure_type === "dict";
 
-  useLayoutEffect(() => {
-    if (measureRef.current) {
-      // Measure the text width including padding and border, plus extra space for comfortable editing
-      const width = measureRef.current.offsetWidth + 1; // Add 8px extra space
-      setTextWidth(width);
-    }
-  }, [fieldName]);
-
   if (!fieldData) {
     return <div>No field data</div>;
   }
@@ -60,13 +42,13 @@ export default function SingleInputField({
     typeof fieldData.type === "object" && fieldData.type?.anyOf;
   const unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
 
-  // Get the selected type from fieldData (should be set by backend)
+  // Get the selected type from fieldData
   const selectedType =
     fieldData.selectedType || (unionTypes ? unionTypes[0] : undefined);
 
   const displayType = formatTypeForDisplay(fieldData.type);
 
-  // Check if this type has multiple component options in the registry
+  // Check if this type has multiple input component options in the registry
   const effectiveType = selectedType || fieldData.type;
   const registryEntry =
     typeof effectiveType === "string"
@@ -97,26 +79,6 @@ export default function SingleInputField({
   // Dict inputs have editable keys
   const isEditableKey = isDynamicDictInput;
 
-  // Handler for when user changes the key name (for dict inputs)
-  const handleKeyChange = (newKey: string) => {
-    if (!newKey || newKey === String(fieldName)) return;
-
-    // Get the arguments path
-    const argumentsPath = [...path.slice(0, -1)];
-    const argumentsData = nodeData.arguments;
-
-    if (argumentsData[newKey]) {
-      console.warn(`Key "${newKey}" already exists`);
-      return;
-    }
-
-    const newArguments = { ...argumentsData };
-    newArguments[newKey] = newArguments[fieldName];
-    delete newArguments[fieldName];
-
-    updateNodeData(argumentsPath, newArguments);
-  };
-
   return (
     <div className="relative w-full flex items-center pr-1">
       <div className="flex-1">
@@ -131,32 +93,13 @@ export default function SingleInputField({
           <TooltipTrigger asChild>
             <div className="flex w-full pl-3 pr py-2 gap-1 overflow-hidden items-center">
               <div className="flex min-w-0 items-center gap-2 flex-1">
+                {/* Dynamic dict inputs have a user-editable key*/}
                 {isEditableKey ? (
-                  <>
-                    <span
-                      ref={measureRef}
-                      className="invisible absolute border border-transparent px-1 py-0 shadow-xs text-base md:text-sm whitespace-nowrap"
-                      aria-hidden="true"
-                    >
-                      {fieldName}
-                    </span>
-                    <Editable
-                      value={String(fieldName)}
-                      onSubmit={handleKeyChange}
-                      placeholder="key"
-                      className="gap-0 shrink-0"
-                    >
-                      <EditableArea
-                        className="inline-block min-w-0 shrink-0"
-                        style={
-                          textWidth ? { width: `${textWidth}px` } : undefined
-                        }
-                      >
-                        <EditablePreview className="border border-transparent px-1 py-0 shadow-xs focus-visible:ring-0 text-base md:text-sm whitespace-nowrap" />
-                        <EditableInput className="border border-neutral-200 px-1 py-0 w-full" />
-                      </EditableArea>
-                    </Editable>
-                  </>
+                  <EditableKey
+                    fieldName={fieldName}
+                    path={path}
+                    nodeData={nodeData}
+                  />
                 ) : (
                   <span className="shrink-0">{fieldName}</span>
                 )}
