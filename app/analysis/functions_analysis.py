@@ -1,7 +1,7 @@
+import hashlib
 import inspect
 import os
 import typing
-import uuid
 from typing import Any, Callable, Dict, Tuple
 
 from app.schema import FunctionSchema, MultipleOutputs
@@ -25,13 +25,12 @@ def analyze_function(
 
     """
 
-    # Get file path and module namespace from the function object
-    # If function is wrapped by a decorator (like @add_node_options),
-    # get the original function's file path
+    # If function is wrapped by a decorator (like @add_node_options), retrieve the original function object
     original_func = func_obj
     while hasattr(original_func, "__wrapped__"):
-        original_func = original_func.__wrapped__
+        original_func = getattr(original_func, "__wrapped__")
 
+    # Get file path and module namespace from the function object
     file_path = inspect.getfile(original_func)
     abs_file_path = os.path.abspath(file_path)
     module_ns = func_obj.__globals__
@@ -144,7 +143,10 @@ def analyze_function(
     ret_types = analyze_type(ret_ann, file_path, module_ns)
     merge_types_dict(found_types, ret_types)
 
-    callable_id = str(uuid.uuid4())
+    # Generate callable_id by hashing the function's source code
+    source_code = inspect.getsource(original_func)
+    hash_digest = hashlib.sha256(source_code.encode()).hexdigest()
+    callable_id = hash_digest[:16]
 
     # Check if the function has a custom node_name attribute from decorator
     func_name = getattr(func_obj, "node_name", func_obj.__name__)

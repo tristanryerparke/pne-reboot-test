@@ -1,5 +1,6 @@
+import hashlib
+import inspect
 import sys
-import uuid
 
 from devtools import debug as d
 
@@ -17,8 +18,6 @@ def make_constructor(cls, type_name):
 def create_construct_node(
     python_class, type_name, type_def, field_names, field_types, module_ns
 ):
-    import inspect
-
     from pydantic_core import PydanticUndefined
 
     from ...schema import FunctionSchema
@@ -46,7 +45,10 @@ def create_construct_node(
         "return": {"type": get_type_repr(python_class, module_ns, short_repr=True)}
     }
 
-    callable_id = str(uuid.uuid4())
+    # Generate callable_id by hashing the class source code
+    source_code = inspect.getsource(python_class)
+    hash_digest = hashlib.sha256(source_code.encode()).hexdigest()
+    callable_id = f"construct_{hash_digest[:16]}"
 
     const_model = FunctionSchema(
         name=f"construct-{type_name}",

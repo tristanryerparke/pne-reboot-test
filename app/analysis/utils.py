@@ -11,6 +11,39 @@ from .types_analysis import merge_types_dict
 from .user_model_functions import create_const_deconst_models
 
 
+class DuplicateFunctionError(Exception):
+    pass
+
+
+def check_for_duplicate_callable_ids(functions_schemas_list: list[Any]) -> None:
+    callable_id_to_functions = {}
+
+    for func_schema in functions_schemas_list:
+        callable_id = func_schema.callable_id
+
+        if callable_id in callable_id_to_functions:
+            callable_id_to_functions[callable_id].append(func_schema)
+        else:
+            callable_id_to_functions[callable_id] = [func_schema]
+
+    duplicates = {
+        callable_id: funcs
+        for callable_id, funcs in callable_id_to_functions.items()
+        if len(funcs) > 1
+    }
+
+    if duplicates:
+        error_messages = []
+        for callable_id, funcs in duplicates.items():
+            func_names = [f"{f.name} ({f.file_path})" for f in funcs]
+            error_messages.append(
+                f"Callable ID '{callable_id}' is shared by: {', '.join(func_names)}"
+            )
+        raise DuplicateFunctionError(
+            "Duplicate function(s) found:\n" + "\n".join(error_messages)
+        )
+
+
 def find_python_files(target_path: str) -> list[str]:
     """Find all Python files to analyze.
 
@@ -52,7 +85,7 @@ def analyze_file(file_path: str):
         spec.loader.exec_module(module)
     except Exception as e:
         print(f"Module '{file_path}' could not be imported: {e}")
-        return {}, {}, {}
+        return [], {}, {}
 
     # Find all functions in the module
     funcs = {
@@ -115,6 +148,9 @@ def analyze_files(py_files: list[str], base_dir: str):
     # Merge the constructor/deconstructor schemas and callables
     all_function_schemas.extend(const_deconst_model_schemas)
     all_callables.update(const_deconst_callables)
+
+    # Check for duplicate callable_ids
+    check_for_duplicate_callable_ids(all_function_schemas)
 
     return all_function_schemas, all_callables, all_types
 

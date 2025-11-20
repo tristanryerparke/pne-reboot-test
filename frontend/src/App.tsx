@@ -8,7 +8,6 @@ import { ModeToggle } from "./components/mode-toggle";
 import { Separator } from "./components/ui/separator";
 import { TypesBrowser } from "./components/types-browser/types-browser";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
-import { Button } from "./components/ui/button";
 
 import NodeGraph from "./components/node-graph";
 import ExecuteButton from "./components/execute-button";

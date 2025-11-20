@@ -1,4 +1,5 @@
-import uuid
+import hashlib
+import inspect
 
 from devtools import debug as d
 
@@ -34,8 +35,6 @@ def make_deconstructor(cls, type_name, field_names):
 def create_deconstruct_node(
     python_class, type_name, type_def, field_names, field_types, module_ns
 ):
-    import inspect
-
     from ...schema import FunctionSchema
 
     # Get the file path where the class is defined
@@ -54,7 +53,10 @@ def create_deconstruct_node(
         field_name: {"type": field_types[field_name]} for field_name in field_names
     }
 
-    callable_id = str(uuid.uuid4())
+    # Generate callable_id by hashing the class source code
+    source_code = inspect.getsource(python_class)
+    hash_digest = hashlib.sha256(source_code.encode()).hexdigest()
+    callable_id = f"deconstruct_{hash_digest[:16]}"
 
     deconst_model = FunctionSchema(
         name=f"deconstruct-{type_name}",

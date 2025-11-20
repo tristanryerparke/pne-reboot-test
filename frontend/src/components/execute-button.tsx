@@ -20,6 +20,7 @@ export default function ExecuteMenu() {
     const executeMessage = stripGraphForExecute(graph);
 
     try {
+      console.log("Executing graph:", executeMessage);
       const response = await fetch("http://localhost:8000/graph_execute", {
         method: "POST",
         headers: {
@@ -36,11 +37,13 @@ export default function ExecuteMenu() {
 
       if (result.status === "success") {
         // Process updates in execution order
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         result.updates.forEach((update: any) => {
           const nodeId = update.node_id;
 
           // Update inputs
           Object.entries(update.inputs).forEach(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ([argName, argData]: [string, any]) => {
               const valuePath = [nodeId, "arguments", argName, "value"];
               updateNodeData(valuePath, argData.value);
@@ -65,6 +68,7 @@ export default function ExecuteMenu() {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
 
   return (
