@@ -1,4 +1,4 @@
-Number = int | float
+Number = float | int
 
 
 # TODO: allow the user to change the input type on the frontend

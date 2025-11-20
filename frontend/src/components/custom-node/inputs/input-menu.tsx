@@ -12,6 +12,7 @@ import {
 } from "../../ui/dropdown-menu";
 import useFlowStore from "../../../stores/flowStore";
 import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
+import useTypesStore from "@/stores/typesStore";
 
 interface InputMenuProps {
   path?: (string | number)[];
@@ -29,11 +30,26 @@ export default function InputMenu({
   const deleteNodeData = useFlowStore((state) => state.deleteNodeData);
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
   const getNodeData = useFlowStore((state) => state.getNodeData);
+  const types = useTypesStore((state) => state.types);
 
   // Handle union types - detect from fieldData
   const isUnionType =
     typeof fieldData.type === "object" && fieldData.type?.anyOf;
-  const unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
+  let unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
+
+  // Handle user_alias types - treat them like union types
+  if (typeof fieldData.type === "string" && !unionTypes) {
+    const typeInfo = types[fieldData.type];
+    if (
+      typeInfo &&
+      typeInfo.kind === "user_alias" &&
+      typeof typeInfo.type === "object" &&
+      typeInfo.type?.anyOf
+    ) {
+      unionTypes = typeInfo.type.anyOf;
+    }
+  }
+
   const selectedType =
     fieldData.selectedType || (unionTypes ? unionTypes[0] : undefined);
   const hasUnionTypes = unionTypes && unionTypes.length > 1;

@@ -28,6 +28,20 @@ export default memo(function InputRenderer({
     actualType = inputData.selectedType || inputData.type.anyOf[0];
   }
 
+  // Handle user_alias types - treat them like union types
+  if (typeof inputData.type === "string") {
+    const typeInfo = types[inputData.type];
+    if (
+      typeInfo &&
+      typeInfo.kind === "user_alias" &&
+      typeof typeInfo.type === "object" &&
+      typeInfo.type?.anyOf
+    ) {
+      // For user aliases, use selectedType if available, otherwise default to first type in the alias
+      actualType = inputData.selectedType || typeInfo.type.anyOf[0];
+    }
+  }
+
   // Check if we have a specific component for this type
   const registryEntry = TYPE_COMPONENT_REGISTRY[actualType];
   if (registryEntry) {
