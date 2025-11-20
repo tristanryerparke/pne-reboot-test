@@ -1,26 +1,17 @@
 import { memo } from "react";
-import FloatInput from "../../../common/float-input";
-import IntInput from "../../../common/int-input";
 import StringInput from "../../../common/string-input";
+import MultilineStringInput from "../../../common/multiline-string-input";
 import UserModelDisplay from "../../../common/user-model-display";
 import useTypesStore from "@/stores/typesStore";
 import ListDisplay from "@/common/list-display";
 import DictDisplay from "@/common/dict-display";
+import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
 
 interface InputRendererProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   inputData: any;
   path: (string | number)[];
 }
-
-// Add more input types here
-export const TYPE_COMPONENT_REGISTRY: Record<
-  string,
-  React.ComponentType<InputRendererProps>
-> = {
-  float: FloatInput,
-  int: IntInput,
-  str: StringInput,
-};
 
 export default memo(function InputRenderer({
   inputData,
@@ -37,6 +28,19 @@ export default memo(function InputRenderer({
   if (typeof inputData.type === "object" && inputData.type?.anyOf) {
     // For union types, use selectedType if available, otherwise default to first type
     actualType = inputData.selectedType || inputData.type.anyOf[0];
+  }
+
+  // Special handling for string type with input mode
+  if (actualType === "str") {
+    const inputMode = inputData.inputMode || "single-line";
+    const StringComponent =
+      inputMode === "multiline" ? MultilineStringInput : StringInput;
+    return (
+      <StringComponent
+        inputData={{ ...inputData, type: actualType }}
+        path={path}
+      />
+    );
   }
 
   // Check if we have a specific component for this type

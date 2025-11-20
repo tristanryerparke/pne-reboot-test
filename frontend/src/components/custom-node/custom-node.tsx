@@ -24,7 +24,7 @@ export default memo(function CustomNode({
   return (
     <div
       ref={nodeRef}
-      className="relative w-fit h-fit min-w-[250px] shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
+      className="relative w-fit h-fit min-w-[250px] max-w-[600px] shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
     >
       <NodeHeader
         data={data}

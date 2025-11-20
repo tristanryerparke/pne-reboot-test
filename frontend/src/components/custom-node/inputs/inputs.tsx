@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import useFlowStore from "../../../stores/flowStore";
 
 interface InputsProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   nodeId: string;
   path: string[];
@@ -38,38 +39,6 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
     updateNodeData([nodeId, "arguments", newArgName], newArg);
   };
 
-  const handleRemoveNumberedInput = (argName: string) => {
-    const argNames = Object.keys(data.arguments);
-
-    const numberedArgs = argNames
-      .filter((name) => /^\d+$/.test(name))
-      .map((name) => ({
-        name,
-        number: parseInt(name),
-        data: data.arguments[name],
-      }))
-      .sort((a, b) => a.number - b.number);
-
-    const removeIndex = numberedArgs.findIndex((arg) => arg.name === argName);
-    if (removeIndex === -1) return;
-
-    const newArguments = { ...data.arguments };
-    delete newArguments[argName];
-
-    for (let i = removeIndex + 1; i < numberedArgs.length; i++) {
-      const oldName = numberedArgs[i].name;
-      const newName = `${i - 1}`;
-
-      newArguments[newName] = newArguments[oldName];
-
-      if (oldName !== newName) {
-        delete newArguments[oldName];
-      }
-    }
-
-    updateNodeData([nodeId, "arguments"], newArguments);
-  };
-
   const handleAddDictInput = () => {
     const argNames = Object.keys(data.arguments);
     const keyPattern = /^key_(\d+)$/;
@@ -89,27 +58,6 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
     };
 
     updateNodeData([nodeId, "arguments", newArgName], newArg);
-  };
-
-  const handleRemoveDictInput = (argName: string) => {
-    const newArguments = { ...data.arguments };
-    delete newArguments[argName];
-
-    updateNodeData([nodeId, "arguments"], newArguments);
-  };
-
-  const handleKeyNameChange = (oldKey: string, newKey: string) => {
-    if (!newKey || newKey === oldKey) return;
-    if (data.arguments[newKey]) {
-      console.warn(`Key "${newKey}" already exists`);
-      return;
-    }
-
-    const newArguments = { ...data.arguments };
-    newArguments[newKey] = newArguments[oldKey];
-    delete newArguments[oldKey];
-
-    updateNodeData([nodeId, "arguments"], newArguments);
   };
 
   // Sort arguments to maintain proper order:
@@ -137,42 +85,14 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
   return (
     <div>
       {sortedArguments.map(([argName, argDef], index) => {
-        const isListInput = /^\d+$/.test(argName);
-        const isListDynamic =
-          isListInput && data.dynamic_input_type?.structure_type === "list";
-
-        const isDictDynamic =
-          (argDef as any)._isDictInput === true &&
-          data.dynamic_input_type?.structure_type === "dict";
-
-        const isUnionType =
-          typeof (argDef as any).type === "object" &&
-          (argDef as any).type?.anyOf;
-        const hasMenu = isListDynamic || isDictDynamic || isUnionType;
-
         return (
           <div key={argName} className="node-field-input">
             {index > 0 && <Separator />}
-            <div className={`${!hasMenu ? "pr-2" : ""}`}>
-              <SingleInputField
-                fieldData={argDef}
-                path={[...path, "arguments", argName]}
-                showMenu={isListDynamic || isDictDynamic}
-                onDelete={
-                  isListDynamic
-                    ? () => handleRemoveNumberedInput(argName)
-                    : isDictDynamic
-                      ? () => handleRemoveDictInput(argName)
-                      : undefined
-                }
-                isEditableKey={isDictDynamic}
-                onKeyChange={
-                  isDictDynamic
-                    ? (newKey) => handleKeyNameChange(argName, newKey)
-                    : undefined
-                }
-              />
-            </div>
+            <SingleInputField
+              fieldData={argDef}
+              path={[...path, "arguments", argName]}
+              nodeData={data}
+            />
           </div>
         );
       })}

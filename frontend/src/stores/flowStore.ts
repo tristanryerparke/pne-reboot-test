@@ -26,6 +26,7 @@ type FlowStoreActions = {
   onConnect: OnConnect;
   updateNodeData: (path: (string | number)[], newData: unknown) => void;
   getNodeData: (path: (string | number)[]) => unknown;
+  deleteNodeData: (path: (string | number)[]) => void;
 };
 
 export type FlowState = FlowStoreState & FlowStoreActions;
@@ -118,6 +119,37 @@ const useFlowStore = createWithEqualityFn<FlowState>(
 
       return current;
     },
+
+    deleteNodeData: (path) => {
+      set(
+        produce((state: FlowState) => {
+          const nodeIndex = state.nodes.findIndex(
+            (node) => node.id === path[0],
+          );
+          if (nodeIndex !== -1) {
+            let current = state.nodes[nodeIndex].data;
+            const pathToProperty = path.slice(1);
+
+            // Navigate to the parent object
+            for (let i = 0; i < pathToProperty.length - 1; i++) {
+              const key = pathToProperty[i];
+              if (current[key] === undefined) {
+                console.warn(
+                  `Property not found at path: ${path.slice(0, i + 2).join(".")}`,
+                );
+                return;
+              }
+              current = current[key] as Record<string | number, unknown>;
+            }
+
+            // Delete the final property
+            const finalKey = pathToProperty[pathToProperty.length - 1];
+            delete current[finalKey];
+            console.log("deleted data at path:", path);
+          }
+        }),
+      );
+    },
   }),
   shallow,
 );
@@ -126,7 +158,7 @@ export const useNodeData = (path: (string | number)[]) => {
   return useFlowStore((state) => {
     const node = state.nodes.find((n) => n.id === path[0]);
     if (!node) return undefined;
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let current: any = node.data;
     for (let i = 1; i < path.length; i++) {
       if (current === undefined) return undefined;

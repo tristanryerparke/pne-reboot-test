@@ -21,7 +21,7 @@ class FunctionSchema(BaseModel):
     file_path: str
     doc: str | None = None
     arguments: dict[str, dict[str, Any]]
-    dynamic_input_type: dict[str, str] | None = None
+    dynamic_input_type: dict[str, str | dict[str, Any]] | None = None
     output_style: Literal["single", "multiple"]
     outputs: dict[str, dict[str, Any]]
     auto_generated: bool = False

@@ -7,7 +7,6 @@ import {
   type Node,
   type NodeTypes,
   useReactFlow,
-  type ReactFlowInstance,
 } from "@xyflow/react";
 import { useCallback } from "react";
 import CustomNode from "./custom-node/custom-node";

@@ -10,26 +10,119 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
+import useFlowStore from "../../../stores/flowStore";
 
 interface InputMenuProps {
-  onDelete?: () => void;
-  unionTypes?: string[];
-  selectedType?: string;
-  onTypeChange?: (type: string) => void;
+  path?: (string | number)[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  nodeData: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fieldData: any;
 }
 
 export default function InputMenu({
-  onDelete,
-  unionTypes,
-  selectedType,
-  onTypeChange,
+  path,
+  nodeData,
+  fieldData,
 }: InputMenuProps) {
+  const deleteNodeData = useFlowStore((state) => state.deleteNodeData);
+  const updateNodeData = useFlowStore((state) => state.updateNodeData);
+  const getNodeData = useFlowStore((state) => state.getNodeData);
+
+  // Handle union types - detect from fieldData
+  const isUnionType =
+    typeof fieldData.type === "object" && fieldData.type?.anyOf;
+  const unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
+  const selectedType =
+    fieldData.selectedType || (unionTypes ? unionTypes[0] : undefined);
   const hasUnionTypes = unionTypes && unionTypes.length > 1;
+
+  // Handle input modes for string types
+  const effectiveType = selectedType || fieldData.type;
+  const isStringType = effectiveType === "str";
+  const stringInputModes = isStringType
+    ? ["single-line", "multiline"]
+    : undefined;
+  const selectedInputMode = fieldData.inputMode || "single-line";
+  const hasInputModes = stringInputModes && stringInputModes.length > 1;
+
+  // Detect if this is a dynamic list input
+  const argName = path ? String(path[path.length - 1]) : "";
+  const isListInput = /^\d+$/.test(argName);
+  const isDynamicListInput =
+    isListInput && nodeData.dynamic_input_type?.structure_type === "list";
+
+  // Detect if this is a dynamic dict input
+  const isDynamicDictInput =
+    fieldData._isDictInput === true &&
+    nodeData.dynamic_input_type?.structure_type === "dict";
+
+  // Calculate if this is the highest numbered list input for deletion purposes
+  const numberedArgs = Object.keys(nodeData.arguments || {})
+    .filter((name) => /^\d+$/.test(name))
+    .map((name) => parseInt(name));
+  const maxListInputNumber =
+    numberedArgs.length > 0 ? Math.max(...numberedArgs) : -1;
+  const isHighestListInput =
+    isDynamicListInput && parseInt(argName) === maxListInputNumber;
+
+  // Show delete button if it's a dynamically created input
+  // For list inputs, only show for the highest numbered input
+  // For dict inputs, show for all dict inputs
+  const showDeleteButton = isHighestListInput || isDynamicDictInput;
+
+  const handleTypeChange = (newType: string) => {
+    if (path) {
+      updateNodeData([...path, "selectedType"], newType);
+    }
+  };
+
+  const handleInputModeChange = (newMode: string) => {
+    if (path) {
+      updateNodeData([...path, "inputMode"], newMode);
+    }
+  };
+
+  const handleDelete = () => {
+    if (!path) return;
+
+    if (isDynamicListInput) {
+      // For list inputs, only allow deleting the highest numbered input
+      const argName = String(path[path.length - 1]);
+      const argumentsPath = [...path.slice(0, -1)];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const argumentsData = getNodeData(argumentsPath) as Record<string, any>;
+
+      if (!argumentsData) return;
+
+      const argNames = Object.keys(argumentsData);
+      const argNumbers = argNames
+        .filter((name) => /^\d+$/.test(name))
+        .map((name) => parseInt(name));
+
+      const maxNumber = Math.max(...argNumbers);
+      const currentNumber = parseInt(argName);
+
+      // Only allow deleting the highest numbered input
+      if (currentNumber !== maxNumber) {
+        console.warn(
+          `Can only delete the highest numbered input (${maxNumber})`,
+        );
+        return;
+      }
+
+      // Simple deletion - no renumbering needed
+      deleteNodeData(path);
+    } else {
+      // For dict inputs and other cases, simple deletion
+      deleteNodeData(path);
+    }
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-xs" className="mx-1 flex-shrink-0">
+        <Button variant="ghost" size="icon-xs" className="shrink-0">
           <MoreVertical className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
@@ -40,21 +133,38 @@ export default function InputMenu({
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup
               value={selectedType}
-              onValueChange={onTypeChange}
+              onValueChange={handleTypeChange}
             >
-              {unionTypes.map((type) => (
+              {unionTypes.map((type: string) => (
                 <DropdownMenuRadioItem key={type} value={type}>
                   {type}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
-            {onDelete && <DropdownMenuSeparator />}
+            {(hasInputModes || showDeleteButton) && <DropdownMenuSeparator />}
           </>
         )}
-        {onDelete && (
+        {hasInputModes && (
+          <>
+            <DropdownMenuLabel>Input Mode</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup
+              value={selectedInputMode}
+              onValueChange={handleInputModeChange}
+            >
+              {stringInputModes?.map((mode) => (
+                <DropdownMenuRadioItem key={mode} value={mode}>
+                  {mode}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+            {showDeleteButton && <DropdownMenuSeparator />}
+          </>
+        )}
+        {showDeleteButton && (
           <DropdownMenuItem
             variant="destructive"
-            onClick={onDelete}
+            onClick={handleDelete}
             className="cursor-pointer"
           >
             <Trash2 className="h-4 w-4" />
