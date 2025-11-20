@@ -19,6 +19,7 @@ def test_user_model_detection():
 
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "two_point_distance"
+    assert schema.category == ["examples", "basic_user_model"]
     assert schema.arguments == {
         "a": {"type": "Point2D", "value": None},
         "b": {"type": "Point2D", "value": None},
@@ -33,6 +34,7 @@ def test_user_model_detection():
     assert "Point2D" in found_types
     assert found_types["Point2D"]["kind"] == "user_model"
     assert found_types["Point2D"]["_class"] == Point2D
+    assert found_types["Point2D"]["category"] == ["examples", "basic_user_model"]
     assert found_types["Point2D"]["properties"] == {"x": "float", "y": "float"}
 
 
@@ -43,6 +45,7 @@ def test_user_model_not_used_in_function():
     d(schema)
 
     assert schema.name == "add"
+    assert schema.category == ["tests", "assets", "user_model_not_used_in_function"]
     assert schema.arguments == {
         "a": {"type": "int", "value": None},
         "b": {"type": "int", "value": None},
@@ -58,4 +61,4 @@ def test_user_model_not_used_in_function():
 
 if __name__ == "__main__":
     test_user_model_detection()
-    # test_user_model_not_used_in_function()
+    test_user_model_not_used_in_function()

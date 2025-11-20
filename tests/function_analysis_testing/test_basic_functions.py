@@ -17,6 +17,7 @@ def test_on_simple_add():
 
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "add"
+    assert schema.category == ["examples", "integer_math"]
     assert schema.arguments == {
         "a": {"type": "int", "value": None},
         "b": {"type": "int", "value": None},
@@ -40,6 +41,7 @@ def test_find_float_and_int():
 
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "percentage"
+    assert schema.category == ["examples", "basic_percentage"]
     assert schema.arguments == {
         "x": {"type": "float", "value": None},
         "percentage": {"type": "int", "value": None},
@@ -66,6 +68,7 @@ def test_default_value():
 
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "nth_root"
+    assert schema.category == ["examples", "basic_defaultvalue"]
     assert schema.arguments == {
         "x": {"type": "float", "value": None},
         "root": {"type": "int", "value": 2},
