@@ -3,6 +3,7 @@ import { type TypeInfo } from "@/stores/typesStore";
 import { useNodeConnections } from "@xyflow/react";
 
 interface UserModelDisplayProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   inputData: any;
   path: (string | number)[];
   typeInfo: TypeInfo;

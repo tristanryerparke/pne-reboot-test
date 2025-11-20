@@ -40,14 +40,6 @@ simple_generic = {
     "list[int]": list[int],
 }
 
-Number = int | float
-ListOfNumbers = list[Number]
-
-user_type_aliases = {
-    "Number": Number,
-    "ListOfNumbers": ListOfNumbers,
-}
-
 
 class Command(UserModel):
     body: str

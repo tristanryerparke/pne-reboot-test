@@ -9,6 +9,7 @@ export interface TypeInfo {
   kind: string;
   category?: string[];
   type: string | UnionType;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   properties?: Record<string, any>;
 }
 

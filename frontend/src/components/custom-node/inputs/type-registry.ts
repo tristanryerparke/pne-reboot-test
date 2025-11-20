@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+// eslint-disable react-refresh/only-export-components
 import FloatInput from "../../../common/float-input";
 import IntInput from "../../../common/int-input";
 import StringInput from "../../../common/string-input";

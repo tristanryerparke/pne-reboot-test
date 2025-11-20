@@ -4,6 +4,7 @@ import OutputRenderer from "./output-renderer";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
 
 interface SingleOutputFieldProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fieldData: Record<string, any> | undefined;
   path: (string | number)[];
 }
@@ -31,7 +32,7 @@ export default function SingleOutputField({
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="flex w-full pl-3 pr-2 py-2 gap-1 overflow-hidden items-center justify-end">
-            <div className="w-full flex items-center flex-shrink-0 gap-2">
+            <div className="w-full flex items-center shrink-0 gap-2">
               <span>{outputName}:</span>
               <OutputRenderer outputData={fieldData} />
             </div>

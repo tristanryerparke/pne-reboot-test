@@ -12,7 +12,7 @@ interface TypeDisplayProps {
   typeName: string;
   typeInfo: TypeInfo;
 }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function formatPropertyType(propType: any): string {
   if (typeof propType === "string") {
     return propType;

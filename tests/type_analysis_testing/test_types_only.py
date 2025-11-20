@@ -9,7 +9,6 @@ from tests.assets.types_only import (
     simple_generic,
     unions_in_list,
     user_model_aliases,
-    user_type_aliases,
 )
 
 file_path = "tests/assets/types_only.py"
