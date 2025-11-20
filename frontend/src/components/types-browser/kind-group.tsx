@@ -10,9 +10,6 @@ function pluralizeKind(kind: string): string {
   const formatted = kind.replace(/_/g, " ");
 
   // Handle specific cases
-  if (kind === "user_alias") {
-    return "user aliases";
-  }
   if (kind === "user_class") {
     return "user classes";
   }

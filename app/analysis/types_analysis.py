@@ -95,20 +95,6 @@ def analyze_type(
 
         # Handle types.UnionType (int | float syntax) - must come before builtin check
         if isinstance(t, types.UnionType):
-            # Check if this union is a named alias in the module
-            for name, val in module_ns.items():
-                if val is t and name.isidentifier():
-                    if name not in types_dict:
-                        types_dict[name] = {
-                            "kind": "user_alias",
-                            "_class": t,
-                            "type": get_type_repr(t, module_ns, short_repr=False),
-                            "category": os.path.splitext(rel_file_path)[0]
-                            .replace(os.sep, "/")
-                            .split("/"),
-                        }
-                    break
-
             # Recursively add each constituent type of the union
             for arg in t.__args__:
                 _add_type_recursive(arg)
@@ -151,27 +137,6 @@ def analyze_type(
                         f"Class '{name}' is not derived from UserModel. "
                         f"All user-defined classes must inherit from UserModel."
                     )
-
-        # User alias types (e.g. Number = int | float, Number = Union[int, float])
-        else:
-            for name, val in module_ns.items():
-                if val is t and name.isidentifier():
-                    if not inspect.isclass(val):
-                        if name not in types_dict:
-                            # Use short_repr=False to expand unions
-                            types_dict[name] = {
-                                "kind": "user_alias",
-                                "_class": t,
-                                "type": get_type_repr(t, module_ns, short_repr=False),
-                                "category": os.path.splitext(rel_file_path)[0]
-                                .replace(os.sep, "/")
-                                .split("/"),
-                            }
-                            # Recursively add constituent types from the alias
-                            if hasattr(t, "__args__"):
-                                for arg in t.__args__:
-                                    _add_type_recursive(arg)
-                        break
 
         # Lists and dicts of user-defined types (e.g., list[int], dict[str, float])
         if hasattr(t, "__origin__") and hasattr(t, "__args__"):

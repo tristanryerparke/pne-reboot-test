@@ -23,13 +23,7 @@ export function TypesBrowser() {
   const filteredTypes = Object.entries(types).filter(([typeName, typeInfo]) => {
     const searchLower = searchTerm.toLowerCase();
     let typeStr = "";
-    if (
-      typeInfo.kind === "user_alias" &&
-      typeof typeInfo.type === "object" &&
-      "anyOf" in typeInfo.type
-    ) {
-      typeStr = typeInfo.type.anyOf.join(" | ");
-    } else if (typeof typeInfo.type === "string") {
+    if (typeof typeInfo.type === "string") {
       typeStr = typeInfo.type;
     }
     return (
@@ -54,8 +48,8 @@ export function TypesBrowser() {
     {},
   );
 
-  // Sort kinds: user_model, user_alias, builtin, then others
-  const kindOrder = ["user_model", "user_alias", "builtin"];
+  // Sort kinds: user_model, builtin, then others
+  const kindOrder = ["user_model", "builtin"];
   const sortedKinds = Object.entries(typesByKind).sort(([kindA], [kindB]) => {
     const indexA = kindOrder.indexOf(kindA);
     const indexB = kindOrder.indexOf(kindB);

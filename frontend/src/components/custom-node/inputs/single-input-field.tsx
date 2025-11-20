@@ -5,7 +5,6 @@ import InputMenu from "./input-menu";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
 import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
 import EditableKey from "./dynamic/editable-key";
-import useTypesStore from "@/stores/typesStore";
 
 interface SingleInputFieldProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,7 +19,6 @@ export default function SingleInputField({
   path,
   nodeData,
 }: SingleInputFieldProps) {
-  const types = useTypesStore((state) => state.types);
   const fieldName = path[2];
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
 
@@ -42,22 +40,7 @@ export default function SingleInputField({
   // Handle union types for display
   const isUnionType =
     typeof fieldData.type === "object" && fieldData.type?.anyOf;
-  let unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
-
-  // Check if this is a user_alias type with union types
-  let isUserAliasUnion = false;
-  if (typeof fieldData.type === "string" && !unionTypes) {
-    const typeInfo = types[fieldData.type];
-    if (
-      typeInfo &&
-      typeInfo.kind === "user_alias" &&
-      typeof typeInfo.type === "object" &&
-      typeInfo.type?.anyOf
-    ) {
-      unionTypes = typeInfo.type.anyOf;
-      isUserAliasUnion = true;
-    }
-  }
+  const unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
 
   // Get the selected type from fieldData
   const selectedType =
@@ -86,12 +69,11 @@ export default function SingleInputField({
   const isHighestListInput =
     isDynamicListInput && parseInt(argName) === maxListInputNumber;
 
-  // Show menu if it's the highest list input OR dict input OR union type OR user alias union OR has component options
+  // Show menu if it's the highest list input OR dict input OR union type OR has component options
   const shouldShowMenu =
     isHighestListInput ||
     isDynamicDictInput ||
     isUnionType ||
-    isUserAliasUnion ||
     hasComponentOptions;
 
   // Dict inputs have editable keys

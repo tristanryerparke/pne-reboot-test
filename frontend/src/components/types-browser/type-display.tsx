@@ -48,13 +48,6 @@ export function TypeDisplay({ typeName, typeInfo }: TypeDisplayProps) {
               </span>
             </span>
           )}
-          {typeInfo.kind === "user_alias" && typeInfo.type && (
-            <span className="block mt-1">
-              <span className="block text-xs">
-                {formatPropertyType(typeInfo.type)}
-              </span>
-            </span>
-          )}
         </ItemDescription>
       </ItemContent>
       <ItemActions>

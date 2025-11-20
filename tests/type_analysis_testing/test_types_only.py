@@ -85,82 +85,6 @@ def test_unions_in_list():
     }
 
 
-def test_user_type_alias():
-    """Test that user-defined type aliases are analyzed correctly."""
-
-    # Get the Number type alias
-    typename = "Number"
-    type_obj = user_type_aliases[typename]
-
-    # Validate the repr
-    repr_result = get_type_repr(type_obj, module_ns)
-    d(repr_result)
-    assert repr_result == "Number"
-
-    # Validate the types were properly parsed
-    types_dict = analyze_type(type_obj, file_path, module_ns)
-    d(types_dict)
-
-    # Check that Number is recognized as a user alias
-    assert "Number" in types_dict
-    assert types_dict["Number"]["kind"] == "user_alias"
-    assert types_dict["Number"]["type"] == {"anyOf": ["int", "float"]}
-    # Check that category is correct
-    assert types_dict["Number"]["category"] == ["tests", "assets", "types_only"]
-    # Check that _class field exists
-    assert "_class" in types_dict["Number"]
-
-    # Check that constituent types (int, float) are also in the types_dict
-    assert "int" in types_dict
-    assert types_dict["int"]["kind"] == "builtin"
-    assert "_class" in types_dict["int"]
-    assert "float" in types_dict
-    assert types_dict["float"]["kind"] == "builtin"
-    assert "_class" in types_dict["float"]
-
-
-def test_list_of_user_type_alias():
-    """Test that lists of user-defined type aliases are analyzed correctly."""
-
-    # Get the ListOfNumbers type alias
-    typename = "ListOfNumbers"
-    type_obj = user_type_aliases[typename]
-
-    # Validate the repr
-    repr_result = get_type_repr(type_obj, module_ns)
-    d(repr_result)
-    assert repr_result == "ListOfNumbers"
-
-    # Validate the types were properly parsed
-    types_dict = analyze_type(type_obj, file_path, module_ns)
-    d(types_dict)
-
-    # Check that ListOfNumbers is recognized as a user alias
-    assert "ListOfNumbers" in types_dict
-    assert types_dict["ListOfNumbers"]["kind"] == "user_alias"
-    assert types_dict["ListOfNumbers"]["type"] == {
-        "structure_type": "list",
-        "items": {"anyOf": ["int", "float"]},
-    }
-    assert types_dict["ListOfNumbers"]["category"] == ["tests", "assets", "types_only"]
-    assert "_class" in types_dict["ListOfNumbers"]
-
-    # Check that the referenced Number alias is also in the types_dict
-    assert "Number" in types_dict
-    assert types_dict["Number"]["kind"] == "user_alias"
-    assert types_dict["Number"]["type"] == {"anyOf": ["int", "float"]}
-    assert types_dict["Number"]["category"] == ["tests", "assets", "types_only"]
-    assert "_class" in types_dict["Number"]
-
-    # Check that constituent types (int, float) are also in the types_dict
-    assert "int" in types_dict
-    assert types_dict["int"]["kind"] == "builtin"
-    assert "_class" in types_dict["int"]
-    assert "float" in types_dict
-    assert types_dict["float"]["kind"] == "builtin"
-    assert "_class" in types_dict["float"]
-
-
 def test_user_model():
     """Test that user-defined models are analyzed correctly."""
 
@@ -220,11 +144,9 @@ def test_simple_generic():
 
 
 if __name__ == "__main__":
-    # test_basic_types()
-    # test_differing_union_types()
-    # test_basic_union_types()
+    test_basic_types()
+    test_differing_union_types()
+    test_basic_union_types()
     test_unions_in_list()
-    # test_user_type_alias()
-    # test_list_of_user_type_alias()
-    # test_user_model()
-    # test_simple_generic()
+    test_user_model()
+    test_simple_generic()
