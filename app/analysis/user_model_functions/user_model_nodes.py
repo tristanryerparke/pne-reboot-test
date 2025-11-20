@@ -1,8 +1,7 @@
 import sys
 from inspect import isclass
 
-from devtools import debug as d
-
+# from devtools import debug as d
 from ..types_analysis import get_type_repr
 from .construct_nodes import create_construct_node
 from .deconstruct_nodes import create_deconstruct_node
@@ -16,7 +15,7 @@ def create_const_deconst_models(types):
 
     for type_name, type_def in types.items():
         python_class = type_def["_class"]
-        d(python_class)
+        # d(python_class)
 
         # find user_models
         if isclass(python_class):

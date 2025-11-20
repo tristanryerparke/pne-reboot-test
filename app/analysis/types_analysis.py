@@ -63,6 +63,14 @@ def analyze_type(
     types_dict: Dict[str, Dict[str, Any]] = {}
     found_types_set: Set[Any] = set()
 
+    # Get absolute and relative file paths
+    abs_file_path = os.path.abspath(file_path)
+    try:
+        rel_file_path = os.path.relpath(abs_file_path, os.getcwd())
+    except ValueError:
+        # If on different drives on Windows, use absolute path
+        rel_file_path = abs_file_path
+
     def _add_type_recursive(t: Any):
         """Internal recursive function to build types_dict."""
 
@@ -95,9 +103,9 @@ def analyze_type(
                             "kind": "user_alias",
                             "_class": t,
                             "type": get_type_repr(t, module_ns, short_repr=False),
-                            "category": os.path.splitext(file_path)[0]
-                            .replace(os.sep, ".")
-                            .split("."),
+                            "category": os.path.splitext(rel_file_path)[0]
+                            .replace(os.sep, "/")
+                            .split("/"),
                         }
                     break
 
@@ -120,9 +128,9 @@ def analyze_type(
                         entry = {
                             "kind": "user_model",
                             "_class": t,
-                            "category": os.path.splitext(file_path)[0]
-                            .replace(os.sep, ".")
-                            .split("."),
+                            "category": os.path.splitext(rel_file_path)[0]
+                            .replace(os.sep, "/")
+                            .split("/"),
                         }
                         if hasattr(t, "__annotations__") and t.__annotations__:
                             entry["properties"] = {
@@ -155,9 +163,9 @@ def analyze_type(
                                 "kind": "user_alias",
                                 "_class": t,
                                 "type": get_type_repr(t, module_ns, short_repr=False),
-                                "category": os.path.splitext(file_path)[0]
-                                .replace(os.sep, ".")
-                                .split("."),
+                                "category": os.path.splitext(rel_file_path)[0]
+                                .replace(os.sep, "/")
+                                .split("/"),
                             }
                             # Recursively add constituent types from the alias
                             if hasattr(t, "__args__"):

@@ -1,9 +1,7 @@
 import hashlib
 import inspect
-import sys
 
-from devtools import debug as d
-
+# from devtools import debug as d
 from ..types_analysis import get_type_repr
 
 
@@ -65,6 +63,6 @@ def create_construct_node(
     # Create the callable constructor function
     constructor_func = make_constructor(python_class, type_name)
 
-    d(const_model)
+    # d(const_model)
 
     return const_model, callable_id, constructor_func

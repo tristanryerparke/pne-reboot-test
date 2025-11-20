@@ -1,8 +1,7 @@
 import hashlib
 import inspect
 
-from devtools import debug as d
-
+# from devtools import debug as d
 from ..types_analysis import get_type_repr
 
 
@@ -73,6 +72,6 @@ def create_deconstruct_node(
     # Create the callable deconstructor function
     deconstructor_func = make_deconstructor(python_class, type_name, field_names)
 
-    d(deconst_model)
+    # d(deconst_model)
 
     return deconst_model, callable_id, deconstructor_func
