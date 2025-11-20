@@ -1,4 +1,4 @@
-import { memo, useState, useRef, useEffect } from "react";
+import { memo, useState, useRef } from "react";
 import NodeHeader from "./node-header";
 import Inputs from "./inputs/inputs";
 import Outputs from "./outputs/outputs";
@@ -28,7 +28,6 @@ export default memo(function CustomNode({
     >
       <NodeHeader
         data={data}
-        nodeId={id}
         isJsonView={isJsonView}
         onToggleView={toggleView}
       />

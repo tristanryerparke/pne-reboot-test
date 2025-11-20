@@ -1,6 +1,4 @@
 import { memo } from "react";
-import StringInput from "../../../common/string-input";
-import MultilineStringInput from "../../../common/multiline-string-input";
 import UserModelDisplay from "../../../common/user-model-display";
 import useTypesStore from "@/stores/typesStore";
 import ListDisplay from "@/common/list-display";
@@ -30,25 +28,25 @@ export default memo(function InputRenderer({
     actualType = inputData.selectedType || inputData.type.anyOf[0];
   }
 
-  // Special handling for string type with input mode
-  if (actualType === "str") {
-    const inputMode = inputData.inputMode || "single-line";
-    const StringComponent =
-      inputMode === "multiline" ? MultilineStringInput : StringInput;
-    return (
-      <StringComponent
-        inputData={{ ...inputData, type: actualType }}
-        path={path}
-      />
-    );
-  }
-
   // Check if we have a specific component for this type
-  const Component = TYPE_COMPONENT_REGISTRY[actualType];
-  if (Component) {
-    return (
-      <Component inputData={{ ...inputData, type: actualType }} path={path} />
-    );
+  const registryEntry = TYPE_COMPONENT_REGISTRY[actualType];
+  if (registryEntry) {
+    // Handle registry entries with multiple component options (anyOf)
+    if (typeof registryEntry === "object" && "anyOf" in registryEntry) {
+      const components = registryEntry.anyOf;
+      // Use inputMode index to select component (defaults to 0)
+      const componentIndex = inputData.inputMode ?? 0;
+      const Component = components[componentIndex] || components[0];
+      return (
+        <Component inputData={{ ...inputData, type: actualType }} path={path} />
+      );
+    } else {
+      // Single component case
+      const Component = registryEntry;
+      return (
+        <Component inputData={{ ...inputData, type: actualType }} path={path} />
+      );
+    }
   }
 
   // Check if this type exists in the store and is a user_model

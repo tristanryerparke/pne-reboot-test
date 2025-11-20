@@ -11,7 +11,6 @@ interface UserModelDisplayProps {
 export default function UserModelDisplay({
   inputData,
   path,
-  typeInfo,
 }: UserModelDisplayProps) {
   // Use the xyflow hook to check if input is connected
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;

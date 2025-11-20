@@ -1,24 +1,17 @@
 import { memo } from "react";
 import { Button } from "../ui/button";
-import { Code, ArrowLeftRight, FileText } from "lucide-react";
-import { NodeResizeControl } from "@xyflow/react";
+import { Code, FileText } from "lucide-react";
 
 type NodeHeaderProps = {
   data: any;
-  nodeId: string;
   isJsonView: boolean;
   onToggleView: () => void;
-  onResizeStart?: () => void;
-  minWidth?: number;
 };
 
 export default memo(function NodeHeader({
   data,
-  nodeId,
   isJsonView,
   onToggleView,
-  onResizeStart,
-  minWidth,
 }: NodeHeaderProps) {
   if (!data) {
     return <div>No node data</div>;

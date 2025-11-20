@@ -87,7 +87,7 @@ export function TypesBrowser() {
         </div>
       </div>
       <div className="overflow-y-scroll flex flex-col justify-start items-start pb-1">
-        {sortedKinds.map(([kind, kindTypes], index) => (
+        {sortedKinds.map(([kind, kindTypes]) => (
           <KindGroup key={kind} kind={kind} types={kindTypes} />
         ))}
       </div>

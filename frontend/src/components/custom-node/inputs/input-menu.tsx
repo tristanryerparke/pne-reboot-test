@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import useFlowStore from "../../../stores/flowStore";
+import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
 
 interface InputMenuProps {
   path?: (string | number)[];
@@ -37,14 +38,18 @@ export default function InputMenu({
     fieldData.selectedType || (unionTypes ? unionTypes[0] : undefined);
   const hasUnionTypes = unionTypes && unionTypes.length > 1;
 
-  // Handle input modes for string types
+  // Handle component options from registry (e.g., single-line vs multiline for strings)
   const effectiveType = selectedType || fieldData.type;
-  const isStringType = effectiveType === "str";
-  const stringInputModes = isStringType
-    ? ["single-line", "multiline"]
-    : undefined;
-  const selectedInputMode = fieldData.inputMode || "single-line";
-  const hasInputModes = stringInputModes && stringInputModes.length > 1;
+  const registryEntry =
+    typeof effectiveType === "string"
+      ? TYPE_COMPONENT_REGISTRY[effectiveType]
+      : undefined;
+  const hasComponentOptions =
+    registryEntry &&
+    typeof registryEntry === "object" &&
+    "anyOf" in registryEntry &&
+    registryEntry.anyOf.length > 1;
+  const selectedInputMode = fieldData.inputMode ?? 0;
 
   // Detect if this is a dynamic list input
   const argName = path ? String(path[path.length - 1]) : "";
@@ -77,8 +82,9 @@ export default function InputMenu({
     }
   };
 
-  const handleInputModeChange = (newMode: string) => {
+  const handleInputModeChange = (newModeStr: string) => {
     if (path) {
+      const newMode = parseInt(newModeStr);
       updateNodeData([...path, "inputMode"], newMode);
     }
   };
@@ -141,22 +147,26 @@ export default function InputMenu({
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
-            {(hasInputModes || showDeleteButton) && <DropdownMenuSeparator />}
+            {(hasComponentOptions || showDeleteButton) && (
+              <DropdownMenuSeparator />
+            )}
           </>
         )}
-        {hasInputModes && (
+        {hasComponentOptions && (
           <>
             <DropdownMenuLabel>Input Mode</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup
-              value={selectedInputMode}
+              value={String(selectedInputMode)}
               onValueChange={handleInputModeChange}
             >
-              {stringInputModes?.map((mode) => (
-                <DropdownMenuRadioItem key={mode} value={mode}>
-                  {mode}
-                </DropdownMenuRadioItem>
-              ))}
+              {registryEntry &&
+                "anyOf" in registryEntry &&
+                registryEntry.anyOf.map((_, index) => (
+                  <DropdownMenuRadioItem key={index} value={String(index)}>
+                    {index === 0 ? "Single-line" : "Multiline"}
+                  </DropdownMenuRadioItem>
+                ))}
             </DropdownMenuRadioGroup>
             {showDeleteButton && <DropdownMenuSeparator />}
           </>

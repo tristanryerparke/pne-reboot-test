@@ -1,30 +1,27 @@
 interface GraphNode {
   id: string;
-  position?: { x: number; y: number };
-  type?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
-  measured?: { width?: number; height?: number };
-  selected?: boolean;
-  [key: string]: any;
+  position?: { x: number; y: number };
 }
 
 export interface Graph {
   nodes: GraphNode[];
-  edges: any[];
+  edges: object[];
 }
 
 interface StrippedNode {
   id: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
-  [key: string]: any;
+  position?: { x: number; y: number };
 }
 
 interface StrippedGraph {
   nodes: StrippedNode[];
-  edges: any[];
+  edges: object[];
 }
 
-const NODE_FIELDS_TO_KEEP = ["id", "position", "data"] as const;
 const NODE_DATA_FIELDS_TO_KEEP = [
   "callable_id",
   "arguments",

@@ -11,6 +11,7 @@ import {
 } from "../../ui/editable";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
 import { useRef, useLayoutEffect, useState } from "react";
+import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
 
 interface SingleInputFieldProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -65,9 +66,17 @@ export default function SingleInputField({
 
   const displayType = formatTypeForDisplay(fieldData.type);
 
-  // For string types (or when str is selected in a union), allow switching between single-line and multiline
+  // Check if this type has multiple component options in the registry
   const effectiveType = selectedType || fieldData.type;
-  const isStringType = effectiveType === "str";
+  const registryEntry =
+    typeof effectiveType === "string"
+      ? TYPE_COMPONENT_REGISTRY[effectiveType]
+      : undefined;
+  const hasComponentOptions =
+    registryEntry &&
+    typeof registryEntry === "object" &&
+    "anyOf" in registryEntry &&
+    registryEntry.anyOf.length > 1;
 
   // Calculate if this is the highest numbered list input for deletion purposes
   const numberedArgs = Object.keys(nodeData.arguments || {})
@@ -78,9 +87,12 @@ export default function SingleInputField({
   const isHighestListInput =
     isDynamicListInput && parseInt(argName) === maxListInputNumber;
 
-  // Show menu if it's the highest list input OR dict input OR union type OR string type
+  // Show menu if it's the highest list input OR dict input OR union type OR has component options
   const shouldShowMenu =
-    isHighestListInput || isDynamicDictInput || isUnionType || isStringType;
+    isHighestListInput ||
+    isDynamicDictInput ||
+    isUnionType ||
+    hasComponentOptions;
 
   // Dict inputs have editable keys
   const isEditableKey = isDynamicDictInput;

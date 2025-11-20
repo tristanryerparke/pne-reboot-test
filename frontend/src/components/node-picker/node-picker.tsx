@@ -24,16 +24,15 @@ function NodePicker() {
   ): NodeCategories => {
     const categories: NodeCategories = {};
 
-    Object.entries(data).forEach(([functionName, NodeFunctionData]) => {
+    Object.entries(data).forEach(([, NodeFunctionData]) => {
       // Use the first element of category array as the main category
       const mainCategory = NodeFunctionData.category[0] || "Uncategorized";
       // Use the second element as the group (file name)
       const group = NodeFunctionData.category[1] || "Default";
 
       const nodeData = {
-        name: functionName,
-        group: group, // Add the group property to the node data
         ...NodeFunctionData,
+        group: group, // Add the group property to the node data
       };
       // Initialize category if it doesn't exist
       if (!categories[mainCategory]) {

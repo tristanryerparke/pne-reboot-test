@@ -9,15 +9,17 @@ interface OutputsProps {
 export default function Outputs({ data, path }: OutputsProps) {
   return (
     <div>
-      {Object.entries(data.outputs).map(([outputName, outputDef], index) => (
-        <div key={outputName} className="node-field-output">
-          {index > 0 && <Separator />}
-          <SingleOutputField
-            fieldData={outputDef}
-            path={[...path, "outputs", outputName]}
-          />
-        </div>
-      ))}
+      {Object.entries(data.outputs).map(
+        ([outputName, outputDef]: [string, any], index) => (
+          <div key={outputName} className="node-field-output">
+            {index > 0 && <Separator />}
+            <SingleOutputField
+              fieldData={outputDef}
+              path={[...path, "outputs", outputName]}
+            />
+          </div>
+        ),
+      )}
     </div>
   );
 }
