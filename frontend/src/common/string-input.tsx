@@ -54,7 +54,7 @@ export default memo(function StringInput({
       onChange={handleValueChange}
       onBlur={(e) => setValue(e.target.value)}
       disabled={isConnected}
-      className="nodrag nopan noscroll h-9 w-full min-w-5"
+      className="nodrag nopan noscroll h-9 w-full min-w-20"
       placeholder="Enter text"
     />
   );

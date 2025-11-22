@@ -53,7 +53,7 @@ export default memo(function IntInput({ inputData, path }: IntInputProps) {
       onValueChange={handleValueChange}
       onBlur={() => handleValueChange(value)}
       disabled={isConnected}
-      className="nodrag nopan noscroll h-9 w-full min-w-5"
+      className="nodrag nopan noscroll h-9 w-full min-w-20"
       placeholder="Enter integer"
     />
   );

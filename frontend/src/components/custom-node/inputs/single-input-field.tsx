@@ -91,8 +91,8 @@ export default function SingleInputField({
         />
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex w-full pl-3 pr py-2 gap-1 overflow-hidden items-center">
-              <div className="flex min-w-0 items-center gap-2 flex-1">
+            <div className="flex w-full pl-3 pr py-2 gap-1 items-center">
+              <div className="flex w-full items-center gap-2">
                 {/* Dynamic dict inputs have a user-editable key*/}
                 {isEditableKey ? (
                   <EditableKey
@@ -104,7 +104,7 @@ export default function SingleInputField({
                   <span className="shrink-0">{fieldName}</span>
                 )}
                 <span className="shrink-0">: </span>
-                <div className="min-w-0 flex-1 mr-1">
+                <div className="flex-1 mr-1">
                   <InputRenderer inputData={fieldData} path={path} />
                 </div>
               </div>

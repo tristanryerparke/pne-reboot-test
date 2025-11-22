@@ -36,11 +36,11 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
   const hasExistingArguments = Object.keys(data.arguments).length !== 0;
 
   return (
-    <div>
+    <div className="w-fit min-w-full">
       {sortedArguments.map(([argName, argDef], index) => {
         return (
-          <div key={argName} className="node-field-input">
-            {index > 0 && <Separator />}
+          <div key={argName} className="w-full">
+            {index > 0 && <Separator className="w-full" />}
             <SingleInputField
               fieldData={argDef}
               path={[...path, "arguments", argName]}

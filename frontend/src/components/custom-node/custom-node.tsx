@@ -9,6 +9,7 @@ export default memo(function CustomNode({
   data,
   id,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   id: string;
 }) {
@@ -24,7 +25,7 @@ export default memo(function CustomNode({
   return (
     <div
       ref={nodeRef}
-      className="relative w-fit h-fit min-w-[250px] max-w-[600px] shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
+      className="relative w-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
     >
       <NodeHeader
         data={data}

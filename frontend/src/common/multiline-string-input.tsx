@@ -1,4 +1,6 @@
 import { memo } from "react";
+import { Resizable } from "re-resizable";
+import { Grip } from "lucide-react";
 import { Textarea } from "../components/ui/textarea";
 import useFlowStore from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
@@ -9,6 +11,12 @@ interface MultilineStringInputProps {
   inputData: any;
   path: (string | number)[];
 }
+
+const CustomHandle = () => (
+  <div className="bg-transparent rounded-sm h-full w-full p-0 flex items-center justify-center opacity-30 transition-opacity duration-200 hover:opacity-60">
+    <Grip className="h-3 w-3 text-gray-500" />
+  </div>
+);
 
 export default memo(function MultilineStringInput({
   inputData,
@@ -49,19 +57,50 @@ export default memo(function MultilineStringInput({
   };
 
   return (
-    <Textarea
-      value={value}
-      onChange={handleValueChange}
-      onBlur={(e) => setValue(e.target.value)}
-      disabled={isConnected}
-      className="nodrag nopan nowheel w-full min-w-5 max-w-full wrap-break-word"
-      placeholder="Enter text"
-      rows={3}
-      style={{
-        wordBreak: "break-word",
-        overflowWrap: "anywhere",
-        fieldSizing: "fixed",
+    <Resizable
+      defaultSize={{
+        width: 180,
+        height: 80,
       }}
-    />
+      minHeight={60}
+      minWidth={180}
+      maxHeight={400}
+      maxWidth={600}
+      enable={{
+        top: false,
+        right: true,
+        bottom: true,
+        left: false,
+        topRight: false,
+        bottomRight: true,
+        bottomLeft: false,
+        topLeft: false,
+      }}
+      handleComponent={{
+        bottomRight: <CustomHandle />,
+      }}
+      handleStyles={{
+        bottomRight: {
+          bottom: "4px",
+          right: "4px",
+          width: "16px",
+          height: "16px",
+        },
+      }}
+      className="nodrag"
+    >
+      <Textarea
+        value={value}
+        onChange={handleValueChange}
+        onBlur={(e) => setValue(e.target.value)}
+        disabled={isConnected}
+        className="nopan nowheel h-full w-full min-w-20 resize-none"
+        placeholder="Enter text"
+        style={{
+          wordBreak: "break-word",
+          overflowWrap: "anywhere",
+        }}
+      />
+    </Resizable>
   );
 });
