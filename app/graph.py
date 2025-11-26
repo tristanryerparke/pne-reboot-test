@@ -1,10 +1,19 @@
 from devtools import debug as d
 from fastapi import APIRouter
 
+from .cache import CACHED_TYPE_REGISTRY, is_cached_value
 from .schema import Graph, NodeDataFromFrontend, NodeFromFrontend
 
 router = APIRouter()
 VERBOSE = False
+
+
+def deserialize_cached_value(value: dict, type_str: str):
+    if type_str not in CACHED_TYPE_REGISTRY:
+        raise ValueError(f"Unknown cached type: {type_str}")
+
+    cached_class = CACHED_TYPE_REGISTRY[type_str]
+    return cached_class.from_cache_ref(value["cache_ref"])
 
 
 @router.post("/graph_execute")
@@ -38,8 +47,15 @@ async def execute_graph(graph: Graph):
                 actual_value = node.data.arguments[argument_name]["value"]
                 actual_type = node.data.arguments[argument_name]["type"]
 
+                # Serialize cached types for frontend display
+                serialized_input = (
+                    actual_value.serialize()
+                    if is_cached_value(actual_value)
+                    else actual_value
+                )
+
                 node_update["inputs"][argument_name] = {
-                    "value": actual_value,
+                    "value": serialized_input,
                     "type": actual_type,
                 }
 
@@ -58,9 +74,13 @@ async def execute_graph(graph: Graph):
             # The output key is already set correctly in the outputs dict (either return_value_name or "return")
             # Just get the first (and only) key from outputs
             output_key = list(node.data.outputs.keys())[0]
+
+            # Serialize cached types for frontend
+            serialized_value = result.serialize() if is_cached_value(result) else result
+
             node_update["outputs"][output_key] = {
                 **node.data.outputs[output_key],
-                "value": result,
+                "value": serialized_value,
             }
 
         # FIXME: What if an upstream node's type changes and the input is no longer compatible?
@@ -111,6 +131,8 @@ def execute_node(node: NodeDataFromFrontend):
 
     callable = CALLABLES[node.callable_id]
 
+    has_cached_inputs = getattr(callable, "enable_cached_inputs", False)
+
     # Check if this function has list_inputs enabled
     if getattr(callable, "list_inputs", False):
         # For list_inputs functions:
@@ -120,11 +142,22 @@ def execute_node(node: NodeDataFromFrontend):
         named_args = {}
 
         for k, v in node.arguments.items():
+            arg_value = v["value"]
+            arg_type = v["type"]
+
+            # Deserialize cached inputs if they come from frontend (as dict with cache_ref)
+            if (
+                has_cached_inputs
+                and isinstance(arg_value, dict)
+                and "cache_ref" in arg_value
+            ):
+                arg_value = deserialize_cached_value(arg_value, arg_type)
+
             # Handle both "_0", "_1" and "0", "1" naming patterns
             if k.isdigit():
-                numbered_args[int(k)] = v["value"]
+                numbered_args[int(k)] = arg_value
             else:
-                named_args[k] = v["value"]
+                named_args[k] = arg_value
 
         # Sort numbered args by index
         sorted_numbered_args = [numbered_args[i] for i in sorted(numbered_args.keys())]
@@ -140,11 +173,40 @@ def execute_node(node: NodeDataFromFrontend):
     elif getattr(callable, "dict_inputs", False):
         # For dict_inputs functions, all arguments are passed as **kwargs
         # The frontend should send them with their key names
-        args = {k: v["value"] for k, v in node.arguments.items()}
+        args = {}
+        for k, v in node.arguments.items():
+            arg_value = v["value"]
+            arg_type = v["type"]
+
+            # Deserialize cached inputs if they come from frontend (as dict with cache_ref)
+            if (
+                has_cached_inputs
+                and isinstance(arg_value, dict)
+                and "cache_ref" in arg_value
+            ):
+                arg_value = deserialize_cached_value(arg_value, arg_type)
+
+            args[k] = arg_value
+
         return callable(**args)
     else:
         # Normal execution with kwargs
-        args = {k: v["value"] for k, v in node.arguments.items()}
+        args = {}
+        for k, v in node.arguments.items():
+            arg_value = v["value"]
+            arg_type = v["type"]
+
+            # Deserialize cached inputs if they come from frontend (as dict with cache_ref)
+            # OR if already a cached object from propagation, keep it as-is
+            if (
+                has_cached_inputs
+                and isinstance(arg_value, dict)
+                and "cache_ref" in arg_value
+            ):
+                arg_value = deserialize_cached_value(arg_value, arg_type)
+
+            args[k] = arg_value
+
         return callable(**args)
 
 

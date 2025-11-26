@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.analysis.utils import analyze_file_structure
 from app.graph import router as graph_router
+from app.image import router as image_router
 
 FUNCTION_SCHEMAS = []
 CALLABLES = {}
@@ -53,6 +54,7 @@ app = FastAPI(
 
 # Include routers
 app.include_router(graph_router)
+app.include_router(image_router, prefix="/image", tags=["image"])
 
 
 @app.get("/nodes")

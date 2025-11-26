@@ -1,6 +1,7 @@
 import { memo } from "react";
 import SingleLineTextDisplay from "../../../common/single-line-text-display";
 import useTypesStore from "@/stores/typesStore";
+import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "./type-registry";
 
 interface OutputRendererProps {
   outputData: any;
@@ -10,6 +11,12 @@ export default memo(function OutputRenderer({
   outputData,
 }: OutputRendererProps) {
   const types = useTypesStore((state) => state.types);
+
+  // Check if there's a custom component for this type
+  const CustomComponent = OUTPUT_TYPE_COMPONENT_REGISTRY[outputData?.type];
+  if (CustomComponent) {
+    return <CustomComponent outputData={outputData} />;
+  }
 
   const displayValue = () => {
     if (outputData?.value !== undefined) {

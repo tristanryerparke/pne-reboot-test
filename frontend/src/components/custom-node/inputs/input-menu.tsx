@@ -1,4 +1,4 @@
-import { MoreVertical, Trash2 } from "lucide-react";
+import { MoreVertical, Trash2, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../ui/button";
 import {
   DropdownMenu,
@@ -12,6 +12,9 @@ import {
 } from "../../ui/dropdown-menu";
 import useFlowStore from "../../../stores/flowStore";
 import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
+
+// Types that have expandable preview areas
+const TYPES_WITH_PREVIEW = ["CachedImage"];
 
 interface InputMenuProps {
   path?: (string | number)[];
@@ -51,6 +54,12 @@ export default function InputMenu({
     registryEntry.anyOf.length > 1;
   const selectedInputMode = fieldData.inputMode ?? 0;
 
+  // Check if this type has a preview area
+  const hasPreview =
+    typeof effectiveType === "string" &&
+    TYPES_WITH_PREVIEW.includes(effectiveType);
+  const showPreview = fieldData.showPreview ?? false;
+
   // Detect if this is a dynamic list input
   const argName = path ? String(path[path.length - 1]) : "";
   const isListInput = /^\d+$/.test(argName);
@@ -86,6 +95,12 @@ export default function InputMenu({
     if (path) {
       const newMode = parseInt(newModeStr);
       updateNodeData([...path, "inputMode"], newMode);
+    }
+  };
+
+  const handleTogglePreview = () => {
+    if (path) {
+      updateNodeData([...path, "showPreview"], !showPreview);
     }
   };
 
@@ -133,6 +148,29 @@ export default function InputMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" side="right" sideOffset={5}>
+        {hasPreview && (
+          <>
+            <DropdownMenuItem
+              onClick={handleTogglePreview}
+              className="cursor-pointer"
+            >
+              {showPreview ? (
+                <>
+                  <EyeOff className="h-4 w-4" />
+                  Hide Preview
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4" />
+                  Show Preview
+                </>
+              )}
+            </DropdownMenuItem>
+            {(hasUnionTypes || hasComponentOptions || showDeleteButton) && (
+              <DropdownMenuSeparator />
+            )}
+          </>
+        )}
         {hasUnionTypes && (
           <>
             <DropdownMenuLabel>Input Type</DropdownMenuLabel>

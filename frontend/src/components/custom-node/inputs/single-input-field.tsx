@@ -5,6 +5,17 @@ import InputMenu from "./input-menu";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
 import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
 import EditableKey from "./dynamic/editable-key";
+import { Resizable } from "re-resizable";
+import { Grip } from "lucide-react";
+
+// Types that have expandable preview areas
+const TYPES_WITH_PREVIEW = ["CachedImage"];
+
+const CustomHandle = () => (
+  <div className="bg-transparent rounded-sm h-full w-full p-0 flex items-center justify-center opacity-30 transition-opacity duration-200 hover:opacity-60">
+    <Grip className="h-3 w-3 text-gray-500" />
+  </div>
+);
 
 interface SingleInputFieldProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,58 +80,122 @@ export default function SingleInputField({
   const isHighestListInput =
     isDynamicListInput && parseInt(argName) === maxListInputNumber;
 
-  // Show menu if it's the highest list input OR dict input OR union type OR has component options
+  // Check if this type has a preview area
+  const hasPreview =
+    typeof effectiveType === "string" &&
+    TYPES_WITH_PREVIEW.includes(effectiveType);
+  const showPreview = fieldData.showPreview ?? false;
+
+  // Check if image data has been uploaded (for conditional menu display)
+  const hasImageData = hasPreview && !!fieldData.value?.cache_ref;
+
+  // Show menu if it's the highest list input OR dict input OR union type OR has component options OR has image data
   const shouldShowMenu =
     isHighestListInput ||
     isDynamicDictInput ||
     isUnionType ||
-    hasComponentOptions;
+    hasComponentOptions ||
+    hasImageData;
 
   // Dict inputs have editable keys
   const isEditableKey = isDynamicDictInput;
 
   return (
-    <div className="relative w-full flex items-center pr-1">
-      <div className="flex-1">
-        <Handle
-          // TODO: Why don't height and width work?
-          className="p-1 rounded-full bg-primary"
-          type="target"
-          position={Position.Left}
-          id={handleId}
-        />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex w-full pl-3 pr py-2 gap-1 items-center">
-              <div className="flex w-full items-center gap-2">
-                {/* Dynamic dict inputs have a user-editable key*/}
-                {isEditableKey ? (
-                  <EditableKey
-                    fieldName={fieldName}
-                    path={path}
-                    nodeData={nodeData}
-                  />
-                ) : (
-                  <span className="shrink-0">{fieldName}</span>
-                )}
-                <span className="shrink-0">: </span>
-                <div className="flex-1 mr-1">
-                  <InputRenderer inputData={fieldData} path={path} />
+    <div className="relative w-full">
+      <div className="flex items-center pr-1">
+        <div className="flex-1">
+          <Handle
+            // TODO: Why don't height and width work?
+            className="p-1 rounded-full bg-primary"
+            type="target"
+            position={Position.Left}
+            id={handleId}
+          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex w-full pl-3 pr py-2 gap-1 items-center">
+                <div className="flex w-full items-center gap-2">
+                  {/* Dynamic dict inputs have a user-editable key*/}
+                  {isEditableKey ? (
+                    <EditableKey
+                      fieldName={fieldName}
+                      path={path}
+                      nodeData={nodeData}
+                    />
+                  ) : (
+                    <span className="shrink-0">{fieldName}</span>
+                  )}
+                  <span className="shrink-0">: </span>
+                  <div className="flex-1 mr-1">
+                    <InputRenderer inputData={fieldData} path={path} />
+                  </div>
                 </div>
               </div>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent
-            side="left"
-            sideOffset={2}
-            className="px-2 py-1 text-xs rounded-sm"
-          >
-            <span className="text-xs">{displayType}</span>
-          </TooltipContent>
-        </Tooltip>
+            </TooltipTrigger>
+            <TooltipContent
+              side="left"
+              sideOffset={2}
+              className="px-2 py-1 text-xs rounded-sm"
+            >
+              <span className="text-xs">{displayType}</span>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        {shouldShowMenu && (
+          <InputMenu path={path} nodeData={nodeData} fieldData={fieldData} />
+        )}
       </div>
-      {shouldShowMenu && (
-        <InputMenu path={path} nodeData={nodeData} fieldData={fieldData} />
+      {/* Expandable preview area for special types */}
+      {hasPreview && showPreview && fieldData.value && (
+        <div className="px-3 pb-2">
+          {fieldData.value.thumb_base64 && (
+            <div className="flex flex-col gap-1">
+              <Resizable
+                defaultSize={{
+                  width: 280,
+                  height: 280,
+                }}
+                minHeight={280}
+                minWidth={280}
+                maxHeight={600}
+                maxWidth={600}
+                lockAspectRatio={false}
+                enable={{
+                  top: false,
+                  right: false,
+                  bottom: false,
+                  left: false,
+                  topRight: false,
+                  bottomRight: true,
+                  bottomLeft: false,
+                  topLeft: false,
+                }}
+                handleComponent={{
+                  bottomRight: <CustomHandle />,
+                }}
+                handleStyles={{
+                  bottomRight: {
+                    bottom: "0px",
+                    right: "0px",
+                    width: "16px",
+                    height: "16px",
+                  },
+                }}
+                className="nodrag rounded border border-input flex items-center justify-center bg-transparent"
+              >
+                <img
+                  src={`data:image/png;base64,${fieldData.value.thumb_base64}`}
+                  alt="Input preview"
+                  className="max-w-full max-h-full object-contain rounded"
+                />
+              </Resizable>
+              <div className="text-xs text-muted-foreground">
+                {fieldData.value.width} × {fieldData.value.height} (
+                {fieldData.value.mode})
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

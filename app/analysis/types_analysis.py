@@ -4,6 +4,7 @@ import types
 import typing
 from typing import Any, Dict, Set
 
+from app.cache import is_cached_value
 from app.schema import MultipleOutputs, UserModel
 
 
@@ -98,6 +99,29 @@ def analyze_type(
             # Recursively add each constituent type of the union
             for arg in t.__args__:
                 _add_type_recursive(arg)
+            return
+
+        # Cached types (detected by _is_cached_type marker)
+        if inspect.isclass(t) and hasattr(t, "_is_cached_type"):
+            # Try to find the name in the module namespace first
+            type_name = None
+            for name, val in module_ns.items():
+                if val is t and name.isidentifier():
+                    type_name = name
+                    break
+
+            # If not found in module_ns, use the class's __name__
+            if type_name is None:
+                type_name = t.__name__
+
+            if type_name not in types_dict:
+                types_dict[type_name] = {
+                    "kind": "cached",
+                    "_class": t,
+                    "category": os.path.splitext(rel_file_path)[0]
+                    .replace(os.sep, "/")
+                    .split("/"),
+                }
             return
 
         # Builtin type

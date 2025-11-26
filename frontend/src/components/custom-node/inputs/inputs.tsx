@@ -36,7 +36,7 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
   const hasExistingArguments = Object.keys(data.arguments).length !== 0;
 
   return (
-    <div className="w-fit min-w-full">
+    <div className="w-full min-w-0">
       {sortedArguments.map(([argName, argDef], index) => {
         return (
           <div key={argName} className="w-full">

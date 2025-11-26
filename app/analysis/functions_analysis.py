@@ -98,6 +98,11 @@ def analyze_function(
             arg_entry["value"] = arg.default
         else:
             arg_entry["value"] = None
+
+        # Check if this argument is a cached type
+        if inspect.isclass(ann) and hasattr(ann, "_is_cached_type"):
+            arg_entry["is_cached"] = True
+
         arguments[arg.name] = arg_entry
 
         # Analyze the argument type and merge with found types
@@ -123,6 +128,13 @@ def analyze_function(
                         field_info.annotation, module_ns, short_repr=True
                     )
                 }
+
+                # Check if this output is a cached type
+                if inspect.isclass(field_info.annotation) and hasattr(
+                    field_info.annotation, "_is_cached_type"
+                ):
+                    output_entry["is_cached"] = True
+
                 outputs[field_name] = output_entry
 
                 # Analyze the output field type and merge with found types
@@ -135,9 +147,13 @@ def analyze_function(
         # Check if function has a custom return_value_name from decorator
         return_value_name_temp = getattr(func_obj, "return_value_name", None)
         output_key = return_value_name_temp if return_value_name_temp else "return"
-        outputs[output_key] = {
-            "type": get_type_repr(ret_ann, module_ns, short_repr=True)
-        }
+        output_entry = {"type": get_type_repr(ret_ann, module_ns, short_repr=True)}
+
+        # Check if this output is a cached type
+        if inspect.isclass(ret_ann) and hasattr(ret_ann, "_is_cached_type"):
+            output_entry["is_cached"] = True
+
+        outputs[output_key] = output_entry
 
     # Analyze the return type and merge found types
     ret_types = analyze_type(ret_ann, file_path, module_ns)
