@@ -62,8 +62,8 @@ export default memo(function InputRenderer({
   }
 
   // Handle complex types like object and list
-  if (typeof actualType === "object" && actualType.structure_type) {
-    if (actualType.structure_type === "list") {
+  if (typeof actualType === "object" && actualType.structureType) {
+    if (actualType.structureType === "list") {
       return (
         <ListDisplay
           inputData={{ ...inputData, type: actualType }}
@@ -71,7 +71,7 @@ export default memo(function InputRenderer({
         />
       );
     }
-    if (actualType.structure_type === "dict") {
+    if (actualType.structureType === "dict") {
       return (
         <DictDisplay
           inputData={{ ...inputData, type: actualType }}

@@ -34,7 +34,7 @@ export default function ListDynamicInputs({
     const newArgName = `${nextNumber}`;
 
     const newArg = {
-      type: data.dynamic_input_type?.items || data.arguments[argNames[0]]?.type,
+      type: data.dynamicInputType?.items || data.arguments[argNames[0]]?.type,
       value: null,
     };
 

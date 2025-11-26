@@ -49,14 +49,14 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
           </div>
         );
       })}
-      {data.dynamic_input_type?.structure_type === "list" && (
+      {data.dynamicInputType?.structureType === "list" && (
         <ListDynamicInputs
           data={data}
           nodeId={nodeId}
           hasExistingArguments={hasExistingArguments}
         />
       )}
-      {data.dynamic_input_type?.structure_type === "dict" && (
+      {data.dynamicInputType?.structureType === "dict" && (
         <DictDynamicInputs
           data={data}
           nodeId={nodeId}

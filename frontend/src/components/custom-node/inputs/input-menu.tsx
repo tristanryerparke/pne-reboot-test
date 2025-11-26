@@ -64,12 +64,12 @@ export default function InputMenu({
   const argName = path ? String(path[path.length - 1]) : "";
   const isListInput = /^\d+$/.test(argName);
   const isDynamicListInput =
-    isListInput && nodeData.dynamic_input_type?.structure_type === "list";
+    isListInput && nodeData.dynamicInputType?.structureType === "list";
 
   // Detect if this is a dynamic dict input
   const isDynamicDictInput =
     fieldData._isDictInput === true &&
-    nodeData.dynamic_input_type?.structure_type === "dict";
+    nodeData.dynamicInputType?.structureType === "dict";
 
   // Calculate if this is the highest numbered list input for deletion purposes
   const numberedArgs = Object.keys(nodeData.arguments || {})

@@ -36,12 +36,12 @@ export default function SingleInputField({
   const argName = String(fieldName);
   const isListInput = /^\d+$/.test(argName);
   const isDynamicListInput =
-    isListInput && nodeData.dynamic_input_type?.structure_type === "list";
+    isListInput && nodeData.dynamicInputType?.structureType === "list";
 
   // Detect if this is a dynamic dict input
   const isDynamicDictInput =
     fieldData._isDictInput === true &&
-    nodeData.dynamic_input_type?.structure_type === "dict";
+    nodeData.dynamicInputType?.structureType === "dict";
 
   if (!fieldData) {
     return <div>No field data</div>;

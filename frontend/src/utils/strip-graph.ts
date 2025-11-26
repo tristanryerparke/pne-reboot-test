@@ -23,10 +23,10 @@ interface StrippedGraph {
 }
 
 const NODE_DATA_FIELDS_TO_KEEP = [
-  "callable_id",
+  "callableId",
   "arguments",
   "outputs",
-  "output_style",
+  "outputStyle",
 ] as const;
 
 export function stripGraphForExecute(graph: Graph): StrippedGraph {

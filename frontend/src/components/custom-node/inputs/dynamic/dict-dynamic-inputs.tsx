@@ -31,7 +31,7 @@ export default function DictDynamicInputs({
     const newArgName = `key_${nextNumber}`;
 
     const newArg = {
-      type: data.dynamic_input_type?.items || "str",
+      type: data.dynamicInputType?.items || "str",
       _isDictInput: true,
     };
 
