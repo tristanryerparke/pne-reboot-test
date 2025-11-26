@@ -1,24 +1,15 @@
-from humps import camelize
+from devtools import debug as d
 from pydantic import BaseModel, ConfigDict
-
-
-def to_camel(string):
-    return camelize(string)
+from pydantic.alias_generators import to_camel
 
 
 class CamelBaseModel(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,
-        populate_by_name=True,
+        serialize_by_alias=True,
+        validate_by_name=True,
+        validate_by_alias=True,
     )
-
-    def model_dump(self, **kwargs):
-        kwargs.setdefault("by_alias", True)
-        return super().model_dump(**kwargs)
-
-    def model_dump_json(self, **kwargs):
-        kwargs.setdefault("by_alias", True)
-        return super().model_dump_json(**kwargs)
 
 
 class MotherFucker(CamelBaseModel):
@@ -32,8 +23,13 @@ if __name__ == "__main__":
     print("model_dump():")
     print(inst.model_dump())
 
-    print("\nmodel_dump(by_alias=True):")
-    print(inst.model_dump(by_alias=True))
+    print("\nmodel_dump(by_alias=False):")
+    print(inst.model_dump(by_alias=False))
 
     print("\nmodel_dump_json():")
     print(inst.model_dump_json())
+
+    data_raw = {"amIAnMf": False, "areYouAnMf": True}
+
+    data = MotherFucker.model_validate(data_raw)
+    d(data)
