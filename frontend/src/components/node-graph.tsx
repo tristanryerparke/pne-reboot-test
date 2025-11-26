@@ -13,6 +13,7 @@ import CustomNode from "./custom-node/custom-node";
 import useFlowStore from "../stores/flowStore";
 import { useTheme } from "./theme-provider";
 import { initializeUIData } from "../utils/add-ui-data";
+import type { FunctionSchema } from "../types/types";
 
 const nodeTypes: NodeTypes = {
   customNode: CustomNode,
@@ -49,7 +50,7 @@ function NodeGraph() {
       );
       if (!nodeDataString) return;
 
-      const nodeData = JSON.parse(nodeDataString);
+      const nodeData: FunctionSchema = JSON.parse(nodeDataString);
       const position = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,

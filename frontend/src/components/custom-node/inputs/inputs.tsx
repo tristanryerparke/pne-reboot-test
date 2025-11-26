@@ -2,10 +2,10 @@ import SingleInputField from "./single-input-field";
 import { Separator } from "../../ui/separator";
 import ListDynamicInputs from "./dynamic/list-dynamic-inputs";
 import DictDynamicInputs from "./dynamic/dict-dynamic-inputs";
+import type { FunctionSchema } from "../../../types/types";
 
 interface InputsProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
+  data: FunctionSchema;
   nodeId: string;
   path: string[];
 }

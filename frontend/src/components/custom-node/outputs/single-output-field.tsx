@@ -5,6 +5,7 @@ import OutputMenu from "./output-menu";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
 import { Resizable } from "re-resizable";
 import { Grip } from "lucide-react";
+import type { FieldDataWrapper } from "../../../types/types";
 
 // Types that have expandable preview areas
 const TYPES_WITH_PREVIEW = ["CachedImage"];
@@ -16,8 +17,7 @@ const CustomHandle = () => (
 );
 
 interface SingleOutputFieldProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fieldData: Record<string, any> | undefined;
+  fieldData: FieldDataWrapper;
   path: (string | number)[];
 }
 
@@ -45,7 +45,7 @@ export default function SingleOutputField({
 
   return (
     <div className="relative w-full">
-      <div className="flex items-center pl-1">
+      <div className="flex items-center pl-2">
         {hasImageData && <OutputMenu path={path} fieldData={fieldData} />}
         <div className="flex-1">
           <Handle

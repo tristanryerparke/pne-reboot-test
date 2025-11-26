@@ -7,6 +7,7 @@ import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
 import EditableKey from "./dynamic/editable-key";
 import { Resizable } from "re-resizable";
 import { Grip } from "lucide-react";
+import type { FieldDataWrapper, FunctionSchema } from "../../../types/types";
 
 // Types that have expandable preview areas
 const TYPES_WITH_PREVIEW = ["CachedImage"];
@@ -18,11 +19,9 @@ const CustomHandle = () => (
 );
 
 interface SingleInputFieldProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fieldData: any;
+  fieldData: FieldDataWrapper;
   path: (string | number)[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  nodeData: any;
+  nodeData: FunctionSchema;
 }
 
 export default function SingleInputField({

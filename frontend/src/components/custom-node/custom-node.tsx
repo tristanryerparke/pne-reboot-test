@@ -4,13 +4,13 @@ import Inputs from "./inputs/inputs";
 import Outputs from "./outputs/outputs";
 import JsonViewer from "./json-viewer";
 import { Separator } from "../ui/separator";
+import type { FunctionSchema } from "../../types/types";
 
 export default memo(function CustomNode({
   data,
   id,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
+  data: FunctionSchema;
   id: string;
 }) {
   const [isJsonView, setIsJsonView] = useState(false);

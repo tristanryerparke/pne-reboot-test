@@ -4,7 +4,7 @@ import os
 import typing
 from typing import Any, Callable, Dict, Tuple
 
-from app.schema import FunctionSchema, MultipleOutputs
+from app.schema import FieldDataWrapper, FunctionSchema, StructuredDataDescription
 
 from .types_analysis import analyze_type, get_type_repr, merge_types_dict
 
@@ -63,10 +63,10 @@ def analyze_function(
                 raise ParameterNotTypeAnnotated(
                     f"Parameter *{arg.name} has no annotation"
                 )
-            dynamic_input_type = {
-                "structure_type": "list",
-                "items": get_type_repr(ann, module_ns, short_repr=True),
-            }
+            dynamic_input_type = StructuredDataDescription(
+                structure_type="list",
+                items=get_type_repr(ann, module_ns, short_repr=True),
+            )
             # Analyze the argument type and merge with found types
             arg_types = analyze_type(ann, file_path, module_ns)
             merge_types_dict(found_types, arg_types)
@@ -79,10 +79,10 @@ def analyze_function(
                 raise ParameterNotTypeAnnotated(
                     f"Parameter **{arg.name} has no annotation"
                 )
-            dynamic_input_type = {
-                "structure_type": "dict",
-                "items": get_type_repr(ann, module_ns, short_repr=True),
-            }
+            dynamic_input_type = StructuredDataDescription(
+                structure_type="dict",
+                items=get_type_repr(ann, module_ns, short_repr=True),
+            )
             # Analyze the argument type and merge with found types
             arg_types = analyze_type(ann, file_path, module_ns)
             merge_types_dict(found_types, arg_types)
@@ -93,15 +93,15 @@ def analyze_function(
         # Force the user to type annotate!
         if ann is inspect.Parameter.empty:
             raise ParameterNotTypeAnnotated(f"Parameter {arg.name} has no annotation")
-        arg_entry = {"type": get_type_repr(ann, module_ns, short_repr=True)}
-        if arg.default is not inspect.Parameter.empty:
-            arg_entry["value"] = arg.default
-        else:
-            arg_entry["value"] = None
+
+        arg_value = arg.default if arg.default is not inspect.Parameter.empty else None
+        arg_entry = FieldDataWrapper(
+            type=get_type_repr(ann, module_ns, short_repr=True), value=arg_value
+        )
 
         # Check if this argument is a cached type
         if inspect.isclass(ann) and hasattr(ann, "_is_cached_type"):
-            arg_entry["is_cached"] = True
+            arg_entry.is_cached = True
 
         arguments[arg.name] = arg_entry
 
@@ -114,26 +114,27 @@ def analyze_function(
     if ret_ann is inspect.Signature.empty:
         raise Exception(f"Function {func_obj.__name__} has no return annotation")
 
-    # Detect output fields from subclasses of MultipleOutputs return type
+    # Detect output fields from BaseModel subclasses with multiple outputs
     # Having the output_style flag lets a user potentially have an output (of multiple)
     # named "return" without breaking the app
     outputs = {}
-    if inspect.isclass(ret_ann) and issubclass(ret_ann, MultipleOutputs):
+    if inspect.isclass(ret_ann) and hasattr(ret_ann, "model_fields"):
         # Get the model fields using Pydantic's model_fields
         output_style = "multiple"
         for field_name, field_info in ret_ann.model_fields.items():
             if field_info.annotation is not None:
-                output_entry = {
-                    "type": get_type_repr(
+                output_entry = FieldDataWrapper(
+                    type=get_type_repr(
                         field_info.annotation, module_ns, short_repr=True
-                    )
-                }
+                    ),
+                    value=None,
+                )
 
                 # Check if this output is a cached type
                 if inspect.isclass(field_info.annotation) and hasattr(
                     field_info.annotation, "_is_cached_type"
                 ):
-                    output_entry["is_cached"] = True
+                    output_entry.is_cached = True
 
                 outputs[field_name] = output_entry
 
@@ -147,11 +148,13 @@ def analyze_function(
         # Check if function has a custom return_value_name from decorator
         return_value_name_temp = getattr(func_obj, "return_value_name", None)
         output_key = return_value_name_temp if return_value_name_temp else "return"
-        output_entry = {"type": get_type_repr(ret_ann, module_ns, short_repr=True)}
+        output_entry = FieldDataWrapper(
+            type=get_type_repr(ret_ann, module_ns, short_repr=True), value=None
+        )
 
         # Check if this output is a cached type
         if inspect.isclass(ret_ann) and hasattr(ret_ann, "_is_cached_type"):
-            output_entry["is_cached"] = True
+            output_entry.is_cached = True
 
         outputs[output_key] = output_entry
 
