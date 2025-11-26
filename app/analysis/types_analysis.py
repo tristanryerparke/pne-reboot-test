@@ -41,12 +41,12 @@ def get_type_repr(tp, module_ns, short_repr=True):
         elif origin in (list, typing.List):
             return {
                 "structure_type": "list",
-                "items": get_type_repr(tp.__args__[0], module_ns, short_repr),
+                "items_type": get_type_repr(tp.__args__[0], module_ns, short_repr),
             }
         elif origin in (dict, typing.Dict):
             return {
                 "structure_type": "dict",
-                "items": get_type_repr(tp.__args__[1], module_ns, short_repr),
+                "items_type": get_type_repr(tp.__args__[1], module_ns, short_repr),
             }
         else:
             raise ValueError("Unknown origin", tp)

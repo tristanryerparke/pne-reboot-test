@@ -5,16 +5,18 @@ import DictDynamicInputs from "./dynamic/dict-dynamic-inputs";
 import type { FunctionSchema } from "../../../types/types";
 
 interface InputsProps {
-  data: FunctionSchema;
+  functionData: FunctionSchema;
   nodeId: string;
   path: string[];
 }
 
-export default function Inputs({ data, nodeId, path }: InputsProps) {
+export default function Inputs({ functionData, nodeId, path }: InputsProps) {
+  // console.log(functionData);
+
   // Sort arguments to maintain proper order:
   // 1. Named arguments (non-numeric) come first, in their original order
   // 2. Numbered arguments (from *args) come after, sorted numerically
-  const sortedArguments = Object.entries(data.arguments).sort(
+  const sortedArguments = Object.entries(functionData.arguments).sort(
     ([nameA], [nameB]) => {
       const isNumericA = /^\d+$/.test(nameA);
       const isNumericB = /^\d+$/.test(nameB);
@@ -33,35 +35,34 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
     },
   );
 
-  const hasExistingArguments = Object.keys(data.arguments).length !== 0;
+  // Flag used for conditionally rendering the separator
+  const hasExistingArguments = Object.keys(functionData.arguments).length !== 0;
 
   return (
     <div className="w-full min-w-0">
-      {sortedArguments.map(([argName, argDef], index) => {
+      {sortedArguments.map(([argName, argData], index) => {
         return (
           <div key={argName} className="w-full">
             {index > 0 && <Separator className="w-full" />}
             <SingleInputField
-              fieldData={argDef}
+              fieldData={argData}
               path={[...path, "arguments", argName]}
-              nodeData={data}
+              nodeData={functionData}
             />
           </div>
         );
       })}
-      {data.dynamicInputType?.structureType === "list" && (
-        <ListDynamicInputs
-          data={data}
-          nodeId={nodeId}
-          hasExistingArguments={hasExistingArguments}
-        />
+      {functionData.dynamicInputType?.structureType === "list" && (
+        <>
+          {hasExistingArguments && <Separator />}
+          <ListDynamicInputs data={functionData} nodeId={nodeId} />
+        </>
       )}
-      {data.dynamicInputType?.structureType === "dict" && (
-        <DictDynamicInputs
-          data={data}
-          nodeId={nodeId}
-          hasExistingArguments={hasExistingArguments}
-        />
+      {functionData.dynamicInputType?.structureType === "dict" && (
+        <>
+          {hasExistingArguments && <Separator />}
+          <DictDynamicInputs data={functionData} nodeId={nodeId} />
+        </>
       )}
     </div>
   );

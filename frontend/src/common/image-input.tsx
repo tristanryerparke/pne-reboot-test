@@ -2,18 +2,18 @@ import { memo, useRef, useState } from "react";
 import { Input } from "../components/ui/input";
 import useFlowStore from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
+import type { FrontendFieldDataWrapper } from "@/types/types";
 
 interface ImageInputProps {
-  inputData: any;
+  inputData: FrontendFieldDataWrapper;
   path: (string | number)[];
 }
 
-export default memo(function ImageInput({ inputData, path }: ImageInputProps) {
+export default memo(function ImageInput({ path }: ImageInputProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [filename, setFilename] = useState<string>("");
-  const hasImage = !!inputData?.value?.cache_ref;
 
   // Use the xyflow hook to check if input is connected
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
@@ -87,7 +87,7 @@ export default memo(function ImageInput({ inputData, path }: ImageInputProps) {
           accept="image/*"
           onChange={handleFileChange}
           disabled={isConnected || uploading}
-          className="nodrag nopan h-9 w-full cursor-pointer file:cursor-pointer [&::file-selector-button]:cursor-pointer file:mr-0 overflow-hidden opacity-0 absolute inset-0"
+          className="nodrag nopan h-9 w-full cursor-pointer file:cursor-pointer file:mr-0 overflow-hidden opacity-0 absolute inset-0"
         />
         <div className="flex h-9 w-full rounded-md border border-input bg-transparent dark:bg-input/30 px-3 py-1 items-center cursor-pointer">
           <span className="text-sm truncate">{filename || "Choose File"}</span>

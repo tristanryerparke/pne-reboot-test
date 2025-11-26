@@ -7,10 +7,25 @@ import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
 import EditableKey from "./dynamic/editable-key";
 import { Resizable } from "re-resizable";
 import { Grip } from "lucide-react";
-import type { FieldDataWrapper, FunctionSchema } from "../../../types/types";
+import type {
+  FrontendFieldDataWrapper,
+  FunctionSchema,
+  ImageData,
+  BaseDataTypes,
+} from "../../../types/types";
 
 // Types that have expandable preview areas
 const TYPES_WITH_PREVIEW = ["CachedImage"];
+
+// Type guard for ImageData
+function isImageData(value: BaseDataTypes | null): value is ImageData {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    "cache_ref" in value &&
+    "thumb_base64" in value
+  );
+}
 
 const CustomHandle = () => (
   <div className="bg-transparent rounded-sm h-full w-full p-0 flex items-center justify-center opacity-30 transition-opacity duration-200 hover:opacity-60">
@@ -19,7 +34,7 @@ const CustomHandle = () => (
 );
 
 interface SingleInputFieldProps {
-  fieldData: FieldDataWrapper;
+  fieldData: FrontendFieldDataWrapper;
   path: (string | number)[];
   nodeData: FunctionSchema;
 }
@@ -34,13 +49,13 @@ export default function SingleInputField({
 
   // Detect if this is a dynamic list input
   const argName = String(fieldName);
-  const isListInput = /^\d+$/.test(argName);
   const isDynamicListInput =
-    isListInput && nodeData.dynamicInputType?.structureType === "list";
+    fieldData._structuredInputType === "list" &&
+    nodeData.dynamicInputType?.structureType === "list";
 
   // Detect if this is a dynamic dict input
   const isDynamicDictInput =
-    fieldData._isDictInput === true &&
+    fieldData._structuredInputType === "dict" &&
     nodeData.dynamicInputType?.structureType === "dict";
 
   if (!fieldData) {
@@ -49,12 +64,17 @@ export default function SingleInputField({
 
   // Handle union types for display
   const isUnionType =
-    typeof fieldData.type === "object" && fieldData.type?.anyOf;
-  const unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
+    typeof fieldData.type === "object" && "anyOf" in fieldData.type;
+  const unionTypes =
+    isUnionType &&
+    typeof fieldData.type === "object" &&
+    "anyOf" in fieldData.type
+      ? fieldData.type.anyOf
+      : undefined;
 
   // Get the selected type from fieldData
   const selectedType =
-    fieldData.selectedType || (unionTypes ? unionTypes[0] : undefined);
+    fieldData._selectedType || (unionTypes ? unionTypes[0] : undefined);
 
   const displayType = formatTypeForDisplay(fieldData.type);
 
@@ -83,10 +103,10 @@ export default function SingleInputField({
   const hasPreview =
     typeof effectiveType === "string" &&
     TYPES_WITH_PREVIEW.includes(effectiveType);
-  const showPreview = fieldData.showPreview ?? false;
+  const showPreview = fieldData._showPreview ?? false;
 
   // Check if image data has been uploaded (for conditional menu display)
-  const hasImageData = hasPreview && !!fieldData.value?.cache_ref;
+  const hasImageData = hasPreview && isImageData(fieldData.value);
 
   // Show menu if it's the highest list input OR dict input OR union type OR has component options OR has image data
   const shouldShowMenu =
@@ -145,7 +165,7 @@ export default function SingleInputField({
         )}
       </div>
       {/* Expandable preview area for special types */}
-      {hasPreview && showPreview && fieldData.value && (
+      {hasPreview && showPreview && isImageData(fieldData.value) && (
         <div className="px-3 pb-2">
           {fieldData.value.thumb_base64 && (
             <div className="flex flex-col gap-1">

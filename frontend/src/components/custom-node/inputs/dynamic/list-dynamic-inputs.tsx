@@ -1,4 +1,3 @@
-import { Separator } from "../../../ui/separator";
 import { Button } from "../../../ui/button";
 import { Plus } from "lucide-react";
 import useFlowStore from "../../../../stores/flowStore";
@@ -7,13 +6,11 @@ interface ListDynamicInputsProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   nodeId: string;
-  hasExistingArguments: boolean;
 }
 
 export default function ListDynamicInputs({
   data,
   nodeId,
-  hasExistingArguments,
 }: ListDynamicInputsProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
@@ -34,7 +31,9 @@ export default function ListDynamicInputs({
     const newArgName = `${nextNumber}`;
 
     const newArg = {
-      type: data.dynamicInputType?.items || data.arguments[argNames[0]]?.type,
+      type:
+        data.dynamicInputType?.itemsType || data.arguments[argNames[0]]?.type,
+      _structuredInputType: "list" as const,
       value: null,
     };
 
@@ -42,14 +41,11 @@ export default function ListDynamicInputs({
   };
 
   return (
-    <div>
-      {hasExistingArguments && <Separator />}
-      <div className="p-2 py-1.5 flex flex-row gap-2 items-center">
-        <Button variant="ghost" size="icon-xs" onClick={handleAddNumberedInput}>
-          <Plus />
-        </Button>
-        Add Input
-      </div>
+    <div className="p-2 py-1.5 flex flex-row gap-2 items-center">
+      <Button variant="ghost" size="icon-xs" onClick={handleAddNumberedInput}>
+        <Plus />
+      </Button>
+      Add Input
     </div>
   );
 }

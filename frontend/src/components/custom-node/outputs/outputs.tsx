@@ -1,6 +1,9 @@
 import SingleOutputField from "./single-output-field";
 import { Separator } from "../../ui/separator";
-import type { FunctionSchema, FieldDataWrapper } from "../../../types/types";
+import type {
+  FunctionSchema,
+  FrontendFieldDataWrapper,
+} from "../../../types/types";
 
 interface OutputsProps {
   data: FunctionSchema;
@@ -11,7 +14,10 @@ export default function Outputs({ data, path }: OutputsProps) {
   return (
     <div>
       {Object.entries(data.outputs).map(
-        ([outputName, outputDef]: [string, FieldDataWrapper], index) => (
+        (
+          [outputName, outputDef]: [string, FrontendFieldDataWrapper],
+          index,
+        ) => (
           <div key={outputName} className="node-field-output">
             {index > 0 && <Separator />}
             <SingleOutputField

@@ -5,9 +5,9 @@ const TYPES_WITH_PREVIEW = ["CachedImage"];
 
 /**
  * Initializes UI-specific data for arguments and outputs:
- * - selectedType for union type arguments
- * - inputMode for types with multiple component options (e.g., str with single-line/multiline)
- * - showPreview for types with expandable preview areas (e.g., CachedImage)
+ * - _selectedType for union type arguments
+ * - _inputMode for types with multiple component options (e.g., str with single-line/multiline)
+ * - _showPreview for types with expandable preview areas (e.g., CachedImage)
  * This should be called when creating a new node (e.g., on drop).
  */
 export function initializeUIData(nodeData: any): void {
@@ -16,17 +16,17 @@ export function initializeUIData(nodeData: any): void {
     Object.keys(nodeData.arguments).forEach((argName) => {
       const arg = nodeData.arguments[argName];
 
-      // Initialize selectedType for union types (from backend schema)
+      // Initialize _selectedType for union types (from backend schema)
       if (
         typeof arg.type === "object" &&
         arg.type?.anyOf &&
-        !arg.selectedType
+        !arg._selectedType
       ) {
-        arg.selectedType = arg.type.anyOf[0];
+        arg._selectedType = arg.type.anyOf[0];
       }
 
-      // Initialize inputMode for types with multiple component options (from frontend registry)
-      const actualType = arg.selectedType || arg.type;
+      // Initialize _inputMode for types with multiple component options (from frontend registry)
+      const actualType = arg._selectedType || arg.type;
       if (typeof actualType === "string") {
         const registryEntry = TYPE_COMPONENT_REGISTRY[actualType];
         if (
@@ -35,17 +35,17 @@ export function initializeUIData(nodeData: any): void {
           "anyOf" in registryEntry
         ) {
           // This type has multiple component options
-          if (arg.inputMode === undefined) {
+          if (arg._inputMode === undefined) {
             // Default to the first option (index 0)
-            arg.inputMode = 0;
+            arg._inputMode = 0;
           }
         }
 
-        // Initialize showPreview for types with expandable preview areas
+        // Initialize _showPreview for types with expandable preview areas
         if (TYPES_WITH_PREVIEW.includes(actualType)) {
-          if (arg.showPreview === undefined) {
+          if (arg._showPreview === undefined) {
             // Default to showing preview for cached types
-            arg.showPreview = true;
+            arg._showPreview = true;
           }
         }
       }
@@ -57,15 +57,15 @@ export function initializeUIData(nodeData: any): void {
     Object.keys(nodeData.outputs).forEach((outputName) => {
       const output = nodeData.outputs[outputName];
 
-      // Initialize showPreview for outputs with expandable preview areas
+      // Initialize _showPreview for outputs with expandable preview areas
       const outputType = output.type;
       if (
         typeof outputType === "string" &&
         TYPES_WITH_PREVIEW.includes(outputType)
       ) {
-        if (output.showPreview === undefined) {
+        if (output._showPreview === undefined) {
           // Default to showing preview for cached types
-          output.showPreview = true;
+          output._showPreview = true;
         }
       }
     });

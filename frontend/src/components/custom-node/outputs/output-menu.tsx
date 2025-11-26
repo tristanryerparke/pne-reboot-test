@@ -7,14 +7,14 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import useFlowStore from "../../../stores/flowStore";
+import type { FrontendFieldDataWrapper } from "../../../types/types";
 
 // Types that have expandable preview areas
 const TYPES_WITH_PREVIEW = ["CachedImage"];
 
 interface OutputMenuProps {
   path?: (string | number)[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fieldData: any;
+  fieldData: FrontendFieldDataWrapper;
 }
 
 export default function OutputMenu({ path, fieldData }: OutputMenuProps) {
@@ -25,11 +25,11 @@ export default function OutputMenu({ path, fieldData }: OutputMenuProps) {
   const hasPreview =
     typeof effectiveType === "string" &&
     TYPES_WITH_PREVIEW.includes(effectiveType);
-  const showPreview = fieldData.showPreview ?? false;
+  const showPreview = fieldData._showPreview ?? false;
 
   const handleTogglePreview = () => {
     if (path) {
-      updateNodeData([...path, "showPreview"], !showPreview);
+      updateNodeData([...path, "_showPreview"], !showPreview);
     }
   };
 

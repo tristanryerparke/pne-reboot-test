@@ -12,16 +12,18 @@ import {
 } from "../../ui/dropdown-menu";
 import useFlowStore from "../../../stores/flowStore";
 import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
+import type {
+  FrontendFieldDataWrapper,
+  FunctionSchema,
+} from "../../../types/types";
 
 // Types that have expandable preview areas
 const TYPES_WITH_PREVIEW = ["CachedImage"];
 
 interface InputMenuProps {
   path?: (string | number)[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  nodeData: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fieldData: any;
+  nodeData: FunctionSchema;
+  fieldData: FrontendFieldDataWrapper;
 }
 
 export default function InputMenu({
@@ -35,10 +37,15 @@ export default function InputMenu({
 
   // Handle union types - detect from fieldData
   const isUnionType =
-    typeof fieldData.type === "object" && fieldData.type?.anyOf;
-  const unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
+    typeof fieldData.type === "object" && "anyOf" in fieldData.type;
+  const unionTypes =
+    isUnionType &&
+    typeof fieldData.type === "object" &&
+    "anyOf" in fieldData.type
+      ? fieldData.type.anyOf
+      : undefined;
   const selectedType =
-    fieldData.selectedType || (unionTypes ? unionTypes[0] : undefined);
+    fieldData._selectedType || (unionTypes ? unionTypes[0] : undefined);
   const hasUnionTypes = unionTypes && unionTypes.length > 1;
 
   // Handle component options from registry (e.g., single-line vs multiline for strings)
@@ -52,23 +59,23 @@ export default function InputMenu({
     typeof registryEntry === "object" &&
     "anyOf" in registryEntry &&
     registryEntry.anyOf.length > 1;
-  const selectedInputMode = fieldData.inputMode ?? 0;
+  const selectedInputMode = fieldData._inputMode ?? 0;
 
   // Check if this type has a preview area
   const hasPreview =
     typeof effectiveType === "string" &&
     TYPES_WITH_PREVIEW.includes(effectiveType);
-  const showPreview = fieldData.showPreview ?? false;
+  const showPreview = fieldData._showPreview ?? false;
 
   // Detect if this is a dynamic list input
   const argName = path ? String(path[path.length - 1]) : "";
-  const isListInput = /^\d+$/.test(argName);
   const isDynamicListInput =
-    isListInput && nodeData.dynamicInputType?.structureType === "list";
+    fieldData._structuredInputType === "list" &&
+    nodeData.dynamicInputType?.structureType === "list";
 
   // Detect if this is a dynamic dict input
   const isDynamicDictInput =
-    fieldData._isDictInput === true &&
+    fieldData._structuredInputType === "dict" &&
     nodeData.dynamicInputType?.structureType === "dict";
 
   // Calculate if this is the highest numbered list input for deletion purposes
@@ -87,20 +94,20 @@ export default function InputMenu({
 
   const handleTypeChange = (newType: string) => {
     if (path) {
-      updateNodeData([...path, "selectedType"], newType);
+      updateNodeData([...path, "_selectedType"], newType);
     }
   };
 
   const handleInputModeChange = (newModeStr: string) => {
     if (path) {
       const newMode = parseInt(newModeStr);
-      updateNodeData([...path, "inputMode"], newMode);
+      updateNodeData([...path, "_inputMode"], newMode);
     }
   };
 
   const handleTogglePreview = () => {
     if (path) {
-      updateNodeData([...path, "showPreview"], !showPreview);
+      updateNodeData([...path, "_showPreview"], !showPreview);
     }
   };
 

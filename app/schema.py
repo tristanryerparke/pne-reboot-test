@@ -5,8 +5,9 @@ from pydantic.alias_generators import to_camel
 
 
 class CamelBaseModel(BaseModel):
-    """The frontend uses camel case for its keys, this class handles 
+    """The frontend uses camel case for its keys, this class handles
     automatic serialization and deserialization to and from camel case"""
+
     model_config = ConfigDict(
         alias_generator=to_camel,
         serialize_by_alias=True,
@@ -24,17 +25,31 @@ class UserModel(BaseModel):
     _construct_node: ClassVar[bool] = True
 
 
-class StructuredDataDescription(CamelBaseModel):
+class UnionDescr(CamelBaseModel):
+    anyOf: list[str]
+
+
+class StructDescr(CamelBaseModel):
     structure_type: Literal["list", "dict"]
-    items: str
+    items_type: str | UnionDescr
+
+
+# Rebuild the model to resolve the forward reference
+StructDescr.model_rebuild()
 
 
 BASE_DATATYPES: TypeAlias = int | float | str
 
 
 class FieldDataWrapper(CamelBaseModel):
-    type: str | StructuredDataDescription
+    type: str | UnionDescr | StructDescr
     value: BASE_DATATYPES | None
+
+
+class CachedFieldDataWrapper(CamelBaseModel):
+    type: str | StructDescr
+    value: BASE_DATATYPES | None
+    cached: bool = False
 
 
 # We allow arbitrary types on FunctionAsNode for passing it around in the backend
@@ -46,8 +61,8 @@ class FunctionSchema(CamelBaseModel):
     file_path: str
     doc: str | None = None
     arguments: dict[str, FieldDataWrapper] = {}
-    dynamic_input_type: StructuredDataDescription | None = None
-    output_style: Literal["single", "multiple"]
+    dynamic_input_type: StructDescr | None = None
+    output_style: Literal["single", "multiple"] = "single"
     outputs: dict[str, FieldDataWrapper]
     auto_generated: bool = False
 

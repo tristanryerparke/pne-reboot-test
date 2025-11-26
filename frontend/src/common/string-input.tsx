@@ -3,9 +3,10 @@ import { Input } from "../components/ui/input";
 import useFlowStore from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
 import { useControlledDebounce } from "../hooks/useControlledDebounce";
+import type { FieldDataWrapper } from "@/types/types";
 
 interface StringInputProps {
-  inputData: any;
+  inputData: FieldDataWrapper;
   path: (string | number)[];
 }
 
@@ -17,11 +18,7 @@ export default memo(function StringInput({
 
   // Use current value if it exists, otherwise use default_value, otherwise empty string
   const externalValue =
-    typeof inputData.value === "string"
-      ? inputData.value
-      : inputData?.default_value !== undefined
-        ? inputData.default_value
-        : "";
+    typeof inputData.value === "string" ? inputData.value : "";
 
   // Use controlled debounce - updates store only on user input, not external updates
   const [value, setValue] = useControlledDebounce(

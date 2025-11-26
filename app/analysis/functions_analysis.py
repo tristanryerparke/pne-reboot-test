@@ -4,7 +4,7 @@ import os
 import typing
 from typing import Any, Callable, Dict, Tuple
 
-from app.schema import FieldDataWrapper, FunctionSchema, StructuredDataDescription
+from app.schema import FieldDataWrapper, FunctionSchema, StructDescr
 
 from .types_analysis import analyze_type, get_type_repr, merge_types_dict
 
@@ -63,9 +63,9 @@ def analyze_function(
                 raise ParameterNotTypeAnnotated(
                     f"Parameter *{arg.name} has no annotation"
                 )
-            dynamic_input_type = StructuredDataDescription(
+            dynamic_input_type = StructDescr(
                 structure_type="list",
-                items=get_type_repr(ann, module_ns, short_repr=True),
+                items_type=get_type_repr(ann, module_ns, short_repr=True),  # type: ignore[arg-type]
             )
             # Analyze the argument type and merge with found types
             arg_types = analyze_type(ann, file_path, module_ns)
@@ -79,9 +79,9 @@ def analyze_function(
                 raise ParameterNotTypeAnnotated(
                     f"Parameter **{arg.name} has no annotation"
                 )
-            dynamic_input_type = StructuredDataDescription(
+            dynamic_input_type = StructDescr(
                 structure_type="dict",
-                items=get_type_repr(ann, module_ns, short_repr=True),
+                items_type=get_type_repr(ann, module_ns, short_repr=True),  # type: ignore[arg-type]
             )
             # Analyze the argument type and merge with found types
             arg_types = analyze_type(ann, file_path, module_ns)
@@ -96,12 +96,13 @@ def analyze_function(
 
         arg_value = arg.default if arg.default is not inspect.Parameter.empty else None
         arg_entry = FieldDataWrapper(
-            type=get_type_repr(ann, module_ns, short_repr=True), value=arg_value
+            type=get_type_repr(ann, module_ns, short_repr=True),  # type: ignore[arg-type]
+            value=arg_value,
         )
 
         # Check if this argument is a cached type
         if inspect.isclass(ann) and hasattr(ann, "_is_cached_type"):
-            arg_entry.is_cached = True
+            arg_entry.is_cached = True  # type: ignore[arg-type]
 
         arguments[arg.name] = arg_entry
 
@@ -124,7 +125,7 @@ def analyze_function(
         for field_name, field_info in ret_ann.model_fields.items():
             if field_info.annotation is not None:
                 output_entry = FieldDataWrapper(
-                    type=get_type_repr(
+                    type=get_type_repr(  # type: ignore[arg-type]
                         field_info.annotation, module_ns, short_repr=True
                     ),
                     value=None,
@@ -134,7 +135,7 @@ def analyze_function(
                 if inspect.isclass(field_info.annotation) and hasattr(
                     field_info.annotation, "_is_cached_type"
                 ):
-                    output_entry.is_cached = True
+                    output_entry.is_cached = True  # type: ignore[arg-type]
 
                 outputs[field_name] = output_entry
 
@@ -149,12 +150,13 @@ def analyze_function(
         return_value_name_temp = getattr(func_obj, "return_value_name", None)
         output_key = return_value_name_temp if return_value_name_temp else "return"
         output_entry = FieldDataWrapper(
-            type=get_type_repr(ret_ann, module_ns, short_repr=True), value=None
+            type=get_type_repr(ret_ann, module_ns, short_repr=True),  # type: ignore[arg-type]
+            value=None,
         )
 
         # Check if this output is a cached type
         if inspect.isclass(ret_ann) and hasattr(ret_ann, "_is_cached_type"):
-            output_entry.is_cached = True
+            output_entry.is_cached = True  # type: ignore[arg-type]
 
         outputs[output_key] = output_entry
 

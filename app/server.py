@@ -60,8 +60,11 @@ app.include_router(image_router, prefix="/image", tags=["image"])
 @app.get("/nodes")
 async def get_functions():
     """get schema for all loaded functions that are to be served as nodes"""
-    # FastAPI will automatically serialize the dict of FunctionSchema models
-    return FUNCTION_SCHEMAS
+    # Manually serialize with exclude_none to remove auto_generated when False
+    return [
+        schema.model_dump(mode="json", exclude_defaults=True)
+        for schema in FUNCTION_SCHEMAS
+    ]
 
 
 @app.get("/types")

@@ -37,7 +37,7 @@ export default memo(function CustomNode({
         <JsonViewer className="w-full" data={data} />
       ) : (
         <>
-          <Inputs data={data} nodeId={id} path={path} />
+          <Inputs functionData={data} nodeId={id} path={path} />
           <Separator />
           <Outputs data={data} path={path} />
         </>

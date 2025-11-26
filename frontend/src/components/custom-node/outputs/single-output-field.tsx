@@ -5,10 +5,24 @@ import OutputMenu from "./output-menu";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
 import { Resizable } from "re-resizable";
 import { Grip } from "lucide-react";
-import type { FieldDataWrapper } from "../../../types/types";
+import type {
+  FrontendFieldDataWrapper,
+  ImageData,
+  BaseDataTypes,
+} from "../../../types/types";
 
 // Types that have expandable preview areas
 const TYPES_WITH_PREVIEW = ["CachedImage"];
+
+// Type guard for ImageData
+function isImageData(value: BaseDataTypes | null): value is ImageData {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    "cache_ref" in value &&
+    "thumb_base64" in value
+  );
+}
 
 const CustomHandle = () => (
   <div className="bg-transparent rounded-sm h-full w-full p-0 flex items-center justify-center opacity-30 transition-opacity duration-200 hover:opacity-60">
@@ -17,7 +31,7 @@ const CustomHandle = () => (
 );
 
 interface SingleOutputFieldProps {
-  fieldData: FieldDataWrapper;
+  fieldData: FrontendFieldDataWrapper;
   path: (string | number)[];
 }
 
@@ -38,10 +52,10 @@ export default function SingleOutputField({
   const hasPreview =
     typeof effectiveType === "string" &&
     TYPES_WITH_PREVIEW.includes(effectiveType);
-  const showPreview = fieldData.showPreview ?? false;
+  const showPreview = fieldData._showPreview ?? false;
 
   // Check if image data exists (for conditional menu display)
-  const hasImageData = hasPreview && !!fieldData.value?.cache_ref;
+  const hasImageData = hasPreview && isImageData(fieldData.value);
 
   return (
     <div className="relative w-full">
@@ -76,7 +90,7 @@ export default function SingleOutputField({
         </div>
       </div>
       {/* Expandable preview area for special types */}
-      {hasPreview && showPreview && fieldData.value && (
+      {hasPreview && showPreview && isImageData(fieldData.value) && (
         <div className="px-3 pb-2">
           {fieldData.value.thumb_base64 && (
             <div className="flex flex-col gap-1">

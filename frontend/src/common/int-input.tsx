@@ -3,9 +3,10 @@ import { NumberInput } from "../components/ui/number-input";
 import useFlowStore from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
 import { useControlledDebounce } from "../hooks/useControlledDebounce";
+import type { FieldDataWrapper } from "@/types/types";
 
 interface IntInputProps {
-  inputData: any;
+  inputData: FieldDataWrapper;
   path: (string | number)[];
 }
 
@@ -14,11 +15,7 @@ export default memo(function IntInput({ inputData, path }: IntInputProps) {
 
   // Use current value if it exists, otherwise use default_value, otherwise undefined
   const externalValue =
-    typeof inputData.value === "number"
-      ? inputData.value
-      : inputData?.default_value !== undefined
-        ? inputData.default_value
-        : undefined;
+    typeof inputData.value === "number" ? inputData.value : undefined;
 
   // Use controlled debounce - updates store only on user input, not external updates
   const [value, setValue] = useControlledDebounce(
