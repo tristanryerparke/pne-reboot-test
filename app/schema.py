@@ -60,7 +60,7 @@ class FunctionSchema(CamelBaseModel):
     category: list[str]
     file_path: str
     doc: str | None = None
-    arguments: dict[str, FieldDataWrapper] = {}
+    arguments: dict[str, FieldDataWrapper]
     dynamic_input_type: StructDescr | None = None
     output_style: Literal["single", "multiple"] = "single"
     outputs: dict[str, FieldDataWrapper]
@@ -71,7 +71,7 @@ class NodeDataFromFrontend(CamelBaseModel):
     callable_id: str
     arguments: dict[str, dict[str, Any]]
     outputs: dict[str, dict[str, Any]]
-    output_style: Literal["single", "multiple"]
+    output_style: Literal["single", "multiple"] = "single"
 
 
 class NodeFromFrontend(CamelBaseModel):

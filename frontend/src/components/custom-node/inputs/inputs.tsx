@@ -16,7 +16,7 @@ export default function Inputs({ functionData, nodeId, path }: InputsProps) {
   // Sort arguments to maintain proper order:
   // 1. Named arguments (non-numeric) come first, in their original order
   // 2. Numbered arguments (from *args) come after, sorted numerically
-  const sortedArguments = Object.entries(functionData.arguments).sort(
+  const sortedArguments = Object.entries(functionData.arguments || {}).sort(
     ([nameA], [nameB]) => {
       const isNumericA = /^\d+$/.test(nameA);
       const isNumericB = /^\d+$/.test(nameB);
@@ -36,7 +36,8 @@ export default function Inputs({ functionData, nodeId, path }: InputsProps) {
   );
 
   // Flag used for conditionally rendering the separator
-  const hasExistingArguments = Object.keys(functionData.arguments).length !== 0;
+  const hasExistingArguments =
+    Object.keys(functionData.arguments || {}).length !== 0;
 
   return (
     <div className="w-full min-w-0">
