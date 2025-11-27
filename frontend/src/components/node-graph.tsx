@@ -4,7 +4,6 @@ import {
   Controls,
   Background,
   BackgroundVariant,
-  type Node,
   type NodeTypes,
   useReactFlow,
 } from "@xyflow/react";
@@ -13,7 +12,7 @@ import CustomNode from "./custom-node/custom-node";
 import useFlowStore from "../stores/flowStore";
 import { useTheme } from "./theme-provider";
 import { initializeUIData } from "../utils/add-ui-data";
-import type { FunctionSchema } from "../types/types";
+import type { FunctionSchema, FunctionNode } from "../types/types";
 
 const nodeTypes: NodeTypes = {
   customNode: CustomNode,
@@ -59,7 +58,7 @@ function NodeGraph() {
       // Initialize selectedType for union types in arguments
       initializeUIData(nodeData);
 
-      const newNode: Node = {
+      const newNode: FunctionNode = {
         id: crypto.randomUUID(),
         position: {
           x: position.x,

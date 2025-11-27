@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 
 type JsonViewerProps = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   rootName?: string;
   defaultExpanded?: boolean;
@@ -51,6 +52,7 @@ export function JsonViewer({
 
 type JsonNodeProps = {
   name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   isRoot?: boolean;
   defaultExpanded?: boolean;
@@ -177,6 +179,7 @@ function JsonValue({
   data,
   textLimit = 40,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   textLimit?: number;
 }) {
@@ -209,7 +212,7 @@ function JsonValue({
           >
             {`"`}
             {isExpanded ? (
-              <span className="inline-block max-w-full break-words">
+              <span className="inline-block max-w-full wrap-break-word">
                 {data}
               </span>
             ) : (
@@ -221,7 +224,7 @@ function JsonValue({
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-md text-xs p-2 break-words"
+                  className="max-w-md text-xs p-2 wrap-break-word"
                 >
                   {data}
                 </TooltipContent>

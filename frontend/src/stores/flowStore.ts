@@ -2,7 +2,6 @@ import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/vanilla/shallow";
 import { addEdge, applyNodeChanges, applyEdgeChanges } from "@xyflow/react";
 import type {
-  Node,
   Edge,
   OnNodesChange,
   OnEdgesChange,
@@ -10,18 +9,21 @@ import type {
   ReactFlowInstance,
 } from "@xyflow/react";
 import { produce } from "immer";
+import type { FunctionNode } from "../types/types";
 
 type FlowStoreState = {
-  nodes: Node[];
+  nodes: FunctionNode[];
   edges: Edge[];
-  rfInstance: ReactFlowInstance | null;
+  rfInstance: ReactFlowInstance<FunctionNode, Edge> | null;
 };
 
 type FlowStoreActions = {
-  setNodes: (nodes: Node[] | ((currentNodes: Node[]) => Node[])) => void;
+  setNodes: (
+    nodes: FunctionNode[] | ((currentNodes: FunctionNode[]) => FunctionNode[]),
+  ) => void;
   setEdges: (edges: Edge[]) => void;
-  setRfInstance: (instance: ReactFlowInstance) => void;
-  onNodesChange: OnNodesChange;
+  setRfInstance: (instance: ReactFlowInstance<FunctionNode, Edge>) => void;
+  onNodesChange: OnNodesChange<FunctionNode>;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
   updateNodeData: (path: (string | number)[], newData: unknown) => void;
@@ -86,7 +88,8 @@ const useFlowStore = createWithEqualityFn<FlowState>(
                 );
                 current[key] = {};
               }
-              current = current[key] as Record<string | number, unknown>;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              current = current[key] as any;
             }
 
             const finalKey = pathToProperty[pathToProperty.length - 1];
@@ -114,7 +117,8 @@ const useFlowStore = createWithEqualityFn<FlowState>(
         if (current[key] === undefined) {
           return undefined;
         }
-        current = current[key] as Record<string | number, unknown>;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        current = current[key] as any;
       }
 
       return current;
@@ -139,7 +143,8 @@ const useFlowStore = createWithEqualityFn<FlowState>(
                 );
                 return;
               }
-              current = current[key] as Record<string | number, unknown>;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              current = current[key] as any;
             }
 
             // Delete the final property
