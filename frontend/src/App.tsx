@@ -1,14 +1,19 @@
 import "./index.css";
 import "@xyflow/react/dist/style.css";
 
-import NodePicker from "./components/node-picker/node-picker";
 import { ReactFlowProvider } from "@xyflow/react";
-import { ThemeProvider } from "./components/theme-provider";
-import { ModeToggle } from "./components/mode-toggle";
+
 import { Separator } from "./components/ui/separator";
-import { TypesBrowser } from "./components/types-browser/types-browser";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 
+import NodePicker from "./components/node-picker/node-picker";
+
+import { ThemeProvider } from "./components/theme-provider";
+import { ModeToggle } from "./components/mode-toggle";
+
+import TypesBrowser from "./components/types-browser/types-browser";
+
+import Inspector from "./components/inspector/inspector";
 import NodeGraph from "./components/node-graph";
 import ExecuteButton from "./components/execute-button";
 import SaveButton from "./components/save-button";
@@ -61,6 +66,8 @@ function App() {
             </div>
             <Separator orientation="vertical" />
             <NodeGraph />
+            <Separator orientation="vertical" />
+            <Inspector />
           </div>
         </ReactFlowProvider>
       </ThemeProvider>

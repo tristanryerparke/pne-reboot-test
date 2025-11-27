@@ -11,7 +11,7 @@ export interface TypesByKind {
   [kind: string]: [string, TypeInfo][];
 }
 
-export function TypesBrowser() {
+export default function TypesBrowser() {
   const types = useTypesStore((state) => state.types);
   const fetchTypes = useTypesStore((state) => state.fetchTypes);
   const [searchTerm, setSearchTerm] = useState("");

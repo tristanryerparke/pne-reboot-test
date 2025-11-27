@@ -22,6 +22,8 @@ type JsonViewerProps = {
   rootName?: string;
   defaultExpanded?: boolean;
   className?: string;
+  textSize?: string;
+  textLimit?: number;
 };
 
 export function JsonViewer({
@@ -29,15 +31,18 @@ export function JsonViewer({
   rootName = "root",
   defaultExpanded = true,
   className,
+  textSize = "text-sm",
+  textLimit = 40,
 }: JsonViewerProps) {
   return (
     <TooltipProvider>
-      <div className={cn("font-mono text-sm", className)}>
+      <div className={cn("font-mono", textSize, className)}>
         <JsonNode
           name={rootName}
           data={data}
           isRoot={true}
           defaultExpanded={defaultExpanded}
+          textLimit={textLimit}
         />
       </div>
     </TooltipProvider>
@@ -50,6 +55,7 @@ type JsonNodeProps = {
   isRoot?: boolean;
   defaultExpanded?: boolean;
   level?: number;
+  textLimit?: number;
 };
 
 function JsonNode({
@@ -58,6 +64,7 @@ function JsonNode({
   isRoot = false,
   defaultExpanded = true,
   level = 0,
+  textLimit = 40,
 }: JsonNodeProps) {
   const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
   const [isCopied, setIsCopied] = React.useState(false);
@@ -127,7 +134,7 @@ function JsonNode({
           )}
         </span>
 
-        {!isExpandable && <JsonValue data={data} />}
+        {!isExpandable && <JsonValue data={data} textLimit={textLimit} />}
 
         {!isExpandable && <div className="w-3.5" />}
 
@@ -153,6 +160,7 @@ function JsonNode({
               data={data[key]}
               level={level + 1}
               defaultExpanded={level < 1}
+              textLimit={textLimit}
             />
           ))}
           <div className="text-muted-foreground pl-4 py-1">
@@ -165,10 +173,16 @@ function JsonNode({
 }
 
 // Update the JsonValue function to make the entire row clickable with an expand icon
-function JsonValue({ data }: { data: any }) {
+function JsonValue({
+  data,
+  textLimit = 40,
+}: {
+  data: any;
+  textLimit?: number;
+}) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const dataType = typeof data;
-  const TEXT_LIMIT = 40; // Character limit before truncation
+  const TEXT_LIMIT = textLimit;
 
   if (data === null) {
     return <span className="text-rose-500">null</span>;
@@ -195,11 +209,13 @@ function JsonValue({ data }: { data: any }) {
           >
             {`"`}
             {isExpanded ? (
-              <span className="inline-block max-w-full">{data}</span>
+              <span className="inline-block max-w-full break-words">
+                {data}
+              </span>
             ) : (
               <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
-                  <span className="inline-block max-w-full">
+                  <span className="inline-block truncate max-w-full">
                     {data.substring(0, TEXT_LIMIT)}...
                   </span>
                 </TooltipTrigger>

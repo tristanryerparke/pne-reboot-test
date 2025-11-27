@@ -5,6 +5,7 @@ import Outputs from "./outputs/outputs";
 import JsonViewer from "./json-viewer";
 import { Separator } from "../ui/separator";
 import type { FunctionSchema } from "../../types/types";
+import InspectableFieldWrapper from "../inspector/inspectable-field-wrapper";
 
 export default memo(function CustomNode({
   data,
@@ -27,11 +28,15 @@ export default memo(function CustomNode({
       ref={nodeRef}
       className="relative w-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
     >
-      <NodeHeader
-        data={data}
-        isJsonView={isJsonView}
-        onToggleView={toggleView}
-      />
+      <InspectableFieldWrapper path={path}>
+        <div>
+          <NodeHeader
+            data={data}
+            isJsonView={isJsonView}
+            onToggleView={toggleView}
+          />
+        </div>
+      </InspectableFieldWrapper>
       <Separator />
       {isJsonView ? (
         <JsonViewer className="w-full" data={data} />

@@ -10,9 +10,6 @@ import type {
   BaseDataTypes,
 } from "../../../types/types";
 
-// Types that have expandable preview areas
-const TYPES_WITH_PREVIEW = ["CachedImage"];
-
 // Type guard for ImageData
 function isImageData(value: BaseDataTypes | null): value is ImageData {
   return (
@@ -87,10 +84,8 @@ export default function InputDisplay({ fieldData, path }: InputDisplayProps) {
   const isHighestListInput =
     isDynamicListInput && parseInt(argName) === maxListInputNumber;
 
-  // Check if this type has a preview area
-  const hasPreview =
-    typeof effectiveType === "string" &&
-    TYPES_WITH_PREVIEW.includes(effectiveType);
+  // Check if this type has a preview area by looking for the 'preview' key
+  const hasPreview = "preview" in fieldData;
 
   // Check if image data has been uploaded (for conditional menu display)
   const hasImageData = hasPreview && isImageData(fieldData.value);
