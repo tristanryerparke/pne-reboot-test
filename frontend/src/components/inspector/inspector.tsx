@@ -1,14 +1,19 @@
 import { useRef, useEffect } from "react";
-import useFlowStore from "../../stores/flowStore";
-import useSelectorStore from "../../stores/selectorStore";
+import { useNodeData } from "../../stores/flowStore";
+import useInspectorStore from "../../stores/inspectorStore";
 import { Toggle } from "../../components/ui/toggle";
-import { SquareMousePointer } from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { SquareMousePointer, Eye, EyeOff } from "lucide-react";
 import JsonViewer from "../custom-node/json-viewer";
 
 export default function Inspector() {
-  const { getNodeData } = useFlowStore();
-  const { isSelecting, setIsSelecting, selectedTarget, setHoveredByInspector } =
-    useSelectorStore();
+  const {
+    isSelecting,
+    setIsSelecting,
+    selectedTarget,
+    showBorders,
+    setShowBorders,
+  } = useInspectorStore();
 
   const toggleRef = useRef<HTMLButtonElement>(null);
 
@@ -42,22 +47,27 @@ export default function Inspector() {
     setIsSelecting(pressed);
   };
 
-  const selectedData = selectedTarget ? getNodeData(selectedTarget.path) : null;
+  const handleToggleBorders = () => {
+    setShowBorders(!showBorders);
+  };
+
+  const selectedData = useNodeData(selectedTarget?.path ?? []);
 
   return (
     <div className="min-w-60 w-60 h-full flex flex-col overflow-hidden">
-      <div className="flex shrink-0 flex-row gap-2 p-1 items-center">
+      <div className="w-full flex flex-row gap-2 p-1 items-center justify-between">
         <Toggle
           ref={toggleRef}
           size="sm"
           pressed={isSelecting}
           onPressedChange={handleToggleSelection}
-          onMouseEnter={() => setHoveredByInspector(true)}
-          onMouseLeave={() => setHoveredByInspector(false)}
         >
           <SquareMousePointer className={isSelecting ? "text-red-500" : ""} />
         </Toggle>
         <h5>Inspector</h5>
+        <Button size="icon-sm" variant="ghost" onClick={handleToggleBorders}>
+          {showBorders ? <Eye /> : <EyeOff />}
+        </Button>
       </div>
       {/*<div>isSelecting: {isSelecting.toString()}</div>*/}
       <div className="h-full flex flex-1 flex-col gap-2 p-2 overflow-y-auto overflow-x-hidden min-h-0">

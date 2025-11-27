@@ -1,8 +1,7 @@
-import { memo, useState, useRef } from "react";
+import { memo, useRef } from "react";
 import NodeHeader from "./node-header";
 import Inputs from "./inputs/inputs";
 import Outputs from "./outputs/outputs";
-import JsonViewer from "./json-viewer";
 import { Separator } from "../ui/separator";
 import type { FunctionSchema } from "../../types/types";
 import InspectableFieldWrapper from "../inspector/inspectable-field-wrapper";
@@ -14,10 +13,7 @@ export default memo(function CustomNode({
   data: FunctionSchema;
   id: string;
 }) {
-  const [isJsonView, setIsJsonView] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
-
-  const toggleView = () => setIsJsonView(!isJsonView);
 
   const path = [id];
 
@@ -30,23 +26,13 @@ export default memo(function CustomNode({
     >
       <InspectableFieldWrapper path={path}>
         <div>
-          <NodeHeader
-            data={data}
-            isJsonView={isJsonView}
-            onToggleView={toggleView}
-          />
+          <NodeHeader data={data} />
         </div>
       </InspectableFieldWrapper>
       <Separator />
-      {isJsonView ? (
-        <JsonViewer className="w-full" data={data} />
-      ) : (
-        <>
-          <Inputs arguments={data.arguments} path={[...path, "arguments"]} />
-          <Separator />
-          <Outputs data={data} path={path} />
-        </>
-      )}
+      <Inputs arguments={data.arguments} path={[...path, "arguments"]} />
+      <Separator />
+      <Outputs data={data} path={path} />
     </div>
   );
 });

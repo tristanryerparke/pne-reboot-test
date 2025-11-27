@@ -26,30 +26,25 @@ export default function NodeInputField({
 
   return (
     <InspectableFieldWrapper path={path}>
-      <div className="relative flex items-center">
-        <div className="flex-1">
-          <Handle
-            // TODO: Why don't height and width work?
-            className="p-1 rounded-full bg-primary"
-            type="target"
-            position={Position.Left}
-            id={handleId}
-          />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                <InputDisplay fieldData={fieldData} path={path} />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent
-              side="left"
-              sideOffset={2}
-              className="px-2 py-1 text-xs rounded-sm"
-            >
-              <span className="text-xs">{displayType}</span>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+      <div className="relative items-center justify-center">
+        <Handle
+          // TODO: Why don't height and width work?
+          className="p-1 rounded-full bg-primary"
+          type="target"
+          position={Position.Left}
+          id={handleId}
+        />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {/*The padding happens here*/}
+            <div className="pl-2 pr-2">
+              <InputDisplay fieldData={fieldData} path={path} />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="left" sideOffset={2}>
+            <span className="text-xs">{displayType}</span>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </InspectableFieldWrapper>
   );

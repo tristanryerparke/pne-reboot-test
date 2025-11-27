@@ -102,16 +102,16 @@ export default function InputDisplay({ fieldData, path }: InputDisplayProps) {
   const isEditableKey = isDynamicDictInput;
 
   return (
-    <div className="flex w-full pl-3 pr py-2 gap-1 items-center">
-      <div className="flex w-full items-center gap-2">
+    <div className="flex w-full py-2 gap-0.5 items-center">
+      <div className="flex w-full items-center gap-1">
         {/* Dynamic dict inputs have a user-editable key*/}
         {isEditableKey ? (
           <EditableKey fieldName={fieldName} path={path} />
         ) : (
           <span className="shrink-0">{fieldName}</span>
         )}
-        <span className="shrink-0">: </span>
-        <div className="flex-1 mr-1">
+        <span className="shrink-0">:</span>
+        <div className="flex-1">
           <InputRenderer inputData={fieldData} path={path} />
         </div>
       </div>

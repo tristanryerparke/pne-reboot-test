@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import useSelectorStore from "@/stores/selectorStore";
+import useInspectorStore from "@/stores/inspectorStore";
 import { cn } from "@/lib/utils";
 
 interface InspectableFieldWrapperProps {
@@ -15,21 +15,19 @@ export default function InspectableFieldWrapper({
     isSelecting,
     selectTarget,
     selectedTarget,
-    hoveredByInspector,
+    showBorders,
     clearSelectedTarget,
-  } = useSelectorStore();
+  } = useInspectorStore();
 
   const nodeId = path[0] as string;
 
   // Check if this field is currently selected in the inspector
-  const isSelected =
+  const amISelected =
     selectedTarget?.nodeId === nodeId &&
     JSON.stringify(selectedTarget?.path) === JSON.stringify(path);
 
-  // Show red border when inspector toggle is hovered and this field is selected,
-  // or when selector mode is active and this field is selected
-  const showInspectorHoverBorder =
-    (hoveredByInspector || isSelecting) && isSelected;
+  // Show red border when borders are enabled and this field is selected
+  const showSelectedBorder = showBorders && amISelected;
 
   const handleFieldClick = (e: React.MouseEvent) => {
     if (isSelecting) {
@@ -39,7 +37,7 @@ export default function InspectableFieldWrapper({
       e.preventDefault();
 
       // Shift+click to deselect (keeps selector mode active)
-      if (e.shiftKey && isSelected) {
+      if (e.shiftKey && amISelected) {
         clearSelectedTarget();
       } else {
         selectTarget(nodeId, path);
@@ -54,7 +52,7 @@ export default function InspectableFieldWrapper({
         isSelecting
           ? "cursor-pointer hover:ring-2 hover:ring-red-500 hover:rounded-sm"
           : null,
-        showInspectorHoverBorder && "ring-2 ring-red-500 rounded",
+        showSelectedBorder && "ring-2 ring-red-500 rounded",
       )}
       onClick={handleFieldClick}
     >
