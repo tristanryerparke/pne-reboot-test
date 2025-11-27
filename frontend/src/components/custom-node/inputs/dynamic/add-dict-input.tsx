@@ -1,21 +1,30 @@
 import { Button } from "../../../ui/button";
 import { Plus } from "lucide-react";
-import useFlowStore from "../../../../stores/flowStore";
+import useFlowStore, { useNodeData } from "../../../../stores/flowStore";
+import type {
+  FrontendFieldDataWrapper,
+  StructDescr,
+} from "../../../../types/types";
 
-interface DictDynamicInputsProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
-  nodeId: string;
+interface AddDictInputProps {
+  path: (string | number)[];
 }
 
-export default function DictDynamicInputs({
-  data,
-  nodeId,
-}: DictDynamicInputsProps) {
+export default function AddDictInput({ path }: AddDictInputProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
+  const nodeId = path[0];
+
+  // Get data from Zustand store
+  const arguments_ = useNodeData([nodeId, "arguments"]) as
+    | Record<string, FrontendFieldDataWrapper>
+    | undefined;
+  const dynamicInputType = useNodeData([nodeId, "dynamicInputType"]) as
+    | StructDescr
+    | null
+    | undefined;
 
   const handleAddDictInput = () => {
-    const argNames = Object.keys(data.arguments);
+    const argNames = Object.keys(arguments_ || {});
     const keyPattern = /^key_(\d+)$/;
     const keyNumbers = argNames
       .map((name) => {
@@ -28,7 +37,7 @@ export default function DictDynamicInputs({
     const newArgName = `key_${nextNumber}`;
 
     const newArg = {
-      type: data.dynamicInputType?.itemsType || "str",
+      type: dynamicInputType?.itemsType || "str",
       _structuredInputType: "dict" as const,
       value: null,
     };

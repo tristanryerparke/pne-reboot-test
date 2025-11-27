@@ -5,23 +5,24 @@ import {
   EditablePreview,
   EditableInput,
 } from "../../../ui/editable";
-import useFlowStore from "../../../../stores/flowStore";
+import useFlowStore, { useNodeData } from "../../../../stores/flowStore";
+import type { FrontendFieldDataWrapper } from "../../../../types/types";
 
 interface EditableKeyProps {
   fieldName: string | number;
   path: (string | number)[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  nodeData: any;
 }
 
-export default function EditableKey({
-  fieldName,
-  path,
-  nodeData,
-}: EditableKeyProps) {
+export default function EditableKey({ fieldName, path }: EditableKeyProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
   const measureRef = useRef<HTMLSpanElement>(null);
   const [textWidth, setTextWidth] = useState<number | null>(null);
+  const nodeId = path[0];
+
+  // Get arguments from Zustand store
+  const arguments_ = useNodeData([nodeId, "arguments"]) as
+    | Record<string, FrontendFieldDataWrapper>
+    | undefined;
 
   useLayoutEffect(() => {
     if (measureRef.current) {
@@ -31,20 +32,18 @@ export default function EditableKey({
   }, [fieldName]);
 
   const handleKeyChange = (newKey: string) => {
-    if (!newKey || newKey === String(fieldName)) return;
+    if (!newKey || newKey === String(fieldName) || !arguments_) return;
 
-    const argumentsPath = [...path.slice(0, -1)];
-    const argumentsData = nodeData.arguments;
-
-    if (argumentsData[newKey]) {
+    if (arguments_[newKey]) {
       console.warn(`Key "${newKey}" already exists`);
       return;
     }
 
-    const newArguments = { ...argumentsData };
+    const newArguments = { ...arguments_ };
     newArguments[newKey] = newArguments[fieldName];
     delete newArguments[fieldName];
 
+    const argumentsPath = [nodeId, "arguments"];
     updateNodeData(argumentsPath, newArguments);
   };
 

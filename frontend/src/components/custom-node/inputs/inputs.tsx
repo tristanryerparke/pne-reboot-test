@@ -1,22 +1,31 @@
-import SingleInputField from "./single-input-field";
+import NodeInputField from "./field-handle-wrapper";
 import { Separator } from "../../ui/separator";
-import ListDynamicInputs from "./dynamic/list-dynamic-inputs";
-import DictDynamicInputs from "./dynamic/dict-dynamic-inputs";
-import type { FunctionSchema } from "../../../types/types";
+import AddListInput from "./dynamic/add-list-input";
+import AddDictInput from "./dynamic/add-dict-input";
+import { useNodeData } from "../../../stores/flowStore";
+import type {
+  FrontendFieldDataWrapper,
+  StructDescr,
+} from "../../../types/types";
 
 interface InputsProps {
-  functionData: FunctionSchema;
-  nodeId: string;
-  path: string[];
+  arguments: Record<string, FrontendFieldDataWrapper>;
+  path: (string | number)[];
 }
 
-export default function Inputs({ functionData, nodeId, path }: InputsProps) {
-  // console.log(functionData);
+export default function Inputs({ arguments: args, path }: InputsProps) {
+  const nodeId = path[0];
+
+  // Get dynamicInputType from Zustand store
+  const dynamicInputType = useNodeData([nodeId, "dynamicInputType"]) as
+    | StructDescr
+    | null
+    | undefined;
 
   // Sort arguments to maintain proper order:
   // 1. Named arguments (non-numeric) come first, in their original order
   // 2. Numbered arguments (from *args) come after, sorted numerically
-  const sortedArguments = Object.entries(functionData.arguments || {}).sort(
+  const sortedArguments = Object.entries(args || {}).sort(
     ([nameA], [nameB]) => {
       const isNumericA = /^\d+$/.test(nameA);
       const isNumericB = /^\d+$/.test(nameB);
@@ -36,8 +45,7 @@ export default function Inputs({ functionData, nodeId, path }: InputsProps) {
   );
 
   // Flag used for conditionally rendering the separator
-  const hasExistingArguments =
-    Object.keys(functionData.arguments || {}).length !== 0;
+  const hasExistingArguments = Object.keys(args || {}).length !== 0;
 
   return (
     <div className="w-full min-w-0">
@@ -45,24 +53,20 @@ export default function Inputs({ functionData, nodeId, path }: InputsProps) {
         return (
           <div key={argName} className="w-full">
             {index > 0 && <Separator className="w-full" />}
-            <SingleInputField
-              fieldData={argData}
-              path={[...path, "arguments", argName]}
-              nodeData={functionData}
-            />
+            <NodeInputField fieldData={argData} path={[...path, argName]} />
           </div>
         );
       })}
-      {functionData.dynamicInputType?.structureType === "list" && (
+      {dynamicInputType?.structureType === "list" && (
         <>
           {hasExistingArguments && <Separator />}
-          <ListDynamicInputs data={functionData} nodeId={nodeId} />
+          <AddListInput path={path} />
         </>
       )}
-      {functionData.dynamicInputType?.structureType === "dict" && (
+      {dynamicInputType?.structureType === "dict" && (
         <>
           {hasExistingArguments && <Separator />}
-          <DictDynamicInputs data={functionData} nodeId={nodeId} />
+          <AddDictInput path={path} />
         </>
       )}
     </div>

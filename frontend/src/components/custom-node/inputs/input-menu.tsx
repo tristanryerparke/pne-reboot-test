@@ -10,11 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
-import useFlowStore from "../../../stores/flowStore";
+import useFlowStore, { useNodeData } from "../../../stores/flowStore";
 import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
 import type {
   FrontendFieldDataWrapper,
-  FunctionSchema,
+  StructDescr,
 } from "../../../types/types";
 
 // Types that have expandable preview areas
@@ -22,18 +22,23 @@ const TYPES_WITH_PREVIEW = ["CachedImage"];
 
 interface InputMenuProps {
   path?: (string | number)[];
-  nodeData: FunctionSchema;
   fieldData: FrontendFieldDataWrapper;
 }
 
-export default function InputMenu({
-  path,
-  nodeData,
-  fieldData,
-}: InputMenuProps) {
+export default function InputMenu({ path, fieldData }: InputMenuProps) {
   const deleteNodeData = useFlowStore((state) => state.deleteNodeData);
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
   const getNodeData = useFlowStore((state) => state.getNodeData);
+
+  const nodeId = path ? path[0] : undefined;
+
+  // Get data from Zustand store
+  const dynamicInputType = useNodeData(
+    nodeId ? [nodeId, "dynamicInputType"] : [],
+  ) as StructDescr | null | undefined;
+  const arguments_ = useNodeData(nodeId ? [nodeId, "arguments"] : []) as
+    | Record<string, FrontendFieldDataWrapper>
+    | undefined;
 
   // Handle union types - detect from fieldData
   const isUnionType =
@@ -71,15 +76,15 @@ export default function InputMenu({
   const argName = path ? String(path[path.length - 1]) : "";
   const isDynamicListInput =
     fieldData._structuredInputType === "list" &&
-    nodeData.dynamicInputType?.structureType === "list";
+    dynamicInputType?.structureType === "list";
 
   // Detect if this is a dynamic dict input
   const isDynamicDictInput =
     fieldData._structuredInputType === "dict" &&
-    nodeData.dynamicInputType?.structureType === "dict";
+    dynamicInputType?.structureType === "dict";
 
   // Calculate if this is the highest numbered list input for deletion purposes
-  const numberedArgs = Object.keys(nodeData.arguments || {})
+  const numberedArgs = Object.keys(arguments_ || {})
     .filter((name) => /^\d+$/.test(name))
     .map((name) => parseInt(name));
   const maxListInputNumber =

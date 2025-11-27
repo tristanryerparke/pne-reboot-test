@@ -1,21 +1,30 @@
 import { Button } from "../../../ui/button";
 import { Plus } from "lucide-react";
-import useFlowStore from "../../../../stores/flowStore";
+import useFlowStore, { useNodeData } from "../../../../stores/flowStore";
+import type {
+  FrontendFieldDataWrapper,
+  StructDescr,
+} from "../../../../types/types";
 
-interface ListDynamicInputsProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
-  nodeId: string;
+interface AddListInputProps {
+  path: (string | number)[];
 }
 
-export default function ListDynamicInputs({
-  data,
-  nodeId,
-}: ListDynamicInputsProps) {
+export default function AddListInput({ path }: AddListInputProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
+  const nodeId = path[0];
+
+  // Get data from Zustand store
+  const arguments_ = useNodeData([nodeId, "arguments"]) as
+    | Record<string, FrontendFieldDataWrapper>
+    | undefined;
+  const dynamicInputType = useNodeData([nodeId, "dynamicInputType"]) as
+    | StructDescr
+    | null
+    | undefined;
 
   const handleAddNumberedInput = () => {
-    const argNames = Object.keys(data.arguments);
+    const argNames = Object.keys(arguments_ || {});
     const argNumbers = argNames
       .map((name) => {
         if (/^\d+$/.test(name)) {
@@ -32,7 +41,8 @@ export default function ListDynamicInputs({
 
     const newArg = {
       type:
-        data.dynamicInputType?.itemsType || data.arguments[argNames[0]]?.type,
+        dynamicInputType?.itemsType ||
+        (arguments_ && argNames[0] ? arguments_[argNames[0]].type : "str"),
       _structuredInputType: "list" as const,
       value: null,
     };
