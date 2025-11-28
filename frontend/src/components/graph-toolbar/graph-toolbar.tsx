@@ -8,7 +8,7 @@ import { ButtonGroup } from "@/components/ui/button-group";
 
 export default function GraphToolbar() {
   return (
-    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex flex-row gap-2 bg-background/80 backdrop-blur-sm border rounded-lg p-2 shadow-lg">
+    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex flex-row gap-1.5 bg-background/80 backdrop-blur-sm border rounded-lg p-1.5 shadow-lg">
       <NodePickerToggle />
       <ModeToggle />
       <ExecuteButton />

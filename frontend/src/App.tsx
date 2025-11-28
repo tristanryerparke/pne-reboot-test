@@ -55,7 +55,9 @@ function App() {
                     id="inspector"
                     order={2}
                     defaultSize={25}
-                    className="min-w-60 max-w-[760px]"
+                    minSize={15}
+                    maxSize={75}
+                    className="min-w-60 max-w-[800px]"
                   >
                     <Inspector />
                   </ResizablePanel>
