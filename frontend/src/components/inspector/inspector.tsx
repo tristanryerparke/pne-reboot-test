@@ -55,7 +55,7 @@ export default function Inspector() {
 
   return (
     <div className="min-w-60 w-60 h-full flex flex-col overflow-hidden">
-      <div className="w-full flex flex-row gap-2 p-1 items-center justify-between">
+      <div className="w-full flex flex-row gap-2 p-1 items-center justify-between shrink-0">
         <Toggle
           ref={toggleRef}
           size="sm"
@@ -70,7 +70,7 @@ export default function Inspector() {
         </Button>
       </div>
       {/*<div>isSelecting: {isSelecting.toString()}</div>*/}
-      <div className="h-full flex flex-1 flex-col gap-2 p-2 overflow-y-auto overflow-x-hidden min-h-0">
+      <div className="flex-1 flex flex-col gap-2 p-2 overflow-y-auto overflow-x-hidden min-h-0">
         {isSelecting}
         {selectedTarget ? (
           <div className="flex flex-col gap-2">
@@ -80,7 +80,7 @@ export default function Inspector() {
                 : "Selected Field"}
             </div>
             <div className="text-xs text-muted-foreground">Path:</div>
-            <div className="w-full p-2 rounded border border-input bg-muted/50 max-h-32 overflow-y-auto">
+            <div className="w-full p-2 rounded border border-input bg-muted/50 max-h-32 overflow-y-auto shrink-0">
               <div className="text-xs font-mono flex flex-col gap-1">
                 {selectedTarget.path.map((segment, index) => (
                   <div key={index} className="truncate w-full">
@@ -89,7 +89,7 @@ export default function Inspector() {
                 ))}
               </div>
             </div>
-            <div className="mt-2 rounded border border-input bg-muted/50 overflow-x-auto">
+            <div className="mt-2 rounded border border-input bg-muted/50 overflow-auto min-h-0">
               <JsonViewer data={selectedData} textSize="text-xs" />
             </div>
           </div>
