@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import usePanelsStore from "@/stores/panelsStore";
 
 export function InspectorToggle() {
-  const { showInspector, toggleInspector } = usePanelsStore();
+  const { showInspector, toggleInspector, inspectorDisabled } =
+    usePanelsStore();
 
   return (
     <Button
@@ -11,6 +12,7 @@ export function InspectorToggle() {
       onClick={toggleInspector}
       aria-label="Toggle inspector"
       variant={showInspector ? "outline" : "secondary"}
+      disabled={inspectorDisabled}
     >
       <PanelRight className="h-[1.2rem] w-[1.2rem]" />
       <span className="sr-only">Toggle inspector</span>

@@ -10,6 +10,8 @@ type PanelsStoreState = {
   showNodePicker: boolean;
   userWantsInspector: boolean;
   userWantsNodePicker: boolean;
+  inspectorDisabled: boolean;
+  nodePickerDisabled: boolean;
 };
 
 type PanelsStoreActions = {
@@ -32,6 +34,8 @@ const usePanelsStore = createWithEqualityFn<
       showNodePicker: true,
       userWantsInspector: false,
       userWantsNodePicker: true,
+      inspectorDisabled: false,
+      nodePickerDisabled: false,
 
       setShowInspector: (show) => set({ showInspector: show }),
 
@@ -62,6 +66,8 @@ const usePanelsStore = createWithEqualityFn<
         set({
           showInspector: userWantsInspector && hasEnoughSpaceForInspector,
           showNodePicker: userWantsNodePicker && hasEnoughSpaceForNodePicker,
+          inspectorDisabled: !hasEnoughSpaceForInspector,
+          nodePickerDisabled: !hasEnoughSpaceForNodePicker,
         });
       },
     }),
