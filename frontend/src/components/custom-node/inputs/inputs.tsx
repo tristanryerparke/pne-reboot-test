@@ -1,4 +1,4 @@
-import NodeInputField from "./field-handle-wrapper";
+import InputFieldHandleWrapper from "./input-field-handle-wrapper";
 import { Separator } from "../../ui/separator";
 import AddListInput from "./dynamic/add-list-input";
 import AddDictInput from "./dynamic/add-dict-input";
@@ -53,7 +53,10 @@ export default function Inputs({ arguments: args, path }: InputsProps) {
         return (
           <div key={argName} className="w-full">
             {index > 0 && <Separator className="w-full" />}
-            <NodeInputField fieldData={argData} path={[...path, argName]} />
+            <InputFieldHandleWrapper
+              fieldData={argData}
+              path={[...path, argName]}
+            />
           </div>
         );
       })}

@@ -1,4 +1,4 @@
-import NodeOutputField from "./field-handle-wrapper";
+import OutputFieldHandleWrapper from "./output-field-handle-wrapper";
 import { Separator } from "../../ui/separator";
 import type {
   FunctionSchema,
@@ -20,7 +20,7 @@ export default function Outputs({ data, path }: OutputsProps) {
         ) => (
           <div key={outputName} className="w-full">
             {index > 0 && <Separator className="w-full" />}
-            <NodeOutputField
+            <OutputFieldHandleWrapper
               fieldData={outputDef}
               path={[...path, "outputs", outputName]}
             />

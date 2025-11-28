@@ -46,8 +46,8 @@ export default function OutputDisplay({ fieldData, path }: OutputDisplayProps) {
 
   return (
     <div className="w-full">
-      <div className="flex w-full py-2 gap-0.5 items-center justify-end">
-        <div className="flex w-full items-center gap-1 justify-end">
+      <div className="flex w-full gap-0.5 items-center justify-end">
+        <div className="flex w-full items-center gap-1 h-8">
           <span className="shrink-0">{fieldName}</span>
           <span className="shrink-0">:</span>
           <div className="flex-1">

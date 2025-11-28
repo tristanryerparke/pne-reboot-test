@@ -1,20 +1,20 @@
 import { Handle, Position } from "@xyflow/react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
-import OutputDisplay from "./output-display";
+import InputDisplay from "./input-display";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
 import type { FrontendFieldDataWrapper } from "../../../types/types";
 import InspectableFieldWrapper from "../../inspector-sidebar/inspectable-field-wrapper";
 
-interface NodeOutputFieldProps {
+interface NodeInputFieldProps {
   fieldData: FrontendFieldDataWrapper;
   path: (string | number)[];
 }
 
-export default function NodeOutputField({
+export default function InputFieldHandleWrapper({
   fieldData,
   path,
-}: NodeOutputFieldProps) {
-  // A Wrapper component for rendering an output field on a node with a handle and type tooltip
+}: NodeInputFieldProps) {
+  // A Wrapper component for rendering an input field on a node with a handle and type tooltip
 
   const handleId = `${path.join(":")}:handle`;
 
@@ -30,18 +30,18 @@ export default function NodeOutputField({
         <Handle
           // TODO: Why don't height and width work?
           className="p-1 rounded-full bg-primary"
-          type="source"
-          position={Position.Right}
+          type="target"
+          position={Position.Left}
           id={handleId}
         />
         <Tooltip>
           <TooltipTrigger asChild>
             {/*The padding happens here*/}
-            <div className="pl-2 pr-2">
-              <OutputDisplay fieldData={fieldData} path={path} />
+            <div className="pl-2 pr-1 py-1.5">
+              <InputDisplay fieldData={fieldData} path={path} />
             </div>
           </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={2}>
+          <TooltipContent side="left" sideOffset={2}>
             <span className="text-xs">{displayType}</span>
           </TooltipContent>
         </Tooltip>
