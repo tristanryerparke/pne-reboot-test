@@ -1,6 +1,6 @@
 from typing import Any, ClassVar, Literal, TypeAlias
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 
@@ -44,12 +44,6 @@ BASE_DATATYPES: TypeAlias = int | float | str
 class FieldDataWrapper(CamelBaseModel):
     type: str | UnionDescr | StructDescr
     value: BASE_DATATYPES | None = None
-
-
-class CachedFieldDataWrapper(CamelBaseModel):
-    type: str | StructDescr
-    value: BASE_DATATYPES | None
-    cached: bool = False
 
 
 # We allow arbitrary types on FunctionAsNode for passing it around in the backend

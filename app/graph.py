@@ -1,19 +1,27 @@
 from devtools import debug as d
 from fastapi import APIRouter
 
-from .cache import CACHED_TYPE_REGISTRY, is_cached_value
-from .schema import Graph, NodeDataFromFrontend, NodeFromFrontend
+from app.large_data.base import is_cached_value
+from app.schema import Graph, NodeDataFromFrontend, NodeFromFrontend
 
 router = APIRouter()
 VERBOSE = False
 
 
 def deserialize_cached_value(value: dict, type_str: str):
-    if type_str not in CACHED_TYPE_REGISTRY:
-        raise ValueError(f"Unknown cached type: {type_str}")
+    """Reconstruct a cached value from cache_key using server.TYPES"""
+    from app.server import TYPES
 
-    cached_class = CACHED_TYPE_REGISTRY[type_str]
-    return cached_class.from_cache_ref(value["cache_ref"])
+    if type_str not in TYPES:
+        raise ValueError(f"Unknown type: {type_str}")
+
+    type_info = TYPES[type_str]
+
+    if type_info.get("kind") != "cached":
+        raise ValueError(f"Type {type_str} is not a cached type")
+
+    cached_class = type_info["_class"]
+    return cached_class.from_cache_key(value["cache_key"])
 
 
 @router.post("/graph_execute")

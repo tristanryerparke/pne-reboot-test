@@ -100,10 +100,6 @@ def analyze_function(
             value=arg_value,
         )
 
-        # Check if this argument is a cached type
-        if inspect.isclass(ann) and hasattr(ann, "_is_cached_type"):
-            arg_entry.is_cached = True  # type: ignore[arg-type]
-
         arguments[arg.name] = arg_entry
 
         # Analyze the argument type and merge with found types
@@ -118,8 +114,13 @@ def analyze_function(
     # Detect output fields from BaseModel subclasses with multiple outputs
     # Having the output_style flag lets a user potentially have an output (of multiple)
     # named "return" without breaking the app
+    # Skip cached types - they should be treated as single outputs
     outputs = {}
-    if inspect.isclass(ret_ann) and hasattr(ret_ann, "model_fields"):
+    if (
+        inspect.isclass(ret_ann)
+        and hasattr(ret_ann, "model_fields")
+        and not hasattr(ret_ann, "_is_cached_type")
+    ):
         # Get the model fields using Pydantic's model_fields
         output_style = "multiple"
         for field_name, field_info in ret_ann.model_fields.items():
@@ -130,12 +131,6 @@ def analyze_function(
                     ),
                     value=None,
                 )
-
-                # Check if this output is a cached type
-                if inspect.isclass(field_info.annotation) and hasattr(
-                    field_info.annotation, "_is_cached_type"
-                ):
-                    output_entry.is_cached = True  # type: ignore[arg-type]
 
                 outputs[field_name] = output_entry
 
@@ -153,10 +148,6 @@ def analyze_function(
             type=get_type_repr(ret_ann, module_ns, short_repr=True),  # type: ignore[arg-type]
             value=None,
         )
-
-        # Check if this output is a cached type
-        if inspect.isclass(ret_ann) and hasattr(ret_ann, "_is_cached_type"):
-            output_entry.is_cached = True  # type: ignore[arg-type]
 
         outputs[output_key] = output_entry
 

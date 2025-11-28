@@ -1,7 +1,7 @@
 from PIL import ImageFilter
 
 from app.display import add_node_options
-from app.image import CachedImage
+from examples.images.cached_image import CachedImage
 
 
 @add_node_options(

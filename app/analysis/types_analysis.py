@@ -4,7 +4,6 @@ import types
 import typing
 from typing import Any, Dict, Set
 
-from app.cache import is_cached_value
 from app.schema import MultipleOutputs, UserModel
 
 
