@@ -97,6 +97,19 @@ export default function InputMenu({ path, fieldData }: InputMenuProps) {
   // For dict inputs, show for all dict inputs
   const showDeleteButton = isHighestListInput || isDynamicDictInput;
 
+  // Determine if menu should be shown at all
+  const shouldShowMenu =
+    isHighestListInput ||
+    isDynamicDictInput ||
+    isUnionType ||
+    hasComponentOptions ||
+    hasPreview;
+
+  // Return null if there's nothing to show in the menu
+  if (!shouldShowMenu) {
+    return null;
+  }
+
   const handleTypeChange = (newType: string) => {
     if (path) {
       updateNodeData([...path, "_selectedType"], newType);
