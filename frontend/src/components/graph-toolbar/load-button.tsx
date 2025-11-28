@@ -4,7 +4,7 @@ import { useReactFlow } from "@xyflow/react";
 import { useRef } from "react";
 
 export const LoadButton = () => {
-  const { setNodes, setEdges } = useFlowStore();
+  const { setNodes, setEdges, setViewport: setStoreViewport } = useFlowStore();
   const { setViewport } = useReactFlow();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -23,10 +23,12 @@ export const LoadButton = () => {
         const flow = JSON.parse(content);
 
         if (flow) {
-          const { x = 0, y = 0, zoom = 1 } = flow.viewport;
+          const { x = 0, y = 0, zoom = 1 } = flow.viewport || {};
+          const viewport = { x, y, zoom };
           setNodes(flow.nodes || []);
           setEdges(flow.edges || []);
-          setViewport({ x, y, zoom });
+          setStoreViewport(viewport);
+          setViewport(viewport);
         }
       } catch (error) {
         console.error("Error loading flow:", error);

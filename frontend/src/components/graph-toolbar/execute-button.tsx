@@ -74,7 +74,7 @@ export default function ExecuteMenu() {
   return (
     <div className="w-full">
       <Button
-        className="w-30 text-green-700! border-green-700!"
+        className="w-25 text-green-700! border-green-700!"
         variant="outline"
         size="sm"
         onClick={execute}
