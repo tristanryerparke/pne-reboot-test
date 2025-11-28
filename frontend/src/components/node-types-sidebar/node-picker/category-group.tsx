@@ -31,7 +31,7 @@ export function CategoryGroup({
             key={`${category}-${group}`}
             className="flex flex-col pb-2 gap-1"
           >
-            <div className="flex flex-col flex-shrink">
+            <div className="flex flex-col shrink">
               <i className="text-xs text-muted-foreground capitalize">
                 {group.replace(/_/g, " ")}
               </i>

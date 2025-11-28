@@ -3,11 +3,7 @@ import { SearchBar } from "@/common/search-bar";
 import { KindGroup } from "./kind-group";
 import useTypesStore, { type TypeInfo } from "@/stores/typesStore";
 
-export interface UnionType {
-  anyOf: string[];
-}
-
-export interface TypesByKind {
+interface TypesByKind {
   [kind: string]: [string, TypeInfo][];
 }
 
@@ -22,23 +18,20 @@ export default function TypesBrowser() {
 
   const filteredTypes = Object.entries(types).filter(([typeName, typeInfo]) => {
     const searchLower = searchTerm.toLowerCase();
-    let typeStr = "";
-    if (typeof typeInfo.type === "string") {
-      typeStr = typeInfo.type;
-    }
+    const typeStr = typeof typeInfo.type === "string" ? typeInfo.type : "";
     return (
       typeName.toLowerCase().includes(searchLower) ||
-      typeInfo.kind?.toLowerCase().includes(searchLower) ||
-      typeInfo.category?.some((cat: string) =>
+      typeInfo.kind.toLowerCase().includes(searchLower) ||
+      typeInfo.category?.some((cat) =>
         cat.toLowerCase().includes(searchLower),
       ) ||
       typeStr.toLowerCase().includes(searchLower)
     );
   });
 
-  const typesByKind = filteredTypes.reduce(
-    (acc: TypesByKind, [typeName, typeInfo]) => {
-      const kind = typeInfo.kind || "unknown";
+  const typesByKind = filteredTypes.reduce<TypesByKind>(
+    (acc, [typeName, typeInfo]) => {
+      const kind = typeInfo.kind;
       if (!acc[kind]) {
         acc[kind] = [];
       }

@@ -5,22 +5,25 @@ import {
   ItemTitle,
   ItemActions,
 } from "@/components/ui/item";
-import useTypesStore, { type TypeInfo } from "@/stores/typesStore";
+import useTypesStore, {
+  type TypeInfo,
+  type PropertyType,
+} from "@/stores/typesStore";
 import { hasDisplayComponent } from "./has-display-component";
 
 interface TypeDisplayProps {
   typeName: string;
   typeInfo: TypeInfo;
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function formatPropertyType(propType: any): string {
+
+function formatPropertyType(propType: PropertyType): string {
   if (typeof propType === "string") {
     return propType;
   }
-  if (propType.anyOf) {
+  if ("anyOf" in propType) {
     return propType.anyOf.map(formatPropertyType).join(" | ");
   }
-  if (propType.type === "list" && propType.items) {
+  if ("type" in propType && propType.type === "list" && "items" in propType) {
     return `list[${formatPropertyType(propType.items)}]`;
   }
   return JSON.stringify(propType);
