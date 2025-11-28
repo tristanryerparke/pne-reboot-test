@@ -5,6 +5,7 @@ import { Toggle } from "../../components/ui/toggle";
 import { Button } from "../../components/ui/button";
 import { SquareMousePointer, Eye, EyeOff } from "lucide-react";
 import JsonViewer from "../custom-node/json-viewer";
+import useFlowStore from "../../stores/flowStore";
 
 export default function Inspector() {
   const {
@@ -13,9 +14,23 @@ export default function Inspector() {
     selectedTarget,
     showBorders,
     setShowBorders,
+    clearSelectedTarget,
   } = useInspectorStore();
 
+  const { nodes } = useFlowStore();
   const toggleRef = useRef<HTMLButtonElement>(null);
+
+  // Clear selection if the selected node no longer exists
+  useEffect(() => {
+    if (selectedTarget) {
+      const nodeExists = nodes.some(
+        (node) => node.id === selectedTarget.nodeId,
+      );
+      if (!nodeExists) {
+        clearSelectedTarget();
+      }
+    }
+  }, [nodes, selectedTarget, clearSelectedTarget]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

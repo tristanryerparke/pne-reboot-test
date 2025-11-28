@@ -42,7 +42,7 @@ function NodeGraph() {
     if (viewport) {
       setReactFlowViewport(viewport, { duration: 0 });
     }
-  }, []);
+  });
 
   // Save viewport changes
   const onMoveEnd = useCallback<OnMove>(
