@@ -1,9 +1,10 @@
 import { DocstringTooltip } from "./docstring-tooltip";
 import { Item, ItemTitle } from "@/components/ui/item";
 import { Badge } from "@/components/ui/badge";
+import type { FunctionSchema } from "@/types/types";
 
 interface DraggableNodeProps {
-  nodeData: any;
+  nodeData: FunctionSchema;
 }
 
 export function DraggableNode({ nodeData }: DraggableNodeProps) {

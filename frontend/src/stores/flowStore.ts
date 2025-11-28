@@ -1,7 +1,5 @@
 import { createWithEqualityFn } from "zustand/traditional";
-import { persist, type PersistOptions } from "zustand/middleware";
-import { shallow } from "zustand/shallow";
-import type { StateCreator } from "zustand";
+import { shallow } from "zustand/vanilla/shallow";
 import { addEdge, applyNodeChanges, applyEdgeChanges } from "@xyflow/react";
 import type {
   Edge,
@@ -35,148 +33,129 @@ type FlowStoreActions = {
 
 export type FlowState = FlowStoreState & FlowStoreActions;
 
-type PersistedFlowState = Pick<FlowState, "nodes" | "edges">;
-
-type FlowPersist = (
-  config: StateCreator<FlowState>,
-  options: PersistOptions<FlowState, PersistedFlowState>,
-) => StateCreator<FlowState>;
-
 const useFlowStore = createWithEqualityFn<FlowState>(
-  (persist as FlowPersist)(
-    (set, get) => ({
-      nodes: [],
-      edges: [],
-      rfInstance: null,
+  (set, get) => ({
+    nodes: [],
+    edges: [],
+    rfInstance: null,
 
-      onNodesChange: (changes) => {
-        set(
-          produce((state: FlowState) => {
-            const nodesCopy = [...state.nodes];
-            const updatedNodes = applyNodeChanges(changes, nodesCopy);
-            state.nodes = updatedNodes;
-          }),
-        );
-      },
-
-      onEdgesChange: (changes) => {
-        set(
-          produce((state: FlowState) => {
-            const edgesCopy = [...state.edges];
-            const updatedEdges = applyEdgeChanges(changes, edgesCopy);
-            state.edges = updatedEdges;
-          }),
-        );
-      },
-
-      onConnect: (connection) =>
-        set({ edges: addEdge(connection, get().edges) }),
-
-      setNodes: (nodes) =>
-        set({
-          nodes: typeof nodes === "function" ? nodes(get().nodes) : nodes,
+    onNodesChange: (changes) => {
+      set(
+        produce((state: FlowState) => {
+          const nodesCopy = [...state.nodes];
+          const updatedNodes = applyNodeChanges(changes, nodesCopy);
+          state.nodes = updatedNodes;
         }),
+      );
+    },
 
-      setEdges: (edges) => set({ edges }),
+    onEdgesChange: (changes) => {
+      set(
+        produce((state: FlowState) => {
+          const edgesCopy = [...state.edges];
+          const updatedEdges = applyEdgeChanges(changes, edgesCopy);
+          state.edges = updatedEdges;
+        }),
+      );
+    },
 
-      setRfInstance: (instance) => set({ rfInstance: instance }),
+    onConnect: (connection) => set({ edges: addEdge(connection, get().edges) }),
 
-      updateNodeData: (path, newData) => {
-        const oldValue = get().getNodeData(path);
+    setNodes: (nodes) =>
+      set({ nodes: typeof nodes === "function" ? nodes(get().nodes) : nodes }),
 
-        set(
-          produce((state: FlowState) => {
-            const nodeIndex = state.nodes.findIndex(
-              (node) => node.id === path[0],
-            );
-            if (nodeIndex !== -1) {
-              let current = state.nodes[nodeIndex].data;
-              const pathToProperty = path.slice(1);
+    setEdges: (edges) => set({ edges }),
 
-              for (let i = 0; i < pathToProperty.length - 1; i++) {
-                const key = pathToProperty[i];
-                if (current[key] === undefined) {
-                  console.warn(
-                    `Creating new nested property: ${key} at path: ${path.slice(0, i + 2).join(".")}`,
-                  );
-                  current[key] = {};
-                }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                current = current[key] as any;
+    setRfInstance: (instance) => set({ rfInstance: instance }),
+
+    updateNodeData: (path, newData) => {
+      const oldValue = get().getNodeData(path);
+
+      set(
+        produce((state: FlowState) => {
+          const nodeIndex = state.nodes.findIndex(
+            (node) => node.id === path[0],
+          );
+          if (nodeIndex !== -1) {
+            let current = state.nodes[nodeIndex].data;
+            const pathToProperty = path.slice(1);
+
+            for (let i = 0; i < pathToProperty.length - 1; i++) {
+              const key = pathToProperty[i];
+              if (current[key] === undefined) {
+                console.warn(
+                  `Creating new nested property: ${key} at path: ${path.slice(0, i + 2).join(".")}`,
+                );
+                current[key] = {};
               }
-
-              const finalKey = pathToProperty[pathToProperty.length - 1];
-              current[finalKey] = newData;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              current = current[key] as any;
             }
-          }),
-        );
 
-        console.log("updating ", path, "\n from", oldValue, "to", newData);
-      },
+            const finalKey = pathToProperty[pathToProperty.length - 1];
+            current[finalKey] = newData;
+          }
+        }),
+      );
 
-      getNodeData: (path) => {
-        const nodes = get().nodes;
-        const nodeIndex = nodes.findIndex((node) => node.id === path[0]);
+      console.log("updating ", path, "\n from", oldValue, "to", newData);
+    },
 
-        if (nodeIndex === -1) {
+    getNodeData: (path) => {
+      const nodes = get().nodes;
+      const nodeIndex = nodes.findIndex((node) => node.id === path[0]);
+
+      if (nodeIndex === -1) {
+        return undefined;
+      }
+
+      let current = nodes[nodeIndex].data;
+      const pathToProperty = path.slice(1);
+
+      for (let i = 0; i < pathToProperty.length; i++) {
+        const key = pathToProperty[i];
+        if (current[key] === undefined) {
           return undefined;
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        current = current[key] as any;
+      }
 
-        let current = nodes[nodeIndex].data;
-        const pathToProperty = path.slice(1);
-
-        for (let i = 0; i < pathToProperty.length; i++) {
-          const key = pathToProperty[i];
-          if (current[key] === undefined) {
-            return undefined;
-          }
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          current = current[key] as any;
-        }
-
-        return current;
-      },
-
-      deleteNodeData: (path) => {
-        set(
-          produce((state: FlowState) => {
-            const nodeIndex = state.nodes.findIndex(
-              (node) => node.id === path[0],
-            );
-            if (nodeIndex !== -1) {
-              let current = state.nodes[nodeIndex].data;
-              const pathToProperty = path.slice(1);
-
-              // Navigate to the parent object
-              for (let i = 0; i < pathToProperty.length - 1; i++) {
-                const key = pathToProperty[i];
-                if (current[key] === undefined) {
-                  console.warn(
-                    `Property not found at path: ${path.slice(0, i + 2).join(".")}`,
-                  );
-                  return;
-                }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                current = current[key] as any;
-              }
-
-              // Delete the final property
-              const finalKey = pathToProperty[pathToProperty.length - 1];
-              delete current[finalKey];
-              console.log("deleted data at path:", path);
-            }
-          }),
-        );
-      },
-    }),
-    {
-      name: "flow-storage",
-      partialize: (state) => ({
-        nodes: state.nodes,
-        edges: state.edges,
-      }),
+      return current;
     },
-  ),
+
+    deleteNodeData: (path) => {
+      set(
+        produce((state: FlowState) => {
+          const nodeIndex = state.nodes.findIndex(
+            (node) => node.id === path[0],
+          );
+          if (nodeIndex !== -1) {
+            let current = state.nodes[nodeIndex].data;
+            const pathToProperty = path.slice(1);
+
+            // Navigate to the parent object
+            for (let i = 0; i < pathToProperty.length - 1; i++) {
+              const key = pathToProperty[i];
+              if (current[key] === undefined) {
+                console.warn(
+                  `Property not found at path: ${path.slice(0, i + 2).join(".")}`,
+                );
+                return;
+              }
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              current = current[key] as any;
+            }
+
+            // Delete the final property
+            const finalKey = pathToProperty[pathToProperty.length - 1];
+            delete current[finalKey];
+            console.log("deleted data at path:", path);
+          }
+        }),
+      );
+    },
+  }),
   shallow,
 );
 

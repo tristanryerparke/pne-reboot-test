@@ -1,10 +1,13 @@
 import { Separator } from "../../ui/separator";
 import { DraggableNode } from "./draggable-node";
+import type { FunctionSchema } from "@/types/types";
+
+type FunctionSchemaWithGroup = FunctionSchema & { group: string };
 
 interface CategoryGroupProps {
   category: string;
   categoryData: {
-    groups?: Record<string, any[]>;
+    groups?: Record<string, FunctionSchemaWithGroup[]>;
   };
   showDivider: boolean;
 }

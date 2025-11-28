@@ -1,7 +1,5 @@
 import { createWithEqualityFn } from "zustand/traditional";
-import { persist, type PersistOptions } from "zustand/middleware";
-import { shallow } from "zustand/shallow";
-import type { StateCreator } from "zustand";
+import { shallow } from "zustand/vanilla/shallow";
 
 export interface UnionType {
   anyOf: string[];
@@ -26,33 +24,23 @@ type TypesStoreActions = {
 
 export type TypesState = TypesStoreState & TypesStoreActions;
 
-type TypesPersist = (
-  config: StateCreator<TypesState>,
-  options: PersistOptions<TypesState>,
-) => StateCreator<TypesState>;
-
 const useTypesStore = createWithEqualityFn<TypesState>(
-  (persist as TypesPersist)(
-    (set) => ({
-      types: {},
+  (set) => ({
+    types: {},
 
-      setTypes: (types) => set({ types }),
+    setTypes: (types) => set({ types }),
 
-      fetchTypes: async () => {
-        try {
-          const response = await fetch("http://localhost:8000/types");
-          const data = await response.json();
-          console.log("types:", data);
-          set({ types: data });
-        } catch (error) {
-          console.error("Failed to fetch types:", error);
-        }
-      },
-    }),
-    {
-      name: "types-storage",
+    fetchTypes: async () => {
+      try {
+        const response = await fetch("http://localhost:8000/types");
+        const data = await response.json();
+        console.log("types:", data);
+        set({ types: data });
+      } catch (error) {
+        console.error("Failed to fetch types:", error);
+      }
     },
-  ),
+  }),
   shallow,
 );
 
