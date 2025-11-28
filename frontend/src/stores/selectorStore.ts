@@ -1,5 +1,7 @@
 import { createWithEqualityFn } from "zustand/traditional";
-import { shallow } from "zustand/vanilla/shallow";
+import { persist, type PersistOptions } from "zustand/middleware";
+import { shallow } from "zustand/shallow";
+import type { StateCreator } from "zustand";
 
 type SelectorTarget = {
   nodeId: string;
@@ -23,36 +25,46 @@ type SelectorStoreActions = {
 
 export type SelectorState = SelectorStoreState & SelectorStoreActions;
 
+type SelectorPersist = (
+  config: StateCreator<SelectorState>,
+  options: PersistOptions<SelectorState>,
+) => StateCreator<SelectorState>;
+
 const useSelectorStore = createWithEqualityFn<SelectorState>(
-  (set) => ({
-    isSelecting: false,
-    selectedTarget: null,
-    hoveredByInspector: false,
+  (persist as SelectorPersist)(
+    (set) => ({
+      isSelecting: false,
+      selectedTarget: null,
+      hoveredByInspector: false,
 
-    setIsSelecting: (isSelecting) => set({ isSelecting }),
+      setIsSelecting: (isSelecting) => set({ isSelecting }),
 
-    setSelectedTarget: (target) => set({ selectedTarget: target }),
+      setSelectedTarget: (target) => set({ selectedTarget: target }),
 
-    selectTarget: (nodeId, path) => {
-      set({
-        selectedTarget: { nodeId, path },
-        isSelecting: false,
-      });
+      selectTarget: (nodeId, path) => {
+        set({
+          selectedTarget: { nodeId, path },
+          isSelecting: false,
+        });
+      },
+
+      clearSelection: () => {
+        set({
+          selectedTarget: null,
+          isSelecting: false,
+        });
+      },
+
+      clearSelectedTarget: () => {
+        set({ selectedTarget: null });
+      },
+
+      setHoveredByInspector: (hovered) => set({ hoveredByInspector: hovered }),
+    }),
+    {
+      name: "selector-storage",
     },
-
-    clearSelection: () => {
-      set({
-        selectedTarget: null,
-        isSelecting: false,
-      });
-    },
-
-    clearSelectedTarget: () => {
-      set({ selectedTarget: null });
-    },
-
-    setHoveredByInspector: (hovered) => set({ hoveredByInspector: hovered }),
-  }),
+  ),
   shallow,
 );
 

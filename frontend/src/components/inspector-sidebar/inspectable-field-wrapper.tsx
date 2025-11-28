@@ -48,11 +48,11 @@ export default function InspectableFieldWrapper({
   return (
     <div
       className={cn(
-        "transition-all",
+        "transition-all relative",
         isSelecting
-          ? "cursor-pointer hover:ring-2 hover:ring-red-500 hover:rounded-sm"
+          ? "cursor-pointer hover:ring-2 hover:ring-red-500 hover:rounded-sm hover:z-10"
           : null,
-        showSelectedBorder && "ring-2 ring-red-500 rounded",
+        showSelectedBorder && "ring-2 ring-red-500 rounded z-10",
       )}
       onClick={handleFieldClick}
     >

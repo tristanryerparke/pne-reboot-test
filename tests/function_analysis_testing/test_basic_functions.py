@@ -1,6 +1,7 @@
 from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
+from app.schema import FieldDataWrapper
 from examples.basic_defaultvalue import nth_root
 from examples.basic_percentage import percentage
 from examples.integer_math import add
@@ -19,11 +20,10 @@ def test_on_simple_add():
     assert schema.name == "add"
     assert schema.category == ["examples", "integer_math"]
     assert schema.arguments == {
-        "a": {"type": "int", "value": None},
-        "b": {"type": "int", "value": None},
+        "a": FieldDataWrapper(type="int"),
+        "b": FieldDataWrapper(type="int"),
     }
-    assert schema.output_style == "single"
-    assert schema.outputs == {"return": {"type": "int"}}
+    assert schema.outputs == {"return": FieldDataWrapper(type="int")}
 
     # Make sure we only found the int type
     d(found_types)
@@ -43,11 +43,10 @@ def test_find_float_and_int():
     assert schema.name == "percentage"
     assert schema.category == ["examples", "basic_percentage"]
     assert schema.arguments == {
-        "x": {"type": "float", "value": None},
-        "percentage": {"type": "int", "value": None},
+        "x": FieldDataWrapper(type="float"),
+        "percentage": FieldDataWrapper(type="int"),
     }
-    assert schema.output_style == "single"
-    assert schema.outputs == {"return": {"type": "float"}}
+    assert schema.outputs == {"return": FieldDataWrapper(type="float")}
 
     # Make sure we found both float and int types
     d(found_types)
@@ -70,11 +69,10 @@ def test_default_value():
     assert schema.name == "nth_root"
     assert schema.category == ["examples", "basic_defaultvalue"]
     assert schema.arguments == {
-        "x": {"type": "float", "value": None},
-        "root": {"type": "int", "value": 2},
+        "x": FieldDataWrapper(type="float"),
+        "root": FieldDataWrapper(type="int", value=2),
     }
-    assert schema.output_style == "single"
-    assert schema.outputs == {"return": {"type": "float"}}
+    assert schema.outputs == {"return": FieldDataWrapper(type="float")}
 
     # Make sure we found both float and int types
     d(found_types)

@@ -2,7 +2,7 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from "../ui/hover-card";
+} from "../../ui/hover-card";
 
 interface DocstringTooltipProps {
   description: string | null;

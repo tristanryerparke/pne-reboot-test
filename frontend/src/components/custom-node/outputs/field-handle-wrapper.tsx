@@ -3,7 +3,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 import OutputDisplay from "./output-display";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
 import type { FrontendFieldDataWrapper } from "../../../types/types";
-import InspectableFieldWrapper from "../../inspector/inspectable-field-wrapper";
+import InspectableFieldWrapper from "../../inspector-sidebar/inspectable-field-wrapper";
 
 interface NodeOutputFieldProps {
   fieldData: FrontendFieldDataWrapper;

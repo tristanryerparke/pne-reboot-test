@@ -54,7 +54,7 @@ export default function Inspector() {
   const selectedData = useNodeData(selectedTarget?.path ?? []);
 
   return (
-    <div className="min-w-60 w-60 h-full flex flex-col overflow-hidden">
+    <div className="min-w-60 w-full h-full flex flex-col overflow-hidden">
       <div className="w-full flex flex-row gap-2 p-1 items-center justify-between shrink-0">
         <Toggle
           ref={toggleRef}

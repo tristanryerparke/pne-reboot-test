@@ -1,5 +1,7 @@
 import { createWithEqualityFn } from "zustand/traditional";
-import { shallow } from "zustand/vanilla/shallow";
+import { persist, type PersistOptions } from "zustand/middleware";
+import { shallow } from "zustand/shallow";
+import type { StateCreator } from "zustand";
 
 type InspectorTarget = {
   nodeId: string;
@@ -23,36 +25,46 @@ type InspectorStoreActions = {
 
 export type InspectorState = InspectorStoreState & InspectorStoreActions;
 
+type InspectorPersist = (
+  config: StateCreator<InspectorState>,
+  options: PersistOptions<InspectorState>,
+) => StateCreator<InspectorState>;
+
 const useInspectorStore = createWithEqualityFn<InspectorState>(
-  (set) => ({
-    isSelecting: false,
-    selectedTarget: null,
-    showBorders: true,
+  (persist as InspectorPersist)(
+    (set) => ({
+      isSelecting: false,
+      selectedTarget: null,
+      showBorders: true,
 
-    setIsSelecting: (isSelecting) => set({ isSelecting }),
+      setIsSelecting: (isSelecting) => set({ isSelecting }),
 
-    setSelectedTarget: (target) => set({ selectedTarget: target }),
+      setSelectedTarget: (target) => set({ selectedTarget: target }),
 
-    selectTarget: (nodeId, path) => {
-      set({
-        selectedTarget: { nodeId, path },
-        isSelecting: false,
-      });
+      selectTarget: (nodeId, path) => {
+        set({
+          selectedTarget: { nodeId, path },
+          isSelecting: false,
+        });
+      },
+
+      clearSelection: () => {
+        set({
+          selectedTarget: null,
+          isSelecting: false,
+        });
+      },
+
+      clearSelectedTarget: () => {
+        set({ selectedTarget: null });
+      },
+
+      setShowBorders: (show) => set({ showBorders: show }),
+    }),
+    {
+      name: "inspector-storage",
     },
-
-    clearSelection: () => {
-      set({
-        selectedTarget: null,
-        isSelecting: false,
-      });
-    },
-
-    clearSelectedTarget: () => {
-      set({ selectedTarget: null });
-    },
-
-    setShowBorders: (show) => set({ showBorders: show }),
-  }),
+  ),
   shallow,
 );
 

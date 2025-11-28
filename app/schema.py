@@ -43,7 +43,7 @@ BASE_DATATYPES: TypeAlias = int | float | str
 
 class FieldDataWrapper(CamelBaseModel):
     type: str | UnionDescr | StructDescr
-    value: BASE_DATATYPES | None
+    value: BASE_DATATYPES | None = None
 
 
 class CachedFieldDataWrapper(CamelBaseModel):

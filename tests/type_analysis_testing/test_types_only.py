@@ -71,7 +71,7 @@ def test_unions_in_list():
     d(repr_result)
     assert repr_result == {
         "structure_type": "list",
-        "items": {"anyOf": ["int", "float"]},
+        "items_type": {"anyOf": ["int", "float"]},
     }
 
     # List of int | bool | str union type
@@ -80,7 +80,7 @@ def test_unions_in_list():
     d(repr_result)
     assert repr_result == {
         "structure_type": "list",
-        "items": {"anyOf": ["int", "bool", "str"]},
+        "items_type": {"anyOf": ["int", "bool", "str"]},
     }
 
 

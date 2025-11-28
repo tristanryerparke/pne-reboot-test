@@ -1,6 +1,7 @@
 from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
+from app.schema import FieldDataWrapper
 from examples.basic_custominfo import (
     add_with_custom_name,
     add_with_docstring,
@@ -24,11 +25,10 @@ def test_add_with_docstring():
     else:
         assert False, "Docstring not found"
     assert schema.arguments == {
-        "a": {"type": "int", "value": None},
-        "b": {"type": "int", "value": None},
+        "a": FieldDataWrapper(type="int"),
+        "b": FieldDataWrapper(type="int"),
     }
-    assert schema.output_style == "single"
-    assert schema.outputs == {"return": {"type": "int"}}
+    assert schema.outputs == {"return": FieldDataWrapper(type="int")}
 
     # Make sure we only found the int type
     d(found_types)
@@ -47,11 +47,10 @@ def test_add_with_custom_name():
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "Add With Custom Name"
     assert schema.arguments == {
-        "a": {"type": "int", "value": None},
-        "b": {"type": "int", "value": None},
+        "a": FieldDataWrapper(type="int"),
+        "b": FieldDataWrapper(type="int"),
     }
-    assert schema.output_style == "single"
-    assert schema.outputs == {"return": {"type": "int"}}
+    assert schema.outputs == {"return": FieldDataWrapper(type="int")}
 
     # Make sure we only found the int type
     d(found_types)
@@ -70,11 +69,10 @@ def test_custom_return_name():
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "calculate_rectangle_area"
     assert schema.arguments == {
-        "width": {"type": "float", "value": None},
-        "height": {"type": "float", "value": None},
+        "width": FieldDataWrapper(type="float"),
+        "height": FieldDataWrapper(type="float"),
     }
-    assert schema.output_style == "single"
-    assert schema.outputs == {"area": {"type": "float"}}
+    assert schema.outputs == {"area": FieldDataWrapper(type="float")}
 
     # Make sure we only found the float type
     d(found_types)

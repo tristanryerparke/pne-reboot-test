@@ -4,7 +4,7 @@ import Inputs from "./inputs/inputs";
 import Outputs from "./outputs/outputs";
 import { Separator } from "../ui/separator";
 import type { FunctionSchema } from "../../types/types";
-import InspectableFieldWrapper from "../inspector/inspectable-field-wrapper";
+import InspectableFieldWrapper from "../inspector-sidebar/inspectable-field-wrapper";
 
 export default memo(function CustomNode({
   data,

@@ -1,5 +1,7 @@
 import { createWithEqualityFn } from "zustand/traditional";
-import { shallow } from "zustand/vanilla/shallow";
+import { persist, type PersistOptions } from "zustand/middleware";
+import { shallow } from "zustand/shallow";
+import type { StateCreator } from "zustand";
 
 export interface NodeFunctionData {
   name: string;
@@ -37,23 +39,33 @@ type SchemasStoreActions = {
 
 export type SchemasState = SchemasStoreState & SchemasStoreActions;
 
+type SchemasPersist = (
+  config: StateCreator<SchemasState>,
+  options: PersistOptions<SchemasState>,
+) => StateCreator<SchemasState>;
+
 const useSchemasStore = createWithEqualityFn<SchemasState>(
-  (set) => ({
-    nodeSchemas: {},
+  (persist as SchemasPersist)(
+    (set) => ({
+      nodeSchemas: {},
 
-    setNodeSchemas: (nodeSchemas) => set({ nodeSchemas }),
+      setNodeSchemas: (nodeSchemas) => set({ nodeSchemas }),
 
-    fetchNodeSchemas: async () => {
-      try {
-        const response = await fetch("http://localhost:8000/nodes");
-        const data = await response.json();
-        console.log("node schemas:", data);
-        set({ nodeSchemas: data });
-      } catch (error) {
-        console.error("Failed to fetch node schemas:", error);
-      }
+      fetchNodeSchemas: async () => {
+        try {
+          const response = await fetch("http://localhost:8000/nodes");
+          const data = await response.json();
+          console.log("node schemas:", data);
+          set({ nodeSchemas: data });
+        } catch (error) {
+          console.error("Failed to fetch node schemas:", error);
+        }
+      },
+    }),
+    {
+      name: "schemas-storage",
     },
-  }),
+  ),
   shallow,
 );
 
