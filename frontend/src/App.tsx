@@ -2,7 +2,11 @@ import "./index.css";
 import "@xyflow/react/dist/style.css";
 
 import { ReactFlowProvider } from "@xyflow/react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 
 import { Separator } from "./components/ui/separator";
 
@@ -13,11 +17,13 @@ import NodeGraph from "./components/node-graph";
 import { useEffect } from "react";
 import useTypesStore from "./stores/typesStore";
 import useSchemasStore from "./stores/schemasStore";
+import usePanelsStore from "./stores/panelsStore";
 import NodesTypesSidebar from "./components/node-types-sidebar/nodes-types-sidebar";
 
 function App() {
   const fetchTypes = useTypesStore((state) => state.fetchTypes);
   const fetchNodeSchemas = useSchemasStore((state) => state.fetchNodeSchemas);
+  const { showInspector, showNodePicker } = usePanelsStore();
 
   useEffect(() => {
     fetchTypes();
@@ -29,23 +35,33 @@ function App() {
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <ReactFlowProvider>
           <div className="min-h-full flex h-screen w-screen flex-row overflow-hidden bg-background text-foreground">
-            <NodesTypesSidebar />
-            <Separator orientation="vertical" />
-            <PanelGroup direction="horizontal" autoSaveId="panel-width-save">
-              <Panel id="node-graph" order={1}>
+            {showNodePicker && (
+              <>
+                <NodesTypesSidebar />
+                <Separator orientation="vertical" />
+              </>
+            )}
+            <ResizablePanelGroup
+              direction="horizontal"
+              autoSaveId="panel-width-save"
+            >
+              <ResizablePanel id="node-graph" order={1}>
                 <NodeGraph />
-              </Panel>
-              <PanelResizeHandle className="w-px bg-border" />
-              <Panel
-                id="inspector"
-                order={2}
-                defaultSize={25}
-                minSize={20}
-                maxSize={45}
-              >
-                <Inspector />
-              </Panel>
-            </PanelGroup>
+              </ResizablePanel>
+              {showInspector && (
+                <>
+                  <ResizableHandle />
+                  <ResizablePanel
+                    id="inspector"
+                    order={2}
+                    defaultSize={25}
+                    className="min-w-60 max-w-[760px]"
+                  >
+                    <Inspector />
+                  </ResizablePanel>
+                </>
+              )}
+            </ResizablePanelGroup>
           </div>
         </ReactFlowProvider>
       </ThemeProvider>

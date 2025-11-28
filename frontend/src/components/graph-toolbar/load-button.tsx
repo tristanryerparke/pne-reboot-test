@@ -50,7 +50,7 @@ export const LoadButton = () => {
         onChange={handleFileChange}
         style={{ display: "none" }}
       />
-      <Button className="flex-1" onClick={onLoad}>
+      <Button className="flex-1" onClick={onLoad} size="sm" variant="outline">
         Load
       </Button>
     </>

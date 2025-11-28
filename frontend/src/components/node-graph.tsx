@@ -120,7 +120,7 @@ function NodeGraph() {
         colorMode={colorMode}
         panOnScroll
       >
-        <Controls />
+        <Controls showInteractive={false} style={{ backgroundColor: "#ccc" }} />
         <MiniMap position="bottom-right" />
         <Background
           variant={BackgroundVariant.Dots}
