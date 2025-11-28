@@ -20,6 +20,7 @@ export interface NumberInputProps
   fixedDecimalScale?: boolean;
   decimalScale?: number;
   className?: string;
+  disabled?: boolean;
 }
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
@@ -38,6 +39,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       prefix,
       value: controlledValue,
       className,
+      disabled = false,
       ...props
     },
     ref,
@@ -135,6 +137,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           placeholder={placeholder}
           className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none rounded-r-none relative h-full"
           getInputRef={combinedRef}
+          disabled={disabled}
           {...props}
         />
         <div className="flex flex-col h-full">
@@ -143,7 +146,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             className="px-1 rounded-l-none rounded-br-none border-input border-l-0 border-b-[0.5px] focus-visible:relative h-1/2 w-4 min-h-0"
             variant="outline"
             onClick={handleIncrement}
-            disabled={value === max}
+            disabled={disabled || value === max}
           >
             <ChevronUp size={15} />
           </Button>
@@ -152,7 +155,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             className="px-1 rounded-l-none rounded-tr-none border-input border-l-0 border-t-[0.5px] focus-visible:relative h-1/2 w-4 min-h-0"
             variant="outline"
             onClick={handleDecrement}
-            disabled={value === min}
+            disabled={disabled || value === min}
           >
             <ChevronDown size={15} />
           </Button>
