@@ -1,5 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { useReactFlow } from "@xyflow/react";
+import { useState, useMemo, useCallback } from "react";
 import { SearchBar } from "@/common/search-bar";
 import { CategoryGroup } from "./category-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,7 +12,6 @@ interface NodeCategories {
 }
 
 function NodePicker() {
-  const { getNodes, setNodes, setEdges } = useReactFlow();
   const nodeSchemas = useSchemasStore((state) => state.nodeSchemas);
   const fetchNodeSchemas = useSchemasStore((state) => state.fetchNodeSchemas);
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,30 +46,6 @@ function NodePicker() {
   const nodeCategories = useMemo(() => {
     return transformNodeFunctionDataToNodes(nodeSchemas);
   }, [nodeSchemas]);
-
-  // Clean up invalid nodes and edges when schemas change
-  useEffect(() => {
-    // Create a set of valid node types
-    const validNodeTypes = new Set(
-      Object.values(nodeCategories).flatMap((nodes) =>
-        nodes.map((node) => node.name),
-      ),
-    );
-
-    // Filter out nodes that are no longer valid
-    setNodes((nodes) =>
-      nodes.filter((node) => validNodeTypes.has(node.data.name as string)),
-    );
-
-    // Remove edges connected to deleted nodes
-    setEdges((edges) =>
-      edges.filter(
-        (edge) =>
-          getNodes().some((node) => node.id === edge.source) &&
-          getNodes().some((node) => node.id === edge.target),
-      ),
-    );
-  }, [nodeCategories, setNodes, setEdges, getNodes]);
 
   const fetchNodes = useCallback(() => {
     fetchNodeSchemas();

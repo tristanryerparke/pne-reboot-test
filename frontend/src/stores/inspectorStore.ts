@@ -1,5 +1,6 @@
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/vanilla/shallow";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 type InspectorTarget = {
   nodeId: string;
@@ -23,36 +24,49 @@ type InspectorStoreActions = {
 
 export type InspectorState = InspectorStoreState & InspectorStoreActions;
 
-const useInspectorStore = createWithEqualityFn<InspectorState>(
-  (set) => ({
-    isSelecting: false,
-    selectedTarget: null,
-    showBorders: true,
+const useInspectorStore = createWithEqualityFn<
+  InspectorState,
+  [["zustand/persist", unknown]]
+>(
+  persist(
+    (set) => ({
+      isSelecting: false,
+      selectedTarget: null,
+      showBorders: true,
 
-    setIsSelecting: (isSelecting) => set({ isSelecting }),
+      setIsSelecting: (isSelecting) => set({ isSelecting }),
 
-    setSelectedTarget: (target) => set({ selectedTarget: target }),
+      setSelectedTarget: (target) => set({ selectedTarget: target }),
 
-    selectTarget: (nodeId, path) => {
-      set({
-        selectedTarget: { nodeId, path },
-        isSelecting: false,
-      });
+      selectTarget: (nodeId, path) => {
+        set({
+          selectedTarget: { nodeId, path },
+          isSelecting: false,
+        });
+      },
+
+      clearSelection: () => {
+        set({
+          selectedTarget: null,
+          isSelecting: false,
+        });
+      },
+
+      clearSelectedTarget: () => {
+        set({ selectedTarget: null });
+      },
+
+      setShowBorders: (show) => set({ showBorders: show }),
+    }),
+    {
+      name: "inspector-storage",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        selectedTarget: state.selectedTarget,
+        showBorders: state.showBorders,
+      }),
     },
-
-    clearSelection: () => {
-      set({
-        selectedTarget: null,
-        isSelecting: false,
-      });
-    },
-
-    clearSelectedTarget: () => {
-      set({ selectedTarget: null });
-    },
-
-    setShowBorders: (show) => set({ showBorders: show }),
-  }),
+  ),
   shallow,
 );
 
