@@ -8,6 +8,7 @@ import type {
   OnEdgesChange,
   OnConnect,
   ReactFlowInstance,
+  Viewport,
 } from "@xyflow/react";
 import { produce } from "immer";
 import type { FunctionNode } from "../types/types";
@@ -15,6 +16,7 @@ import type { FunctionNode } from "../types/types";
 type FlowStoreState = {
   nodes: FunctionNode[];
   edges: Edge[];
+  viewport: Viewport;
   rfInstance: ReactFlowInstance<FunctionNode, Edge> | null;
 };
 
@@ -23,6 +25,7 @@ type FlowStoreActions = {
     nodes: FunctionNode[] | ((currentNodes: FunctionNode[]) => FunctionNode[]),
   ) => void;
   setEdges: (edges: Edge[]) => void;
+  setViewport: (viewport: Viewport) => void;
   setRfInstance: (instance: ReactFlowInstance<FunctionNode, Edge>) => void;
   onNodesChange: OnNodesChange<FunctionNode>;
   onEdgesChange: OnEdgesChange;
@@ -42,6 +45,7 @@ const useFlowStore = createWithEqualityFn<
     (set, get) => ({
       nodes: [],
       edges: [],
+      viewport: { x: 0, y: 0, zoom: 1 },
       rfInstance: null,
 
       onNodesChange: (changes) => {
@@ -73,6 +77,8 @@ const useFlowStore = createWithEqualityFn<
         }),
 
       setEdges: (edges) => set({ edges }),
+
+      setViewport: (viewport) => set({ viewport }),
 
       setRfInstance: (instance) => set({ rfInstance: instance }),
 
@@ -170,6 +176,7 @@ const useFlowStore = createWithEqualityFn<
       partialize: (state) => ({
         nodes: state.nodes,
         edges: state.edges,
+        viewport: state.viewport,
       }),
     },
   ),

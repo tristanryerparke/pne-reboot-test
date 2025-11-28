@@ -6,8 +6,9 @@ import {
   BackgroundVariant,
   type NodeTypes,
   useReactFlow,
+  type OnMove,
 } from "@xyflow/react";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import CustomNode from "./custom-node/custom-node";
 import useFlowStore from "../stores/flowStore";
 import { useTheme } from "./theme-provider";
@@ -24,14 +25,32 @@ function NodeGraph() {
   const {
     nodes,
     edges,
+    viewport,
     onNodesChange,
     onEdgesChange,
     onConnect,
     setNodes,
+    setViewport,
     setRfInstance,
   } = useFlowStore();
 
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, setViewport: setReactFlowViewport } =
+    useReactFlow();
+
+  // Restore viewport on mount
+  useEffect(() => {
+    if (viewport) {
+      setReactFlowViewport(viewport, { duration: 0 });
+    }
+  }, []);
+
+  // Save viewport changes
+  const onMoveEnd = useCallback<OnMove>(
+    (_event, viewport) => {
+      setViewport(viewport);
+    },
+    [setViewport],
+  );
 
   let colorMode: "dark" | "light";
   if (theme === "system") {
@@ -96,9 +115,9 @@ function NodeGraph() {
         onDrop={onDrop}
         onDragOver={onDragOver}
         onInit={setRfInstance}
+        onMoveEnd={onMoveEnd}
         nodeTypes={nodeTypes}
         colorMode={colorMode}
-        // fitView
         panOnScroll
       >
         <Controls />
@@ -107,7 +126,8 @@ function NodeGraph() {
           variant={BackgroundVariant.Dots}
           gap={12}
           size={1}
-          bgColor={colorMode === "dark" ? "#111111" : "#f8f8f8"}
+          // dark is tailwind neutral-900, light is tailwind gray-100
+          bgColor={colorMode === "dark" ? "#171717" : "#f3f4f6"}
         />
       </ReactFlow>
     </div>
