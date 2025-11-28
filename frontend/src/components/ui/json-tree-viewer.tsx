@@ -161,7 +161,7 @@ function JsonNode({
               name={dataType === "array" ? `${key}` : key}
               data={data[key]}
               level={level + 1}
-              defaultExpanded={level < 1}
+              defaultExpanded={defaultExpanded}
               textLimit={textLimit}
             />
           ))}

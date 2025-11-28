@@ -9,34 +9,19 @@ import {
 import useFlowStore from "../../../stores/flowStore";
 import type { FrontendFieldDataWrapper } from "../../../types/types";
 
-// Types that have expandable preview areas
-const TYPES_WITH_PREVIEW = ["CachedImage"];
-
 interface OutputMenuProps {
-  path?: (string | number)[];
+  path: (string | number)[];
   fieldData: FrontendFieldDataWrapper;
 }
 
 export default function OutputMenu({ path, fieldData }: OutputMenuProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
-  // Check if this type has a preview area
-  const effectiveType = fieldData.type;
-  const hasPreview =
-    typeof effectiveType === "string" &&
-    TYPES_WITH_PREVIEW.includes(effectiveType);
   const showPreview = fieldData._showPreview ?? false;
 
   const handleTogglePreview = () => {
-    if (path) {
-      updateNodeData([...path, "_showPreview"], !showPreview);
-    }
+    updateNodeData([...path, "_showPreview"], !showPreview);
   };
-
-  // Don't show menu if there's nothing to configure
-  if (!hasPreview) {
-    return null;
-  }
 
   return (
     <DropdownMenu>
