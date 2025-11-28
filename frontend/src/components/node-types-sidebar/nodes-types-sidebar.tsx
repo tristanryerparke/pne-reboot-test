@@ -1,11 +1,6 @@
-import { Separator } from "../ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import NodePicker from "./node-picker/node-picker";
 import TypesBrowser from "./types-browser/types-browser";
-import { ModeToggle } from "../mode-toggle";
-import ExecuteButton from "../execute-button";
-import SaveButton from "../save-button";
-import { LoadButton } from "../load-button";
 
 export default function NodesTypesSidebar() {
   return (
@@ -27,15 +22,6 @@ export default function NodesTypesSidebar() {
           <TypesBrowser />
         </TabsContent>
       </Tabs>
-      <Separator className="mt-auto" />
-      <div className="w-full flex flex-row px-2 pt-2 gap-2">
-        <ModeToggle />
-        <ExecuteButton />
-      </div>
-      <div className="w-full flex flex-row p-2 gap-2">
-        <SaveButton />
-        <LoadButton />
-      </div>
     </div>
   );
 }

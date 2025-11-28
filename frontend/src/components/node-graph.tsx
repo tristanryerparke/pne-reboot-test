@@ -13,6 +13,7 @@ import useFlowStore from "../stores/flowStore";
 import { useTheme } from "./theme-provider";
 import { initializeUIData } from "../utils/add-ui-data";
 import type { FunctionSchema, FunctionNode } from "../types/types";
+import GraphToolbar from "./graph-toolbar/graph-toolbar";
 
 const nodeTypes: NodeTypes = {
   customNode: CustomNode,
@@ -80,7 +81,11 @@ function NodeGraph() {
   }, []);
 
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div
+      style={{ width: "100%", height: "100%" }}
+      className="relative flex items-center justify-center"
+    >
+      <GraphToolbar />
       <ReactFlow
         proOptions={{ hideAttribution: true }}
         nodes={nodes}

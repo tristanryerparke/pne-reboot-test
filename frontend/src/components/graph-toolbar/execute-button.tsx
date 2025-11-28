@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { LoaderIcon } from "lucide-react";
-import useFlowStore from "../stores/flowStore";
+import useFlowStore from "../../stores/flowStore";
 import { useState, useCallback } from "react";
-import { stripGraphForExecute } from "../utils/strip-graph";
-import { type Graph } from "../utils/strip-graph";
+import { stripGraphForExecute } from "../../utils/strip-graph";
+import { type Graph } from "../../utils/strip-graph";
 
 export default function ExecuteMenu() {
   const [loading, setLoading] = useState(false);
