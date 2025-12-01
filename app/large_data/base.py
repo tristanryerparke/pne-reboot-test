@@ -1,9 +1,9 @@
 import uuid
-from typing import ClassVar
+from typing import Any, ClassVar
 
-from pydantic import Field
+from pydantic import ConfigDict, Field, model_validator
 
-from app.schema import CamelBaseModel, StructDescr
+from app.schema_base import CamelBaseModel, StructDescr
 
 # Global cache for large data values
 LARGE_DATA_CACHE = {}
@@ -21,11 +21,20 @@ class CachedDataModel(CamelBaseModel):
     5. Registered in server.TYPES dict with "kind": "cached" and "_class" attribute
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     _is_cached_type: ClassVar[bool] = True  # Marker for type discovery
 
-    type: str | StructDescr
+    type: str | StructDescr = ""  # str for simple types, StructDescr for complex types
     preview: str | None = None
     cache_key: str = Field(default_factory=lambda: str(uuid.uuid4()))
+
+    @model_validator(mode="after")
+    def set_type_from_class_name(self):
+        """Auto-populate type field with class name if not set"""
+        if not self.type:
+            self.type = self.__class__.__name__
+        return self
 
     def deserialize(self, data: dict):
         """Deserialize from cached/preview data (used when loading from frontend)"""
@@ -64,8 +73,8 @@ class CachedDataModel(CamelBaseModel):
         value = LARGE_DATA_CACHE[cache_key]
 
         # Create instance with the cached value
+        # (type will be auto-populated by validator)
         return cls(
-            type=cls.__name__,
             value=value,  # type: ignore
             cache_key=cache_key,
         )

@@ -1,8 +1,8 @@
 from devtools import debug as d
 from fastapi import APIRouter
 
-from app.large_data.base import is_cached_value
-from app.schema import Graph, NodeDataFromFrontend, NodeFromFrontend
+from app.large_data.base import CachedDataModel, is_cached_value
+from app.schema import FieldDataWrapper, Graph, NodeDataFromFrontend, NodeFromFrontend
 
 router = APIRouter()
 VERBOSE = False
@@ -24,9 +24,36 @@ def deserialize_cached_value(value: dict, type_str: str):
     return cached_class.from_cache_key(value["cache_key"])
 
 
+def infer_concrete_type(value, type_descriptor, TYPES):
+    """Infer the concrete type of a value from a type descriptor.
+
+    Handles both simple types and union types by checking the runtime type
+    of the value against the available types.
+    """
+    from app.schema_base import UnionDescr
+
+    # If it's a union type, find which concrete type matches
+    if isinstance(type_descriptor, UnionDescr):
+        for candidate_type in type_descriptor.any_of:
+            if candidate_type in TYPES:
+                type_info = TYPES[candidate_type]
+                if isinstance(value, type_info["_class"]):
+                    return candidate_type
+        raise ValueError(
+            f"Value {value} of type {type(value)} does not match any type in union {type_descriptor.any_of}"
+        )
+
+    # If it's already a concrete type string, return it
+    if isinstance(type_descriptor, str):
+        return type_descriptor
+
+    raise ValueError(f"Unknown type descriptor: {type_descriptor}")
+
+
 @router.post("/graph_execute")
 async def execute_graph(graph: Graph):
     """Execute a graph containing nodes and edges"""
+    from app.server import TYPES, TYPES_DATAMODEL
 
     execution_list = topological_order(graph)
 
@@ -40,8 +67,15 @@ async def execute_graph(graph: Graph):
             print(f"Executing node {node.id}")
         result = execute_node(node.data)
 
-        # Handle both single and multiple outputs
-        output_style = node.data.output_style
+        # Normalize result to dict format
+        # For single outputs, wrap in {output_key: value}
+        # For multiple outputs, result is already a dict
+        if node.data.output_style == "single":
+            # Get the actual output key name (e.g., 'return' or 'image_blurred')
+            output_key = list(node.data.outputs.keys())[0]
+            result_dict = {output_key: result}
+        else:
+            result_dict = result
 
         node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
 
@@ -51,47 +85,32 @@ async def execute_graph(graph: Graph):
                 # Extract the argument name from targetHandle
                 argument_name = edge.targetHandle.split(":")[-2]
 
-                # Get the actual value that was propagated to this node
-                actual_value = node.data.arguments[argument_name]["value"]
-                actual_type = node.data.arguments[argument_name]["type"]
+                # Send a copy of the argument wrapper to frontend
+                arg = node.data.arguments[argument_name]
+                node_update["inputs"][argument_name] = arg.model_copy()
 
-                # Serialize cached types for frontend display
-                serialized_input = (
-                    actual_value.serialize()
-                    if is_cached_value(actual_value)
-                    else actual_value
-                )
+        # Process all outputs and create the return data model
+        for output_name in node.data.outputs.keys():
+            data = node.data.outputs[output_name]
+            new_value = result_dict[output_name]
 
-                node_update["inputs"][argument_name] = {
-                    "value": serialized_input,
-                    "type": actual_type,
-                }
+            # Infer the concrete type from the runtime value
+            concrete_type = infer_concrete_type(new_value, data.type, TYPES)
 
-        if output_style == "multiple":
-            # For multiple outputs we need to get the model as a dict
-            result_dict = result.model_dump()
-            for output_name, output_def in node.data.outputs.items():
-                # FIXME: We don't need to get the type from the result because the MultipleOutputs
-                # Class is typed already... this could be a problem later on
-                node_update["outputs"][output_name] = {
-                    "type": output_def["type"],
-                    "value": result_dict[output_name],
-                }
-        else:
-            # For single output, use the entire result
-            # The output key is already set correctly in the outputs dict (either return_value_name or "return")
-            # Just get the first (and only) key from outputs
-            output_key = list(node.data.outputs.keys())[0]
+            # Check TYPES_DATAMODEL first for mapped types (e.g., Image -> CachedImage)
+            if concrete_type in TYPES_DATAMODEL:
+                output_class = TYPES_DATAMODEL[concrete_type]
+            else:
+                # Fall back to TYPES for non-mapped types
+                output_class = TYPES[concrete_type]["_class"]
 
-            # Serialize cached types for frontend
-            serialized_value = result.serialize() if is_cached_value(result) else result
+            # Programatically create the output data model with the concrete type
+            output_data_model = output_class(
+                type=concrete_type,
+                value=new_value,
+            )
 
-            node_update["outputs"][output_key] = {
-                **node.data.outputs[output_key],
-                "value": serialized_value,
-            }
-
-        # FIXME: What if an upstream node's type changes and the input is no longer compatible?
+            node_update["outputs"][output_name] = output_data_model
 
         # Propagate outputs to connected nodes via edges
         for edge in graph.edges:
@@ -100,25 +119,14 @@ async def execute_graph(graph: Graph):
                 # Format: nodeId:outputs:outputName:handle
                 output_field_name = edge.sourceHandle.split(":")[-2]
 
-                # Get the value for this specific output field
-                if output_style == "multiple":
-                    output_value = getattr(result, output_field_name)
-                    output_type = node.data.outputs[output_field_name]["type"]
-                else:
-                    output_value = result
-                    # Get the correct output key (either custom return_value_name or "return")
-                    output_key = list(node.data.outputs.keys())[0]
-                    output_type = node.data.outputs[output_key]["type"]
-
                 # Extract target argument name from targetHandle
                 argument_name = edge.targetHandle.split(":")[-2]
 
-                # Update the target node's arguments for execution
+                # Update the target node's arguments with a copy of the output wrapper
                 target_node = next(n for n in execution_list if n.id == edge.target)
-                target_node.data.arguments[argument_name] = {
-                    "value": output_value,
-                    "type": output_type,
-                }
+                target_node.data.arguments[argument_name] = node_update["outputs"][
+                    output_field_name
+                ].model_copy()
 
         updates.append(node_update)
 
@@ -133,13 +141,36 @@ async def execute_graph(graph: Graph):
     return update_message
 
 
+def extract_argument_value(v):
+    """Extract the actual value from a node argument, handling CachedDataModel and FieldDataWrapper"""
+    if isinstance(v, CachedDataModel):
+        from app.server import TYPES, TYPES_DATAMODEL
+
+        type_str = v.type if isinstance(v.type, str) else v.type
+
+        # Check TYPES_DATAMODEL first for mapped types (e.g., Image -> CachedImage)
+        if type_str in TYPES_DATAMODEL:
+            cached_class = TYPES_DATAMODEL[type_str]
+            cached_instance = cached_class.from_cache_key(v.cache_key)
+            # Return the actual value (e.g., PIL Image object) not the wrapper
+            return cached_instance.value
+
+        # Fall back to TYPES for directly cached types
+        type_info = TYPES[type_str]
+        cached_class = type_info["_class"]
+        return cached_class.from_cache_key(v.cache_key).value
+    elif hasattr(v, "value"):
+        return v.value
+    else:
+        print(f"WARNING: {v} was not deserialized to a pydantic data model")
+        return v["value"]
+
+
 def execute_node(node: NodeDataFromFrontend):
     """Finds a node's callable and executes it with the arguments from the frontend"""
     from app.server import CALLABLES
 
     callable = CALLABLES[node.callable_id]
-
-    has_cached_inputs = getattr(callable, "enable_cached_inputs", False)
 
     # Check if this function has list_inputs enabled
     if getattr(callable, "list_inputs", False):
@@ -150,16 +181,7 @@ def execute_node(node: NodeDataFromFrontend):
         named_args = {}
 
         for k, v in node.arguments.items():
-            arg_value = v["value"]
-            arg_type = v["type"]
-
-            # Deserialize cached inputs if they come from frontend (as dict with cache_ref)
-            if (
-                has_cached_inputs
-                and isinstance(arg_value, dict)
-                and "cache_ref" in arg_value
-            ):
-                arg_value = deserialize_cached_value(arg_value, arg_type)
+            arg_value = extract_argument_value(v)
 
             # Handle both "_0", "_1" and "0", "1" naming patterns
             if k.isdigit():
@@ -183,37 +205,14 @@ def execute_node(node: NodeDataFromFrontend):
         # The frontend should send them with their key names
         args = {}
         for k, v in node.arguments.items():
-            arg_value = v["value"]
-            arg_type = v["type"]
-
-            # Deserialize cached inputs if they come from frontend (as dict with cache_ref)
-            if (
-                has_cached_inputs
-                and isinstance(arg_value, dict)
-                and "cache_ref" in arg_value
-            ):
-                arg_value = deserialize_cached_value(arg_value, arg_type)
-
-            args[k] = arg_value
+            args[k] = extract_argument_value(v)
 
         return callable(**args)
     else:
         # Normal execution with kwargs
         args = {}
         for k, v in node.arguments.items():
-            arg_value = v["value"]
-            arg_type = v["type"]
-
-            # Deserialize cached inputs if they come from frontend (as dict with cache_ref)
-            # OR if already a cached object from propagation, keep it as-is
-            if (
-                has_cached_inputs
-                and isinstance(arg_value, dict)
-                and "cache_ref" in arg_value
-            ):
-                arg_value = deserialize_cached_value(arg_value, arg_type)
-
-            args[k] = arg_value
+            args[k] = extract_argument_value(v)
 
         return callable(**args)
 

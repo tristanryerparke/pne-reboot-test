@@ -17,7 +17,7 @@ def test_union():
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "add_with_union"
     assert schema.arguments == {
-        "a": FieldDataWrapper(type=UnionDescr(anyOf=["int", "float"])),
+        "a": FieldDataWrapper(type=UnionDescr(any_of=["int", "float"])),
         "b": FieldDataWrapper(type="int"),
     }
     assert schema.outputs == {"return": FieldDataWrapper(type="float")}

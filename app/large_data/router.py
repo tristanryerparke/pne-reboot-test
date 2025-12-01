@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.large_data.base import CachedDataModel
-from app.schema import CamelBaseModel
+from app.schema_base import CamelBaseModel
 
 router = APIRouter()
 

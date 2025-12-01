@@ -29,15 +29,15 @@ def test_basic_types():
 
 
 def test_differing_union_types():
-    """Test that union types (both typing.Union and | syntax) produce the anyOf structure."""
+    """Test that union types (both typing.Union and | syntax) produce the any_of structure."""
 
     for typename, type_obj in differing_union_types.items():
         print(f"{typename}: {type_obj}")
         repr_result = get_type_repr(type_obj, module_ns)
         d(repr_result)
 
-        # Both union syntaxes should produce the same anyOf structure
-        assert repr_result == {"anyOf": ["int", "float"]}
+        # Both union syntaxes should produce the same any_of structure
+        assert repr_result == {"any_of": ["int", "float"]}
 
 
 def test_basic_union_types():
@@ -47,19 +47,19 @@ def test_basic_union_types():
     typename = "int | str"
     repr_result = get_type_repr(basic_union_types[typename], module_ns)
     d(repr_result)
-    assert repr_result == {"anyOf": ["int", "str"]}
+    assert repr_result == {"any_of": ["int", "str"]}
 
     # Simple int | float union type
     typename = "int | float"
     repr_result = get_type_repr(basic_union_types[typename], module_ns)
     d(repr_result)
-    assert repr_result == {"anyOf": ["int", "float"]}
+    assert repr_result == {"any_of": ["int", "float"]}
 
     # Simple int | bool | str union type
     typename = "int | bool | str"
     repr_result = get_type_repr(basic_union_types[typename], module_ns)
     d(repr_result)
-    assert repr_result == {"anyOf": ["int", "bool", "str"]}
+    assert repr_result == {"any_of": ["int", "bool", "str"]}
 
 
 def test_unions_in_list():
@@ -71,7 +71,7 @@ def test_unions_in_list():
     d(repr_result)
     assert repr_result == {
         "structure_type": "list",
-        "items_type": {"anyOf": ["int", "float"]},
+        "items_type": {"any_of": ["int", "float"]},
     }
 
     # List of int | bool | str union type
@@ -80,7 +80,7 @@ def test_unions_in_list():
     d(repr_result)
     assert repr_result == {
         "structure_type": "list",
-        "items_type": {"anyOf": ["int", "bool", "str"]},
+        "items_type": {"any_of": ["int", "bool", "str"]},
     }
 
 

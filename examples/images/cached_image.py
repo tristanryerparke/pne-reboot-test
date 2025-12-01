@@ -2,9 +2,12 @@ import base64
 import io
 
 from PIL import Image
-from pydantic import ConfigDict, Field, model_serializer
-from pydantic.fields import computed_field
-from pydantic.functional_serializers import SerializerFunctionWrapHandler
+from pydantic import (
+    Field,
+    SerializerFunctionWrapHandler,
+    computed_field,
+    model_serializer,
+)
 
 from app.large_data.base import LARGE_DATA_CACHE, CachedDataModel
 
@@ -32,21 +35,19 @@ def generate_thumbnail_base64(
     return thumb_base64
 
 
-class CachedImage(CachedDataModel):
+class CachedImageDataModel(CachedDataModel):
     """Cached image type for PIL Image objects"""
 
     value: Image.Image = Field(exclude=True)
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
     @classmethod
-    def deserialize_full(cls, data: dict) -> "CachedImage":
+    def deserialize_full(cls, data: dict) -> "CachedImageDataModel":
         """
         Deserialize image from base64 data uploaded from frontend.
 
         Expected data format:
         {
-            "type": "CachedImage",
+            "type": "CachedImageDataModel",
             "filename": "example.png",
             "img_base64": "base64_encoded_string..."
         }
@@ -56,13 +57,13 @@ class CachedImage(CachedDataModel):
             img = Image.open(io.BytesIO(img_data))
 
             return cls(
-                type="CachedImage",
+                type="CachedImageDataModel",
                 value=img,
             )
         except KeyError as e:
-            raise ValueError(f"Missing required field for CachedImage: {e}")
+            raise ValueError(f"Missing required field for CachedImageDataModel: {e}")
         except Exception as e:
-            raise ValueError(f"Failed to deserialize CachedImage: {str(e)}")
+            raise ValueError(f"Failed to deserialize CachedImageDataModel: {str(e)}")
 
     @model_serializer(mode="wrap")
     def serialize_model(self, handler: SerializerFunctionWrapHandler):

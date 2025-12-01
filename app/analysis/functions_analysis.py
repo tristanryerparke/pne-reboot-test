@@ -15,13 +15,14 @@ class ParameterNotTypeAnnotated(Exception):
 
 def analyze_function(
     func_obj: Callable,
-) -> Tuple[str, FunctionSchema, Callable, Dict[str, Any]]:
+) -> Tuple[str, FunctionSchema, Callable, Dict[str, Any], Dict[str, Any]]:
     """Analyze a function with the inspect module and returns:
      - A generated id for referencing the function
      - A schema describing the function for sending to the frontend and creating the node in the UI
      - The original function object, for when we want to call it with arguments sent from the frontend
      - A dictionary of type schemas found in the function's argument and return
     type annotations for sending to the frontend
+     - A dictionary mapping type names to CachedDataModel classes for mapped types
 
     """
 
@@ -48,6 +49,7 @@ def analyze_function(
 
     # Local dict for types found in this function
     found_types: Dict[str, Any] = {}
+    found_types_datamodel: Dict[str, Any] = {}
 
     # Get the input arguments schema of the function and register the types
     arguments = {}
@@ -68,8 +70,9 @@ def analyze_function(
                 items_type=get_type_repr(ann, module_ns, short_repr=True),  # type: ignore[arg-type]
             )
             # Analyze the argument type and merge with found types
-            arg_types = analyze_type(ann, file_path, module_ns)
+            arg_types, arg_types_datamodel = analyze_type(ann, file_path, module_ns)
             merge_types_dict(found_types, arg_types)
+            found_types_datamodel.update(arg_types_datamodel)
             continue
 
         # Handle **kwargs parameter - extract its type for dict_inputs
@@ -84,8 +87,9 @@ def analyze_function(
                 items_type=get_type_repr(ann, module_ns, short_repr=True),  # type: ignore[arg-type]
             )
             # Analyze the argument type and merge with found types
-            arg_types = analyze_type(ann, file_path, module_ns)
+            arg_types, arg_types_datamodel = analyze_type(ann, file_path, module_ns)
             merge_types_dict(found_types, arg_types)
+            found_types_datamodel.update(arg_types_datamodel)
             continue
 
         # =========== PARSE NORMAL TYPE ANNOTATIONS ===========
@@ -103,8 +107,9 @@ def analyze_function(
         arguments[arg.name] = arg_entry
 
         # Analyze the argument type and merge with found types
-        arg_types = analyze_type(ann, file_path, module_ns)
+        arg_types, arg_types_datamodel = analyze_type(ann, file_path, module_ns)
         merge_types_dict(found_types, arg_types)
+        found_types_datamodel.update(arg_types_datamodel)
 
     # Handle return type and detect multiple outputs
     ret_ann = type_hints.get("return", sig.return_annotation)
@@ -135,8 +140,11 @@ def analyze_function(
                 outputs[field_name] = output_entry
 
                 # Analyze the output field type and merge with found types
-                field_types = analyze_type(field_info.annotation, file_path, module_ns)
+                field_types, field_types_datamodel = analyze_type(
+                    field_info.annotation, file_path, module_ns
+                )
                 merge_types_dict(found_types, field_types)
+                found_types_datamodel.update(field_types_datamodel)
 
     # Basic single output
     else:
@@ -152,8 +160,9 @@ def analyze_function(
         outputs[output_key] = output_entry
 
     # Analyze the return type and merge found types
-    ret_types = analyze_type(ret_ann, file_path, module_ns)
+    ret_types, ret_types_datamodel = analyze_type(ret_ann, file_path, module_ns)
     merge_types_dict(found_types, ret_types)
+    found_types_datamodel.update(ret_types_datamodel)
 
     # Generate callable_id by hashing the function's source code
     source_code = inspect.getsource(original_func)
@@ -181,4 +190,5 @@ def analyze_function(
         ),
         func_obj,
         found_types,
+        found_types_datamodel,
     )
