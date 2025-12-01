@@ -73,7 +73,7 @@ export default function SingleOutputField({
               <div className="flex w-full pl pr-3 py-2 gap-1 overflow-hidden items-center justify-end">
                 <div className="w-full flex items-center shrink-0 gap-2">
                   <span>{outputName}:</span>
-                  <OutputRenderer outputData={fieldData} />
+                  <OutputRenderer outputData={fieldData} path={path} />
                 </div>
               </div>
             </TooltipTrigger>

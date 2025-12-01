@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from app.large_data.base import CachedDataWrapper
+from app.large_data.base import LARGE_DATA_CACHE, CachedDataWrapper
 from app.schema_base import CamelBaseModel
 
 router = APIRouter()
@@ -39,12 +39,14 @@ async def upload_large_data(upload: LargeDataUpload):
                 f"Kind: {type_info.get('kind')}",
             )
 
-        # Get the class from the type info
-        # Check for referenced_datamodel first (for third-party types like PIL.Image.Image)
-        if "referenced_datamodel" in type_info:
-            cached_data_class = type_info["referenced_datamodel"]
-        else:
-            cached_data_class = type_info["_class"]
+        # Get the referenced_datamodel (the CachedDataWrapper subclass)
+        if "referenced_datamodel" not in type_info:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Type {upload.type} does not have a referenced_datamodel",
+            )
+
+        cached_data_class = type_info["referenced_datamodel"]
 
         # Verify it's a CachedDataWrapper subclass
         if not issubclass(cached_data_class, CachedDataWrapper):
@@ -72,3 +74,15 @@ async def upload_large_data(upload: LargeDataUpload):
         raise HTTPException(
             status_code=500, detail=f"Failed to process {upload.type}: {str(e)}"
         )
+
+
+@router.get("/cache_exists/{cache_key}")
+async def cache_exists(cache_key: str):
+    """
+    Check if a cache key exists in LARGE_DATA_CACHE.
+
+    Returns:
+        {"exists": true} if the key exists
+        {"exists": false} if the key does not exist
+    """
+    return {"exists": cache_key in LARGE_DATA_CACHE}

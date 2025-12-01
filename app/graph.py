@@ -86,8 +86,10 @@ async def execute_graph(graph: Graph):
             if "referenced_datamodel" in type_info:
                 output_class = type_info["referenced_datamodel"]
             else:
-                # Fall back to _class for types without mapping
-                output_class = type_info["_class"]
+                # Fall back to DataWrapper for normal types (int, float, str, etc.)
+                from app.schema import DataWrapper
+
+                output_class = DataWrapper
 
             # Programatically create the output data model with the concrete type
             output_data_model = output_class(

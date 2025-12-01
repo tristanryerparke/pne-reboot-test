@@ -1,3 +1,4 @@
+# pyright: reportOptionalMemberAccess=false
 import base64
 import io
 
@@ -9,7 +10,7 @@ from pydantic import (
 
 from app.large_data.base import CachedDataWrapper
 
-THUMBNAIL_MAX_SIZE = 25
+THUMBNAIL_MAX_SIZE = 200
 
 
 def generate_thumbnail_base64(
@@ -36,9 +37,10 @@ def generate_thumbnail_base64(
 class CachedImageDataModel(CachedDataWrapper):
     """Cached image data wrapper for PIL Image objects"""
 
-    value: Image.Image = Field(
+    value: Image.Image | None = Field(
         exclude=True, default=None
     )  # we can't send the image object to the frontend so we exclude it
+    filename: str | None = None
 
     @classmethod
     def deserialize_to_cache(cls, data: dict) -> "CachedImageDataModel":
@@ -59,6 +61,7 @@ class CachedImageDataModel(CachedDataWrapper):
             return cls(
                 type="Image",
                 value=img,
+                filename=data.get("filename"),
             )
         except KeyError as e:
             raise ValueError(f"Missing required field for CachedImageDataModel: {e}")
@@ -67,25 +70,27 @@ class CachedImageDataModel(CachedDataWrapper):
 
     @computed_field
     @property
-    def preview(self) -> str:
+    def _preview(self) -> str:
+        if self.value is None:
+            return ""
         return generate_thumbnail_base64(self.value)
 
     @computed_field
     @property
-    def size(self) -> tuple[int, int]:
+    def _size(self) -> tuple[int, int]:
         return self.value.size
 
     @computed_field
     @property
-    def width(self) -> int:
+    def _width(self) -> int:
         return self.value.width
 
     @computed_field
     @property
-    def height(self) -> int:
+    def _height(self) -> int:
         return self.value.height
 
     @computed_field
     @property
-    def mode(self) -> str:
+    def _mode(self) -> str:
         return self.value.mode

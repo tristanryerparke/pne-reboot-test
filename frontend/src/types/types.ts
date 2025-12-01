@@ -29,7 +29,7 @@ export interface FrontendFieldDataWrapper extends DataWrapper {
   _selectedType?: string;
   _showPreview?: boolean;
   _structuredInputType?: "list" | "dict";
-  _inputMode?: number;
+  _expanded?: boolean;
 }
 
 export interface FunctionSchema {

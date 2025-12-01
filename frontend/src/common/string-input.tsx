@@ -1,9 +1,9 @@
 import { memo } from "react";
 import { Input } from "../components/ui/input";
-import useFlowStore from "../stores/flowStore";
+import useFlowStore, { useNodeData } from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
 import { useControlledDebounce } from "../hooks/useControlledDebounce";
-import type { DataWrapper } from "@/types/types";
+import type { DataWrapper, FrontendFieldDataWrapper } from "@/types/types";
 
 interface StringInputProps {
   inputData: DataWrapper;
@@ -40,9 +40,18 @@ export default memo(function StringInput({
   const isConnected =
     connections.length > 0 && connections[0].targetHandle === handleId;
 
+  // Check if expanded view is active
+  const fieldData = useNodeData(path) as FrontendFieldDataWrapper | undefined;
+  const isExpanded = fieldData?._expanded ?? false;
+
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
   };
+
+  // Render transparent div when expanded
+  if (isExpanded) {
+    return <div className="h-9 w-full min-w-20 bg-transparent" />;
+  }
 
   return (
     <Input

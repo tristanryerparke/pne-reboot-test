@@ -1,4 +1,4 @@
-import { MoreVertical, Trash2, Eye, EyeOff } from "lucide-react";
+import { MoreVertical, Trash2, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "../../ui/button";
 import {
   DropdownMenu,
@@ -16,9 +16,6 @@ import type {
   FrontendFieldDataWrapper,
   StructDescr,
 } from "../../../types/types";
-
-// Types that have expandable preview areas
-const TYPES_WITH_PREVIEW = ["CachedImage"];
 
 interface InputMenuProps {
   path?: (string | number)[];
@@ -53,24 +50,17 @@ export default function InputMenu({ path, fieldData }: InputMenuProps) {
     fieldData._selectedType || (unionTypes ? unionTypes[0] : undefined);
   const hasUnionTypes = unionTypes && unionTypes.length > 1;
 
-  // Handle component options from registry (e.g., single-line vs multiline for strings)
+  // Check if this type has an expandable area
   const effectiveType = selectedType || fieldData.type;
   const registryEntry =
     typeof effectiveType === "string"
       ? TYPE_COMPONENT_REGISTRY[effectiveType]
       : undefined;
-  const hasComponentOptions =
+  const hasExpandable =
     registryEntry &&
     typeof registryEntry === "object" &&
-    "anyOf" in registryEntry &&
-    registryEntry.anyOf.length > 1;
-  const selectedInputMode = fieldData._inputMode ?? 0;
-
-  // Check if this type has a preview area
-  const hasPreview =
-    typeof effectiveType === "string" &&
-    TYPES_WITH_PREVIEW.includes(effectiveType);
-  const showPreview = fieldData._showPreview ?? false;
+    registryEntry.expanded !== undefined;
+  const isExpanded = fieldData._expanded ?? false;
 
   // Detect if this is a dynamic list input
   const argName = path ? String(path[path.length - 1]) : "";
@@ -99,11 +89,7 @@ export default function InputMenu({ path, fieldData }: InputMenuProps) {
 
   // Determine if menu should be shown at all
   const shouldShowMenu =
-    isHighestListInput ||
-    isDynamicDictInput ||
-    isUnionType ||
-    hasComponentOptions ||
-    hasPreview;
+    isHighestListInput || isDynamicDictInput || isUnionType || hasExpandable;
 
   // Return null if there's nothing to show in the menu
   if (!shouldShowMenu) {
@@ -116,16 +102,9 @@ export default function InputMenu({ path, fieldData }: InputMenuProps) {
     }
   };
 
-  const handleInputModeChange = (newModeStr: string) => {
+  const handleToggleExpanded = () => {
     if (path) {
-      const newMode = parseInt(newModeStr);
-      updateNodeData([...path, "_inputMode"], newMode);
-    }
-  };
-
-  const handleTogglePreview = () => {
-    if (path) {
-      updateNodeData([...path, "_showPreview"], !showPreview);
+      updateNodeData([...path, "_expanded"], !isExpanded);
     }
   };
 
@@ -173,27 +152,25 @@ export default function InputMenu({ path, fieldData }: InputMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" side="right" sideOffset={5}>
-        {hasPreview && (
+        {hasExpandable && (
           <>
             <DropdownMenuItem
-              onClick={handleTogglePreview}
+              onClick={handleToggleExpanded}
               className="cursor-pointer"
             >
-              {showPreview ? (
+              {isExpanded ? (
                 <>
-                  <EyeOff className="h-4 w-4" />
-                  Hide Preview
+                  <Minimize2 className="h-4 w-4" />
+                  Minimize
                 </>
               ) : (
                 <>
-                  <Eye className="h-4 w-4" />
-                  Show Preview
+                  <Maximize2 className="h-4 w-4" />
+                  Maximize
                 </>
               )}
             </DropdownMenuItem>
-            {(hasUnionTypes || hasComponentOptions || showDeleteButton) && (
-              <DropdownMenuSeparator />
-            )}
+            {(hasUnionTypes || showDeleteButton) && <DropdownMenuSeparator />}
           </>
         )}
         {hasUnionTypes && (
@@ -209,27 +186,6 @@ export default function InputMenu({ path, fieldData }: InputMenuProps) {
                   {type}
                 </DropdownMenuRadioItem>
               ))}
-            </DropdownMenuRadioGroup>
-            {(hasComponentOptions || showDeleteButton) && (
-              <DropdownMenuSeparator />
-            )}
-          </>
-        )}
-        {hasComponentOptions && (
-          <>
-            <DropdownMenuLabel>Input Mode</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup
-              value={String(selectedInputMode)}
-              onValueChange={handleInputModeChange}
-            >
-              {registryEntry &&
-                "anyOf" in registryEntry &&
-                registryEntry.anyOf.map((_, index) => (
-                  <DropdownMenuRadioItem key={index} value={String(index)}>
-                    {index === 0 ? "Single-line" : "Multiline"}
-                  </DropdownMenuRadioItem>
-                ))}
             </DropdownMenuRadioGroup>
             {showDeleteButton && <DropdownMenuSeparator />}
           </>

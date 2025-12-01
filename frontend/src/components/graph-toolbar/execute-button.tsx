@@ -4,12 +4,14 @@ import useFlowStore from "../../stores/flowStore";
 import { useState, useCallback } from "react";
 import { stripGraphForExecute } from "../../utils/strip-graph";
 import { type Graph } from "../../utils/strip-graph";
+import { preserveUIData } from "../../utils/preserve-ui-data";
 
 export default function ExecuteMenu() {
   const [loading, setLoading] = useState(false);
   const nodes = useFlowStore((state) => state.nodes);
   const edges = useFlowStore((state) => state.edges);
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
+  const getNodeData = useFlowStore((state) => state.getNodeData);
 
   const execute = useCallback(async () => {
     setLoading(true);
@@ -41,20 +43,29 @@ export default function ExecuteMenu() {
         result.updates.forEach((update: any) => {
           const nodeId = update.node_id;
 
-          // Update inputs
+          // Update inputs (preserve UI data like _expanded)
           Object.entries(update.inputs).forEach(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ([argName, argData]: [string, any]) => {
-              const valuePath = [nodeId, "arguments", argName, "value"];
-              updateNodeData(valuePath, argData.value);
+              const path = [nodeId, "arguments", argName];
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const existingInput = getNodeData(path) as any;
+              const mergedInput = preserveUIData(existingInput, argData);
+              updateNodeData(path, mergedInput);
             },
           );
 
-          // Update outputs
+          // Update outputs (preserve UI data like _expanded)
           Object.entries(update.outputs).forEach(
             ([outputName, outputFieldData]) => {
               const path = [nodeId, "outputs", outputName];
-              updateNodeData(path, outputFieldData);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const existingOutput = getNodeData(path) as any;
+              const mergedOutput = preserveUIData(
+                existingOutput,
+                outputFieldData,
+              );
+              updateNodeData(path, mergedOutput);
             },
           );
         });

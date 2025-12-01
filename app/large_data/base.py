@@ -10,7 +10,7 @@ from pydantic import (
     model_validator,
 )
 
-from app.schema_base import CamelBaseModel, StructDescr
+from app.schema_base import CamelBaseModel
 
 # Global cache for large data values
 LARGE_DATA_CACHE = {}

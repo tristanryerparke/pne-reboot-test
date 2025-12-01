@@ -1,6 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
-import InputDisplay from "./input-display";
+import InputFieldDisplay from "./input-field-display";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
 import type { FrontendFieldDataWrapper } from "../../../types/types";
 import InspectableFieldWrapper from "../../inspector-sidebar/inspectable-field-wrapper";
@@ -38,7 +38,7 @@ export default function InputFieldHandleWrapper({
           <TooltipTrigger asChild>
             {/*The padding happens here*/}
             <div className="pl-2 pr-1 py-1.5">
-              <InputDisplay fieldData={fieldData} path={path} />
+              <InputFieldDisplay fieldData={fieldData} path={path} />
             </div>
           </TooltipTrigger>
           <TooltipContent side="left" sideOffset={2}>
