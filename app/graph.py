@@ -80,11 +80,13 @@ async def execute_graph(graph: Graph):
 
             # Infer the concrete type from the runtime value
             concrete_type = infer_concrete_type(new_value, data.type, TYPES)
-            type_info = TYPES[concrete_type]
 
-            # Check if type has referenced_datamodel (e.g., Image -> CachedImageDataModel)
-            if "referenced_datamodel" in type_info:
-                output_class = type_info["referenced_datamodel"]
+            # Check if type exists in TYPES and has referenced_datamodel (e.g., Image -> CachedImageDataModel)
+            if (
+                concrete_type in TYPES
+                and "referenced_datamodel" in TYPES[concrete_type]
+            ):
+                output_class = TYPES[concrete_type]["referenced_datamodel"]
             else:
                 # Fall back to DataWrapper for normal types (int, float, str, etc.)
                 from app.schema import DataWrapper
