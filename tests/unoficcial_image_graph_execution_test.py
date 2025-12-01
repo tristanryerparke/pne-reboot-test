@@ -1,6 +1,5 @@
 import base64
 import io
-import json
 
 import requests
 from devtools import debug as d
@@ -38,7 +37,7 @@ types_response = requests.get("http://localhost:8000/types")
 types = types_response.json()
 
 if "Image" in types:
-    print(f"✅ 'Image' type found in server TYPES")
+    print("✅ 'Image' type found in server TYPES")
     print(f"   Type info: {types['Image']}")
 else:
     print("❌ 'Image' type not found in TYPES")
@@ -92,7 +91,7 @@ if not blur_node:
     print("❌ blur_image node not found on server")
     exit(1)
 
-print(f"✅ Found blur_image node")
+print("✅ Found blur_image node")
 print(f"   Callable ID: {blur_node['callableId']}")
 print(f"   Arguments: {blur_node['arguments']}")
 print(f"   Outputs: {blur_node['outputs']}")
@@ -109,7 +108,7 @@ if exec_response.status_code != 200:
     exit(1)
 
 exec_result = exec_response.json()
-print(f"✅ Graph executed successfully!")
+print("✅ Graph executed successfully!")
 
 d(exec_result)
 
@@ -120,22 +119,22 @@ if "updates" in exec_result and len(exec_result["updates"]) > 0:
 
     if "outputs" in update and "image_blurred" in update["outputs"]:
         output = update["outputs"]["image_blurred"]
-        print(f"✅ Output found:")
+        print("✅ Output found:")
         print(f"   Type: {output['type']}")
         print(f"   Cache Key: {output.get('cacheKey', 'N/A')}")
         print(f"   Preview length: {len(output.get('preview', ''))}")
 
         # Verify it's the correct type
         if output["type"] == "Image":
-            print(f"✅ Output type is correctly 'Image' (mapped from PIL.Image.Image)")
+            print("✅ Output type is correctly 'Image' (mapped from PIL.Image.Image)")
         else:
             print(f"❌ Expected type 'Image', got '{output['type']}'")
 
         # Verify it has a cache key (meaning it was serialized as CachedImage)
         if output.get("cacheKey"):
-            print(f"✅ Output has cache_key (CachedImage serialization worked)")
+            print("✅ Output has cache_key (CachedImage serialization worked)")
         else:
-            print(f"❌ Output missing cache_key")
+            print("❌ Output missing cache_key")
     else:
         print("❌ No image_blurred output found")
         exit(1)

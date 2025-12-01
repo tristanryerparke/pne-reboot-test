@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from app.large_data.base import CachedDataModel
+from app.large_data.base import CachedDataWrapper
 from app.schema_base import CamelBaseModel
 
 router = APIRouter()
@@ -20,7 +20,7 @@ async def upload_large_data(upload: LargeDataUpload):
     Universal endpoint for uploading large data of any registered cached type.
 
     Uses server.TYPES to look up the cached type class.
-    Each class's deserialize_full() method parses its specific format.
+    Each class's deserialize_to_cache() method parses its specific format into a python object and caches it.
     """
     from app.server import TYPES
 
@@ -46,11 +46,11 @@ async def upload_large_data(upload: LargeDataUpload):
         else:
             cached_data_class = type_info["_class"]
 
-        # Verify it's a CachedDataModel subclass
-        if not issubclass(cached_data_class, CachedDataModel):
+        # Verify it's a CachedDataWrapper subclass
+        if not issubclass(cached_data_class, CachedDataWrapper):
             raise HTTPException(
                 status_code=500,
-                detail=f"Type {upload.type} class is not a CachedDataModel subclass",
+                detail=f"Type {upload.type} class is not a CachedDataWrapper subclass",
             )
 
         # Prepare full data dict for deserialization
@@ -61,7 +61,7 @@ async def upload_large_data(upload: LargeDataUpload):
         }
 
         # Deserialize using the class-specific method
-        instance = cached_data_class.deserialize_full(full_data)
+        instance = cached_data_class.deserialize_to_cache(full_data)
 
         # Return serialized dict with all computed fields included
         return instance.model_dump()

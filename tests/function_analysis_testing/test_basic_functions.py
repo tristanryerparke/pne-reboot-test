@@ -1,7 +1,7 @@
 from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
-from app.schema import FieldDataWrapper
+from app.schema import DataWrapper
 from examples.basic_defaultvalue import nth_root
 from examples.basic_percentage import percentage
 from examples.integer_math import add
@@ -20,10 +20,10 @@ def test_on_simple_add():
     assert schema.name == "add"
     assert schema.category == ["examples", "integer_math"]
     assert schema.arguments == {
-        "a": FieldDataWrapper(type="int"),
-        "b": FieldDataWrapper(type="int"),
+        "a": DataWrapper(type="int"),
+        "b": DataWrapper(type="int"),
     }
-    assert schema.outputs == {"return": FieldDataWrapper(type="int")}
+    assert schema.outputs == {"return": DataWrapper(type="int")}
 
     # Make sure we only found the int type
     d(found_types)
@@ -43,10 +43,10 @@ def test_find_float_and_int():
     assert schema.name == "percentage"
     assert schema.category == ["examples", "basic_percentage"]
     assert schema.arguments == {
-        "x": FieldDataWrapper(type="float"),
-        "percentage": FieldDataWrapper(type="int"),
+        "x": DataWrapper(type="float"),
+        "percentage": DataWrapper(type="int"),
     }
-    assert schema.outputs == {"return": FieldDataWrapper(type="float")}
+    assert schema.outputs == {"return": DataWrapper(type="float")}
 
     # Make sure we found both float and int types
     d(found_types)
@@ -69,10 +69,10 @@ def test_default_value():
     assert schema.name == "nth_root"
     assert schema.category == ["examples", "basic_defaultvalue"]
     assert schema.arguments == {
-        "x": FieldDataWrapper(type="float"),
-        "root": FieldDataWrapper(type="int", value=2),
+        "x": DataWrapper(type="float"),
+        "root": DataWrapper(type="int", value=2),
     }
-    assert schema.outputs == {"return": FieldDataWrapper(type="float")}
+    assert schema.outputs == {"return": DataWrapper(type="float")}
 
     # Make sure we found both float and int types
     d(found_types)

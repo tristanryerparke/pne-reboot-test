@@ -1,7 +1,13 @@
 import uuid
 from typing import Any, ClassVar
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    model_serializer,
+    model_validator,
+)
 
 from app.schema_base import CamelBaseModel, StructDescr
 
@@ -9,7 +15,7 @@ from app.schema_base import CamelBaseModel, StructDescr
 LARGE_DATA_CACHE = {}
 
 
-class CachedDataModel(CamelBaseModel):
+class CachedDataWrapper(CamelBaseModel):
     """
     Base class for all cached data types (images, dataframes, audio, etc.)
 
@@ -25,45 +31,39 @@ class CachedDataModel(CamelBaseModel):
 
     _is_cached_type: ClassVar[bool] = True  # Marker for type discovery
 
-    type: str | StructDescr = ""  # str for simple types, StructDescr for complex types
-    preview: str | None = None
+    type: str | StructDescr  # str for simple types, StructDescr unions, dicts, lists
+    value: Any = Field(exclude=True)
     cache_key: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
-    @model_validator(mode="after")
-    def set_type_from_class_name(self):
-        """Auto-populate type field with class name if not set"""
-        if not self.type:
-            self.type = self.__class__.__name__
-        return self
+    # @model_validator(mode="after")
+    # def set_type_from_class_name(self):
+    #     """Auto-populate type field with class name if not set"""
+    #     if not self.type:
+    #         self.type = self.__class__.__name__
+    #     return self
 
-    def deserialize(self, data: dict):
-        """Deserialize from cached/preview data (used when loading from frontend)"""
-        self.type = data["type"]
-        self.preview = data.get("preview")
-        self.cache_key = data["cache_key"]
+    @model_serializer(mode="wrap")
+    def serialize_with_cache_hook(self, handler: SerializerFunctionWrapHandler):
+        """This is essentially a hook on the serialization process that ensures the cache data
+        is populated before the data is sent to the frontend. This insures the frontend will always
+        have a reference to the large data that was created in the backend.
+
+        """
+        LARGE_DATA_CACHE[self.cache_key] = self.value
+        return handler(self)
 
     @classmethod
-    def deserialize_full(cls, data: dict) -> "CachedDataModel":
+    def deserialize_to_cache(cls, data: dict) -> "CachedDataWrapper":
         """
-        Deserialize from full data uploaded from frontend.
+        Deserialize from full data uploaded via the  frontend.
         MUST be overridden by subclasses to handle their specific data format.
-
-        Args:
-            data: Dictionary containing the full data from frontend upload
-                  Should include: type, filename, and type-specific fields
-
-        Returns:
-            Instance of the CachedDataModel subclass with value populated
         """
-        raise NotImplementedError(
-            f"{cls.__name__} must implement deserialize_full() class method"
-        )
 
     @classmethod
-    def from_cache_key(cls, cache_key: str) -> "CachedDataModel":
+    def from_cache_key(cls, cache_key: str) -> "CachedDataWrapper":
         """
         Universal method to retrieve cached data by key.
-        Works for all CachedDataModel subclasses.
+        Works for all CachedDataWrapper subclasses.
 
         Used by graph.py to reconstruct cached values during execution.
         """
@@ -79,14 +79,7 @@ class CachedDataModel(CamelBaseModel):
             cache_key=cache_key,
         )
 
-    def serialize(self) -> dict:
-        """
-        Serialize for frontend. Returns model_dump() by default.
-        Subclasses use @model_serializer to customize.
-        """
-        return self.model_dump()
-
 
 def is_cached_value(value) -> bool:
     """Helper to check if a value is a cached type instance"""
-    return isinstance(value, CachedDataModel)
+    return isinstance(value, CachedDataWrapper)

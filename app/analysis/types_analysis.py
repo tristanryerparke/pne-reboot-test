@@ -124,7 +124,7 @@ def analyze_type(
 
             if type_name not in types_dict:
                 types_dict[type_name] = {
-                    "kind": "cached",
+                    "kind": "user",
                     "_class": t,
                     "category": os.path.splitext(rel_file_path)[0]
                     .replace(os.sep, "/")

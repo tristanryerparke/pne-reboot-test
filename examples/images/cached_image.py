@@ -4,12 +4,10 @@ import io
 from PIL import Image
 from pydantic import (
     Field,
-    SerializerFunctionWrapHandler,
     computed_field,
-    model_serializer,
 )
 
-from app.large_data.base import LARGE_DATA_CACHE, CachedDataModel
+from app.large_data.base import CachedDataWrapper
 
 THUMBNAIL_MAX_SIZE = 25
 
@@ -35,19 +33,21 @@ def generate_thumbnail_base64(
     return thumb_base64
 
 
-class CachedImageDataModel(CachedDataModel):
-    """Cached image type for PIL Image objects"""
+class CachedImageDataModel(CachedDataWrapper):
+    """Cached image data wrapper for PIL Image objects"""
 
-    value: Image.Image = Field(exclude=True)
+    value: Image.Image = Field(
+        exclude=True
+    )  # we can't send the image object to the frontend so we exclude it
 
     @classmethod
-    def deserialize_full(cls, data: dict) -> "CachedImageDataModel":
+    def deserialize_to_cache(cls, data: dict) -> "CachedImageDataModel":
         """
         Deserialize image from base64 data uploaded from a non-execution action on the frontend.
 
         Expected data format:
         {
-            "type": "CachedImageDataModel",
+            "type": "Image",
             "filename": "example.png",
             "img_base64": "base64_encoded_string..."
         }
@@ -57,7 +57,7 @@ class CachedImageDataModel(CachedDataModel):
             img = Image.open(io.BytesIO(img_data))
 
             return cls(
-                type="CachedImageDataModel",
+                type="Image",
                 value=img,
             )
         except KeyError as e:
@@ -65,12 +65,10 @@ class CachedImageDataModel(CachedDataModel):
         except Exception as e:
             raise ValueError(f"Failed to deserialize CachedImageDataModel: {str(e)}")
 
-    @model_serializer(mode="wrap")
-    def serialize_model(self, handler: SerializerFunctionWrapHandler):
-        """Serializing the model populates the thumbnail and the cache"""
-        LARGE_DATA_CACHE[self.cache_key] = self.value
-        self.preview = generate_thumbnail_base64(self.value)
-        return handler(self)
+    @computed_field
+    @property
+    def preview(self) -> str:
+        return generate_thumbnail_base64(self.value)
 
     @computed_field
     @property

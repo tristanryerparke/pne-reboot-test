@@ -4,7 +4,7 @@ import os
 import typing
 from typing import Any, Callable, Dict, Tuple
 
-from app.schema import FieldDataWrapper, FunctionSchema, StructDescr
+from app.schema import DataWrapper, FunctionSchema, StructDescr
 
 from .types_analysis import analyze_type, get_type_repr, merge_types_dict
 
@@ -95,7 +95,7 @@ def analyze_function(
             raise ParameterNotTypeAnnotated(f"Parameter {arg.name} has no annotation")
 
         arg_value = arg.default if arg.default is not inspect.Parameter.empty else None
-        arg_entry = FieldDataWrapper(
+        arg_entry = DataWrapper(
             type=get_type_repr(ann, module_ns, short_repr=True),  # type: ignore[arg-type]
             value=arg_value,
         )
@@ -125,7 +125,7 @@ def analyze_function(
         output_style = "multiple"
         for field_name, field_info in ret_ann.model_fields.items():
             if field_info.annotation is not None:
-                output_entry = FieldDataWrapper(
+                output_entry = DataWrapper(
                     type=get_type_repr(  # type: ignore[arg-type]
                         field_info.annotation, module_ns, short_repr=True
                     ),
@@ -144,7 +144,7 @@ def analyze_function(
         # Check if function has a custom return_value_name from decorator
         return_value_name_temp = getattr(func_obj, "return_value_name", None)
         output_key = return_value_name_temp if return_value_name_temp else "return"
-        output_entry = FieldDataWrapper(
+        output_entry = DataWrapper(
             type=get_type_repr(ret_ann, module_ns, short_repr=True),  # type: ignore[arg-type]
             value=None,
         )

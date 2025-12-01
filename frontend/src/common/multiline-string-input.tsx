@@ -5,10 +5,10 @@ import { Textarea } from "../components/ui/textarea";
 import useFlowStore from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
 import { useControlledDebounce } from "../hooks/useControlledDebounce";
-import type { FieldDataWrapper } from "@/types/types";
+import type { DataWrapper } from "@/types/types";
 
 interface MultilineStringInputProps {
-  inputData: FieldDataWrapper;
+  inputData: DataWrapper;
   path: (string | number)[];
 }
 

@@ -1,7 +1,7 @@
 from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
-from app.schema import FieldDataWrapper
+from app.schema import DataWrapper
 from examples.basic_user_model import Point2D, two_point_distance
 from tests.assets.user_model_not_used_in_function import add
 
@@ -22,10 +22,10 @@ def test_user_model_detection():
     assert schema.name == "two_point_distance"
     assert schema.category == ["examples", "basic_user_model"]
     assert schema.arguments == {
-        "a": FieldDataWrapper(type="Point2D"),
-        "b": FieldDataWrapper(type="Point2D"),
+        "a": DataWrapper(type="Point2D"),
+        "b": DataWrapper(type="Point2D"),
     }
-    assert schema.outputs == {"return": FieldDataWrapper(type="float")}
+    assert schema.outputs == {"return": DataWrapper(type="float")}
 
     # Make sure we found the Point2D UserModel and float type
     d(found_types)
@@ -47,10 +47,10 @@ def test_user_model_not_used_in_function():
     assert schema.name == "add"
     assert schema.category == ["tests", "assets", "user_model_not_used_in_function"]
     assert schema.arguments == {
-        "a": FieldDataWrapper(type="int"),
-        "b": FieldDataWrapper(type="int"),
+        "a": DataWrapper(type="int"),
+        "b": DataWrapper(type="int"),
     }
-    assert schema.outputs == {"return": FieldDataWrapper(type="int")}
+    assert schema.outputs == {"return": DataWrapper(type="int")}
 
     # Make sure we only found the int type and not any of the types associated with the Point2D model
     d(found_types)

@@ -19,13 +19,13 @@ export interface UnionDescr {
   anyOf: string[];
 }
 
-export interface FieldDataWrapper {
+export interface DataWrapper {
   type: string | StructDescr | UnionDescr;
   value: BaseDataTypes | null;
 }
 
-// This is a frontend-only type that extends FieldDataWrapper with UI state
-export interface FrontendFieldDataWrapper extends FieldDataWrapper {
+// This is a frontend-only type that extends DataWrapper with UI state
+export interface FrontendFieldDataWrapper extends DataWrapper {
   _selectedType?: string;
   _showPreview?: boolean;
   _structuredInputType?: "list" | "dict";

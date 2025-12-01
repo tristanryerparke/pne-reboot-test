@@ -1,27 +1,11 @@
 from devtools import debug as d
 from fastapi import APIRouter
 
-from app.large_data.base import CachedDataModel, is_cached_value
-from app.schema import FieldDataWrapper, Graph, NodeDataFromFrontend, NodeFromFrontend
+from app.large_data.base import CachedDataWrapper
+from app.schema import Graph, NodeDataFromFrontend, NodeFromFrontend
 
 router = APIRouter()
 VERBOSE = False
-
-
-def deserialize_cached_value(value: dict, type_str: str):
-    """Reconstruct a cached value from cache_key using server.TYPES"""
-    from app.server import TYPES
-
-    if type_str not in TYPES:
-        raise ValueError(f"Unknown type: {type_str}")
-
-    type_info = TYPES[type_str]
-
-    if type_info.get("kind") != "cached":
-        raise ValueError(f"Type {type_str} is not a cached type")
-
-    cached_class = type_info["_class"]
-    return cached_class.from_cache_key(value["cache_key"])
 
 
 def infer_concrete_type(value, type_descriptor, TYPES):
@@ -143,8 +127,8 @@ async def execute_graph(graph: Graph):
 
 
 def extract_argument_value(v):
-    """Extract the actual value from a node argument, handling CachedDataModel and FieldDataWrapper"""
-    if isinstance(v, CachedDataModel):
+    """Extract the actual value from a node argument, handling CachedDataWrapper and DataWrapper"""
+    if isinstance(v, CachedDataWrapper):
         from app.server import TYPES
 
         type_str = v.type if isinstance(v.type, str) else v.type
@@ -211,6 +195,8 @@ def execute_node(node: NodeDataFromFrontend):
     else:
         # Normal execution with kwargs
         args = {}
+        print("Node arguments being printed:")
+        d(node.arguments)
         for k, v in node.arguments.items():
             args[k] = extract_argument_value(v)
 

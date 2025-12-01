@@ -1,7 +1,7 @@
 from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
-from app.schema import FieldDataWrapper
+from app.schema import DataWrapper
 from examples.basic_multiple_outputs import (
     integer_division_multiple_outputs,
     integer_division_single_output,
@@ -22,13 +22,13 @@ def test_integer_division_multiple_outputs():
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "integer_division_multiple_outputs"
     assert schema.arguments == {
-        "numerator": FieldDataWrapper(type="int"),
-        "denominator": FieldDataWrapper(type="int"),
+        "numerator": DataWrapper(type="int"),
+        "denominator": DataWrapper(type="int"),
     }
     assert schema.output_style == "multiple"
     assert schema.outputs == {
-        "quotient": FieldDataWrapper(type="int"),
-        "remainder": FieldDataWrapper(type="int"),
+        "quotient": DataWrapper(type="int"),
+        "remainder": DataWrapper(type="int"),
     }
 
     # Make sure we found the int type
@@ -49,11 +49,11 @@ def test_integer_division_single_output():
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "integer_division_single_output"
     assert schema.arguments == {
-        "numerator": FieldDataWrapper(type="int"),
-        "denominator": FieldDataWrapper(type="int"),
+        "numerator": DataWrapper(type="int"),
+        "denominator": DataWrapper(type="int"),
     }
     assert schema.output_style == "single"
-    assert schema.outputs == {"return": FieldDataWrapper(type="int")}
+    assert schema.outputs == {"return": DataWrapper(type="int")}
 
     # Make sure we only found the int type
     d(found_types)

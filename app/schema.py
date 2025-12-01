@@ -2,7 +2,7 @@ from typing import ClassVar, Literal
 
 from pydantic import BaseModel
 
-from app.large_data.base import CachedDataModel
+from app.large_data.base import CachedDataWrapper
 from app.schema_base import BASE_DATATYPES, CamelBaseModel, StructDescr, UnionDescr
 
 
@@ -16,7 +16,7 @@ class UserModel(BaseModel):
     _construct_node: ClassVar[bool] = True
 
 
-class FieldDataWrapper(CamelBaseModel):
+class DataWrapper(CamelBaseModel):
     type: str | UnionDescr | StructDescr
     value: BASE_DATATYPES | None = None
 
@@ -29,10 +29,10 @@ class FunctionSchema(CamelBaseModel):
     category: list[str]
     file_path: str
     doc: str | None = None
-    arguments: dict[str, FieldDataWrapper | CachedDataModel]
+    arguments: dict[str, DataWrapper | CachedDataWrapper]
     dynamic_input_type: StructDescr | None = None
     output_style: Literal["single", "multiple"] = "single"
-    outputs: dict[str, FieldDataWrapper | CachedDataModel]
+    outputs: dict[str, DataWrapper | CachedDataWrapper]
     auto_generated: bool = False
 
 
@@ -41,8 +41,8 @@ FunctionSchema.model_rebuild()
 
 class NodeDataFromFrontend(CamelBaseModel):
     callable_id: str
-    arguments: dict[str, FieldDataWrapper | CachedDataModel]
-    outputs: dict[str, FieldDataWrapper | CachedDataModel]
+    arguments: dict[str, DataWrapper | CachedDataWrapper]
+    outputs: dict[str, DataWrapper | CachedDataWrapper]
     output_style: Literal["single", "multiple"] = "single"
 
 
