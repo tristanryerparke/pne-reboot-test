@@ -158,9 +158,19 @@ def analyze_function(
     # Apply type-to-datamodel mappings from decorator
     if hasattr(func_obj, "_type_datamodel_mappings"):
         mappings = func_obj._type_datamodel_mappings
-        for type_name, datamodel_class in mappings.items():
+        # mappings is a list of dicts like [{"argument_type": Image, "associated_datamodel": CachedImageDataModel}]
+        for mapping in mappings:
+            argument_type = mapping.get("argument_type")
+            associated_datamodel = mapping.get("associated_datamodel")
+
+            if argument_type is None or associated_datamodel is None:
+                continue
+
+            # Find the type name for this argument_type class in found_types
+            type_name = get_type_repr(argument_type, module_ns, short_repr=True)
+
             if type_name in found_types:
-                found_types[type_name]["referenced_datamodel"] = datamodel_class
+                found_types[type_name]["referenced_datamodel"] = associated_datamodel
 
     # Generate callable_id by hashing the function's source code
     source_code = inspect.getsource(original_func)

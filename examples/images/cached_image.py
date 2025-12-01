@@ -43,7 +43,7 @@ class CachedImageDataModel(CachedDataModel):
     @classmethod
     def deserialize_full(cls, data: dict) -> "CachedImageDataModel":
         """
-        Deserialize image from base64 data uploaded from frontend.
+        Deserialize image from base64 data uploaded from a non-execution action on the frontend.
 
         Expected data format:
         {

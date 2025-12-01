@@ -9,7 +9,7 @@ def add_node_options(
     return_value_name: str | None = None,
     list_inputs: bool = False,
     dict_inputs: bool = False,
-    cached_types: dict | None = None,
+    cached_types: list | None = None,
 ):
     def decorator(func: F) -> F:
         @wraps(func)
