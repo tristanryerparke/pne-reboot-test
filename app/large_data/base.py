@@ -5,6 +5,7 @@ from pydantic import (
     ConfigDict,
     Field,
     SerializerFunctionWrapHandler,
+    ValidationInfo,
     model_serializer,
     model_validator,
 )
@@ -17,30 +18,78 @@ LARGE_DATA_CACHE = {}
 
 class CachedDataWrapper(CamelBaseModel):
     """
-    Base class for all cached data types (images, dataframes, audio, etc.)
+    Base class for all cached data types (so far just images)
 
-    Cached types are:
-    1. Too large to serialize in JSON responses (sent as preview instead)
-    2. Stored in LARGE_DATA_CACHE during execution
-    3. Uploaded via /upload_large_data endpoint
-    4. Automatically discovered by functions_analysis.py via _is_cached_type marker
-    5. Registered in server.TYPES dict with "kind": "cached" and "_class" attribute
+    Cached types are too large to send back and forth with the execute and update messages.
+    Instead we store them in LARGE_DATA_CACHE during execution with a cache_key.
+    On the frontend there will be an upload input component that will populate the cache
+    via the /upload_large_data endpoint which will return the cache_key as a reference on the frontend.
+    Subclasses of CachedDataWrapper can use pydantic's @computer_field decorator to add a preview
+    (like a thumbnail) that gets sent back up along with the cache key.
+    Then when the execute message gets recieved, the backend prorgamatically creates an instance of that
+    subclass, and retrieves the value prop from the cache.
+
+    Cached types get linked to a specifc type in the add_node_options decorator like so:
+    @add_node_options(cached_types=[{
+        "argument_type": Image,
+        "associated_datamodel": CachedImageDataModel # which is the subclass in question
+    }])
+    def blur_image(image: Image, radius: int = 40) -> Image:
+
+    This notation ensures creates the 'referenced_datamodel' property in the types dict like so:
+    'Image': {
+        'kind': 'cached',
+        '_class': <class 'PIL.Image.Image'>,
+        'category': [
+            'examples',
+            'images',
+            'basic_blur',
+        ],
+        'referenced_datamodel': <class 'examples.images.cached_image.CachedImageDataModel'>,
+    }
+
+    the model validator in schema.py detects this and automatically populates the wrapper class with
+    an instantiated instance of the subclass, which retrieves the value from the cache, which gets
+    passed to the function we annotated.
+
+    This also enables automatic exclusion of the full data when the updates are sent to the frontend,
+    but the preview and other computed fields are sent.
+
+    For propogating updates across edges, we just set the input's wrapper to a model_copy() of
+    the wrapper subclass.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
     _is_cached_type: ClassVar[bool] = True  # Marker for type discovery
 
-    type: str | StructDescr  # str for simple types, StructDescr unions, dicts, lists
-    value: Any = Field(exclude=True)
-    cache_key: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    type: str  # TODO: can we have StructDescr unions, dicts, lists later?
+    value: Any | None = Field(exclude=True, default=None)
+    cache_key: str | None = Field(default_factory=lambda: str(uuid.uuid4()))
 
-    # @model_validator(mode="after")
-    # def set_type_from_class_name(self):
-    #     """Auto-populate type field with class name if not set"""
-    #     if not self.type:
-    #         self.type = self.__class__.__name__
-    #     return self
+    @model_validator(mode="after")
+    def populate_value_from_cache(self, info: ValidationInfo):
+        """
+        Validation hook that populates the value field from the cache if it's not set.
+
+        This allows the frontend to send just {type, cacheKey} and have the value
+        automatically loaded from LARGE_DATA_CACHE during validation.
+
+        Uses validation context to determine when to populate from cache.
+        Only populates when context={'populate_from_cache': True} is passed.
+        This ensures it only runs for frontend deserialization, not Python instantiation.
+        """
+        # Check if validation context requests cache population
+        should_populate = isinstance(info.context, dict) and info.context.get(
+            "populate_from_cache", False
+        )
+
+        if (
+            should_populate
+            and self.value is None
+            and self.cache_key in LARGE_DATA_CACHE
+        ):
+            self.value = LARGE_DATA_CACHE[self.cache_key]
+        return self
 
     @model_serializer(mode="wrap")
     def serialize_with_cache_hook(self, handler: SerializerFunctionWrapHandler):

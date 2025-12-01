@@ -57,7 +57,6 @@ graph = {
                 "arguments": {
                     "image": {
                         "type": "Image",
-                        "preview": upload_result["preview"],
                         "cacheKey": cache_key,
                     },
                     "radius": {

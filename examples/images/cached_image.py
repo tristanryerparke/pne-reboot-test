@@ -37,7 +37,7 @@ class CachedImageDataModel(CachedDataWrapper):
     """Cached image data wrapper for PIL Image objects"""
 
     value: Image.Image = Field(
-        exclude=True
+        exclude=True, default=None
     )  # we can't send the image object to the frontend so we exclude it
 
     @classmethod
