@@ -60,21 +60,28 @@ class CachedDataWrapper(CamelBaseModel):
         """
 
     @classmethod
-    def from_cache_key(cls, cache_key: str) -> "CachedDataWrapper":
+    def from_cache_key(
+        cls, cache_key: str, type_str: str | None = None
+    ) -> "CachedDataWrapper":
         """
         Universal method to retrieve cached data by key.
         Works for all CachedDataWrapper subclasses.
 
         Used by graph.py to reconstruct cached values during execution.
+
+        Args:
+            cache_key: The key to look up in LARGE_DATA_CACHE
+            type_str: Optional type string to set on the instance (e.g., "Image")
         """
         if cache_key not in LARGE_DATA_CACHE:
             raise ValueError(f"Cache key {cache_key} not found in LARGE_DATA_CACHE")
 
         value = LARGE_DATA_CACHE[cache_key]
 
-        # Create instance with the cached value
-        # (type will be auto-populated by validator)
+        # Create instance with the cached value and type
         return cls(
+            type=type_str
+            or cls.__name__,  # Use provided type or fall back to class name
             value=value,  # type: ignore
             cache_key=cache_key,
         )

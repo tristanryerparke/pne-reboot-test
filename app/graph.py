@@ -126,30 +126,6 @@ async def execute_graph(graph: Graph):
     return update_message
 
 
-def extract_argument_value(v):
-    """Extract the actual value from a node argument, handling CachedDataWrapper and DataWrapper"""
-    if isinstance(v, CachedDataWrapper):
-        from app.server import TYPES
-
-        type_str = v.type if isinstance(v.type, str) else v.type
-        type_info = TYPES[type_str]
-
-        # Check if type has referenced_datamodel (e.g., Image -> CachedImageDataModel)
-        if "referenced_datamodel" in type_info:
-            datamodel_class = type_info["referenced_datamodel"]
-            instance = datamodel_class.from_cache_key(v.cache_key)
-            return instance.value
-        else:
-            # Fall back to _class for types without mapping
-            cached_class = type_info["_class"]
-            return cached_class.from_cache_key(v.cache_key).value
-    elif hasattr(v, "value"):
-        return v.value
-    else:
-        print(f"WARNING: {v} was not deserialized to a pydantic data model")
-        return v["value"]
-
-
 def execute_node(node: NodeDataFromFrontend):
     """Finds a node's callable and executes it with the arguments from the frontend"""
     from app.server import CALLABLES
@@ -165,7 +141,7 @@ def execute_node(node: NodeDataFromFrontend):
         named_args = {}
 
         for k, v in node.arguments.items():
-            arg_value = extract_argument_value(v)
+            arg_value = v.value
 
             # Handle both "_0", "_1" and "0", "1" naming patterns
             if k.isdigit():
@@ -189,7 +165,7 @@ def execute_node(node: NodeDataFromFrontend):
         # The frontend should send them with their key names
         args = {}
         for k, v in node.arguments.items():
-            args[k] = extract_argument_value(v)
+            args[k] = v.value
 
         return callable(**args)
     else:
@@ -198,7 +174,7 @@ def execute_node(node: NodeDataFromFrontend):
         print("Node arguments being printed:")
         d(node.arguments)
         for k, v in node.arguments.items():
-            args[k] = extract_argument_value(v)
+            args[k] = v.value
 
         return callable(**args)
 
