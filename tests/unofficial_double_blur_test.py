@@ -131,11 +131,6 @@ print(f"   Node 1: blur with radius=10")
 print(f"   Node 2: blur with radius=20 (receives input from Node 1)")
 print(f"   Edge: blur-node-1 (image_blurred) -> blur-node-2 (image)")
 
-print("\n🔍 DEBUG: Graph structure being sent:")
-print(f"   Node 1 arguments: {graph['nodes'][0]['data']['arguments']}")
-print(f"   Node 2 arguments: {graph['nodes'][1]['data']['arguments']}")
-print(f"   Edges: {graph['edges']}")
-
 # Step 5: Execute the graph
 print("\n⚙️  STEP 5: Executing graph...")
 exec_response = requests.post("http://localhost:8000/graph_execute", json=graph)

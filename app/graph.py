@@ -5,7 +5,7 @@ from app.large_data.base import CachedDataWrapper
 from app.schema import Graph, NodeDataFromFrontend, NodeFromFrontend
 
 router = APIRouter()
-VERBOSE = True  # Enable debug output for edge propagation testing
+VERBOSE = False
 
 
 def infer_concrete_type(value, type_descriptor, TYPES):
@@ -42,27 +42,13 @@ async def execute_graph(graph: Graph):
     execution_list = topological_order(graph)
 
     if VERBOSE:
-        print(f"\n{'=' * 60}")
-        print(f"GRAPH EXECUTION DEBUG")
-        print(f"{'=' * 60}")
-        print(f"Total nodes: {len(execution_list)}")
-        print(f"Total edges: {len(graph.edges)}")
         d(execution_list)
 
     updates = []
 
     for node in execution_list:
         if VERBOSE:
-            print(f"\n{'─' * 60}")
-            print(f"🔧 Executing node {node.id}")
-            print(f"   Arguments BEFORE execution:")
-            for arg_name, arg_value in node.data.arguments.items():
-                if hasattr(arg_value, "cache_key"):
-                    print(
-                        f"     {arg_name}: type={arg_value.type}, cacheKey={arg_value.cache_key}"
-                    )
-                else:
-                    print(f"     {arg_name}: {arg_value}")
+            print(f"Executing node {node.id}")
         result = execute_node(node.data)
 
         # Normalize result to dict format
@@ -124,27 +110,9 @@ async def execute_graph(graph: Graph):
                 # Update the target node's arguments with a copy of the output wrapper
                 target_node = next(n for n in execution_list if n.id == edge.target)
 
-                if VERBOSE:
-                    print(f"\n🔗 EDGE PROPAGATION:")
-                    print(f"   Edge: {edge.source} -> {edge.target}")
-                    print(f"   Output field: {output_field_name}")
-                    print(f"   Target argument: {argument_name}")
-                    output_wrapper = node_update["outputs"][output_field_name]
-                    if hasattr(output_wrapper, "cache_key"):
-                        print(
-                            f"   Propagating: type={output_wrapper.type}, cacheKey={output_wrapper.cache_key}"
-                        )
-                    else:
-                        print(f"   Propagating: {output_wrapper}")
-
                 target_node.data.arguments[argument_name] = node_update["outputs"][
                     output_field_name
                 ].model_copy()
-
-                if VERBOSE:
-                    print(
-                        f"   ✅ Target node {edge.target} argument '{argument_name}' updated"
-                    )
 
         updates.append(node_update)
 
