@@ -1,6 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
-import OutputDisplay from "./output-display";
+import OutputDisplay from "./output-field-display";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
 import type { FrontendFieldDataWrapper } from "../../../types/types";
 import InspectableFieldWrapper from "../../inspector-sidebar/inspectable-field-wrapper";

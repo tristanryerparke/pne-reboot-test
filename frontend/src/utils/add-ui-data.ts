@@ -1,4 +1,4 @@
-import { TYPE_COMPONENT_REGISTRY } from "../components/custom-node/inputs/type-registry";
+import { TYPE_COMPONENT_REGISTRY } from "../components/custom-node/inputs/input-type-registry";
 
 /**
  * Initializes UI-specific data for arguments and outputs:

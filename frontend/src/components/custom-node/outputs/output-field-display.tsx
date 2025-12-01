@@ -1,6 +1,6 @@
 import OutputRenderer from "./output-renderer";
 import OutputMenu from "./output-menu";
-import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "./type-registry";
+import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "./output-type-registry";
 import type { FrontendFieldDataWrapper } from "../../../types/types";
 
 interface OutputDisplayProps {

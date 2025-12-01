@@ -1,8 +1,8 @@
 import { memo } from "react";
 import SingleLineTextDisplay from "../../../common/single-line-text-display";
 import useTypesStore from "@/stores/typesStore";
-import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "./type-registry";
-import type { OutputRendererProps } from "./type-registry";
+import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "./output-type-registry";
+import type { OutputRendererProps } from "./output-type-registry";
 
 export default memo(function OutputRenderer({
   outputData,

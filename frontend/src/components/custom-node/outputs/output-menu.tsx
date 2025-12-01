@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import useFlowStore from "../../../stores/flowStore";
-import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "./type-registry";
+import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "./output-type-registry";
 import type { FrontendFieldDataWrapper } from "../../../types/types";
 
 interface OutputMenuProps {

@@ -1,4 +1,4 @@
-import { TYPE_COMPONENT_REGISTRY } from "../../custom-node/inputs/type-registry";
+import { TYPE_COMPONENT_REGISTRY } from "../../custom-node/inputs/input-type-registry";
 import type { TypeInfo, PropertyType } from "@/stores/typesStore";
 
 function getPropertyTypeName(propType: PropertyType): string | null {

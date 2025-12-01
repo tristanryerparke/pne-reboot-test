@@ -6,7 +6,7 @@ import useTypesStore from "@/stores/typesStore";
 import ListDisplay from "@/common/list-display";
 import DictDisplay from "@/common/dict-display";
 import UserModelDisplay from "../../../common/user-model-display";
-import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
+import { TYPE_COMPONENT_REGISTRY } from "./input-type-registry";
 import type {
   FrontendFieldDataWrapper,
   StructDescr,
