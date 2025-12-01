@@ -53,7 +53,7 @@ def infer_concrete_type(value, type_descriptor, TYPES):
 @router.post("/graph_execute")
 async def execute_graph(graph: Graph):
     """Execute a graph containing nodes and edges"""
-    from app.server import TYPES, TYPES_DATAMODEL
+    from app.server import TYPES
 
     execution_list = topological_order(graph)
 
@@ -96,13 +96,14 @@ async def execute_graph(graph: Graph):
 
             # Infer the concrete type from the runtime value
             concrete_type = infer_concrete_type(new_value, data.type, TYPES)
+            type_info = TYPES[concrete_type]
 
-            # Check TYPES_DATAMODEL first for mapped types (e.g., Image -> CachedImage)
-            if concrete_type in TYPES_DATAMODEL:
-                output_class = TYPES_DATAMODEL[concrete_type]
+            # Check if type has referenced_datamodel (e.g., Image -> CachedImageDataModel)
+            if "referenced_datamodel" in type_info:
+                output_class = type_info["referenced_datamodel"]
             else:
-                # Fall back to TYPES for non-mapped types
-                output_class = TYPES[concrete_type]["_class"]
+                # Fall back to _class for types without mapping
+                output_class = type_info["_class"]
 
             # Programatically create the output data model with the concrete type
             output_data_model = output_class(
@@ -144,21 +145,20 @@ async def execute_graph(graph: Graph):
 def extract_argument_value(v):
     """Extract the actual value from a node argument, handling CachedDataModel and FieldDataWrapper"""
     if isinstance(v, CachedDataModel):
-        from app.server import TYPES, TYPES_DATAMODEL
+        from app.server import TYPES
 
         type_str = v.type if isinstance(v.type, str) else v.type
-
-        # Check TYPES_DATAMODEL first for mapped types (e.g., Image -> CachedImage)
-        if type_str in TYPES_DATAMODEL:
-            cached_class = TYPES_DATAMODEL[type_str]
-            cached_instance = cached_class.from_cache_key(v.cache_key)
-            # Return the actual value (e.g., PIL Image object) not the wrapper
-            return cached_instance.value
-
-        # Fall back to TYPES for directly cached types
         type_info = TYPES[type_str]
-        cached_class = type_info["_class"]
-        return cached_class.from_cache_key(v.cache_key).value
+
+        # Check if type has referenced_datamodel (e.g., Image -> CachedImageDataModel)
+        if "referenced_datamodel" in type_info:
+            datamodel_class = type_info["referenced_datamodel"]
+            instance = datamodel_class.from_cache_key(v.cache_key)
+            return instance.value
+        else:
+            # Fall back to _class for types without mapping
+            cached_class = type_info["_class"]
+            return cached_class.from_cache_key(v.cache_key).value
     elif hasattr(v, "value"):
         return v.value
     else:

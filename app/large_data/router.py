@@ -40,7 +40,11 @@ async def upload_large_data(upload: LargeDataUpload):
             )
 
         # Get the class from the type info
-        cached_data_class = type_info["_class"]
+        # Check for referenced_datamodel first (for third-party types like PIL.Image.Image)
+        if "referenced_datamodel" in type_info:
+            cached_data_class = type_info["referenced_datamodel"]
+        else:
+            cached_data_class = type_info["_class"]
 
         # Verify it's a CachedDataModel subclass
         if not issubclass(cached_data_class, CachedDataModel):

@@ -13,14 +13,13 @@ from app.large_data.router import router as large_data_router
 FUNCTION_SCHEMAS = []
 CALLABLES = {}
 TYPES = {}
-TYPES_DATAMODEL = {}
 VERBOSE = False
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager to load functions and types from the provided path arguments"""
-    global FUNCTION_SCHEMAS, CALLABLES, TYPES, TYPES_DATAMODEL
+    global FUNCTION_SCHEMAS, CALLABLES, TYPES
     args = sys.argv[1:]
     if len(args) == 0:
         print("No arguments provided")
@@ -33,19 +32,15 @@ async def lifespan(app: FastAPI):
             print(f"The path {search_path} does not exist")
             sys.exit(1)
 
-    function_schemas, callables, types, types_datamodel = analyze_file_structure(
-        search_paths
-    )
+    function_schemas, callables, types = analyze_file_structure(search_paths)
     FUNCTION_SCHEMAS.extend(function_schemas)
     CALLABLES.update(callables)
     TYPES.update(types)
-    TYPES_DATAMODEL.update(types_datamodel)
 
     if VERBOSE:
         print(f"Found {len(FUNCTION_SCHEMAS)} functions and {len(TYPES)} types")
         d(FUNCTION_SCHEMAS)
         d(TYPES)
-        d(TYPES_DATAMODEL)
 
     yield
 
@@ -78,8 +73,13 @@ async def get_types():
     # d(types)
     types_stripped = {}
     for k, v in TYPES.items():
-        if isinstance(v, dict) and "_class" in v:
-            v_copy = {key: value for key, value in v.items() if key != "_class"}
+        if isinstance(v, dict):
+            # Remove non-serializable fields (_class and referenced_datamodel)
+            v_copy = {
+                key: value
+                for key, value in v.items()
+                if key not in ("_class", "referenced_datamodel")
+            }
         else:
             v_copy = v
         types_stripped[k] = v_copy

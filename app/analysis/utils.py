@@ -85,7 +85,7 @@ def analyze_file(file_path: str):
         spec.loader.exec_module(module)
     except Exception as e:
         print(f"Module '{file_path}' could not be imported: {e}")
-        return [], {}, {}, {}
+        return [], {}, {}
 
     # Find all functions in the module
     funcs = {
@@ -97,13 +97,10 @@ def analyze_file(file_path: str):
     functions_schemas_list = []
     callables_dict = {}
     types_dict = {}
-    types_datamodel_dict = {}
 
     # Analyze each function and populate the dictionaries
     for func_name, func_obj in funcs.items():
-        callable_id, func_schema, callable_obj, func_types, func_types_datamodel = (
-            analyze_function(func_obj)
-        )
+        callable_id, func_schema, callable_obj, func_types = analyze_function(func_obj)
 
         # Store the function schema
         functions_schemas_list.append(func_schema)
@@ -114,10 +111,7 @@ def analyze_file(file_path: str):
         # Merge the types found in this function into the file's types_dict
         merge_types_dict(types_dict, func_types)
 
-        # Merge the types_datamodel mappings
-        types_datamodel_dict.update(func_types_datamodel)
-
-    return functions_schemas_list, callables_dict, types_dict, types_datamodel_dict
+    return functions_schemas_list, callables_dict, types_dict
 
 
 def analyze_files(py_files: list[str], base_dir: str):
@@ -126,7 +120,6 @@ def analyze_files(py_files: list[str], base_dir: str):
     all_function_schemas = []
     all_callables = {}
     all_types = {}
-    all_types_datamodel = {}
 
     # Add the base directory to sys.path
     if base_dir not in sys.path:
@@ -136,9 +129,7 @@ def analyze_files(py_files: list[str], base_dir: str):
         print(f"Analyzing {py_file}:")
 
         # Analyze the file
-        file_functions, file_callables, file_types, file_types_datamodel = analyze_file(
-            py_file
-        )
+        file_functions, file_callables, file_types = analyze_file(py_file)
 
         # Merge functions schemas from this file
         all_function_schemas.extend(file_functions)
@@ -149,9 +140,6 @@ def analyze_files(py_files: list[str], base_dir: str):
 
         # Merge types from this file
         merge_types_dict(all_types, file_types)
-
-        # Merge types_datamodel from this file
-        all_types_datamodel.update(file_types_datamodel)
 
     const_deconst_model_schemas, const_deconst_callables = create_const_deconst_models(
         all_types
@@ -164,7 +152,7 @@ def analyze_files(py_files: list[str], base_dir: str):
     # Check for duplicate callable_ids
     check_for_duplicate_callable_ids(all_function_schemas)
 
-    return all_function_schemas, all_callables, all_types, all_types_datamodel
+    return all_function_schemas, all_callables, all_types
 
 
 def analyze_file_structure(search_paths: str | list[str]):
