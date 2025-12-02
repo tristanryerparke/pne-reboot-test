@@ -55,6 +55,9 @@ export default memo(function SyncedResizable({
     // Non-active components use full width of parent
     return {
       width: "100%",
+      display: "flex",
+      flex: 1,
+      flexGrow: 1,
       height: storedHeight || defaultSize.height,
     };
   }, [
