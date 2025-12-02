@@ -6,7 +6,7 @@ from examples.images.cached_image import CachedImageDataModel
 
 
 @add_node_options(
-    return_value_name="image_blurred",
+    # return_value_name="image_blurred",
     cached_types=[
         {"argument_type": Image, "associated_datamodel": CachedImageDataModel}
     ],

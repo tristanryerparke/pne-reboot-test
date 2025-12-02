@@ -88,30 +88,32 @@ export default memo(function ImageExpanded({
   const hasImage = !!imageValue?._preview;
 
   return (
-    <SyncedResizable
-      path={path}
-      defaultSize={DEFAULT_AND_MIN_SIZE}
-      minSize={DEFAULT_AND_MIN_SIZE}
-      maxSize={MAX_SIZE}
-    >
-      <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden">
-        {hasImage ? (
-          <img
-            src={`data:image/webp;base64,${imageValue._preview}`}
-            alt="Preview"
-            style={imageStyle}
-            className="max-w-full max-h-full"
-            draggable={false}
-          />
-        ) : (
-          <span className="text-sm text-muted-foreground">No image</span>
-        )}
-      </div>
+    <div>
+      <SyncedResizable
+        path={path}
+        defaultSize={DEFAULT_AND_MIN_SIZE}
+        minSize={DEFAULT_AND_MIN_SIZE}
+        maxSize={MAX_SIZE}
+      >
+        <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden">
+          {hasImage ? (
+            <img
+              src={`data:image/webp;base64,${imageValue._preview}`}
+              alt="Preview"
+              style={imageStyle}
+              className="max-w-full max-h-full"
+              draggable={false}
+            />
+          ) : (
+            <span className="text-sm text-muted-foreground">No image</span>
+          )}
+        </div>
+      </SyncedResizable>
       {hasImage && imageValue._width && imageValue._height && (
         <p className="text-xs text-muted-foreground mt-1">
           {imageValue._width} × {imageValue._height} ({imageValue._mode})
         </p>
       )}
-    </SyncedResizable>
+    </div>
   );
 });

@@ -27,7 +27,7 @@ export function SearchBar({
           value={searchTerm}
           onChange={(event) => onSearchChange(event.currentTarget.value)}
           placeholder={placeholder}
-          className="pl-8"
+          className="pl-8 w-full min-h-9"
           aria-label={ariaLabel}
         />
       </div>

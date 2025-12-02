@@ -37,7 +37,7 @@ export default function InputFieldHandleWrapper({
         <Tooltip>
           <TooltipTrigger asChild>
             {/*The padding happens here*/}
-            <div className="pl-2 pr-1 py-1.5">
+            <div className="pl-2 pr-1 py-1">
               <InputFieldDisplay fieldData={fieldData} path={path} />
             </div>
           </TooltipTrigger>

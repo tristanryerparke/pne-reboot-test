@@ -57,39 +57,18 @@ export default memo(function InputFieldDisplay({
       // actualType is StructDescr or UnionDescr, handle below
     } else {
       const registryEntry = TYPE_COMPONENT_REGISTRY[actualType];
-      if (registryEntry) {
-        // Handle registry entries with main/expanded pattern
-        if (typeof registryEntry === "object" && "main" in registryEntry) {
-          const Component = registryEntry.main;
-          return (
-            <Component
-              inputData={{ ...fieldData, type: actualType }}
-              path={path}
-            />
-          );
-        } else if (
-          typeof registryEntry === "object" &&
-          "anyOf" in registryEntry
-        ) {
-          // Legacy anyOf pattern support
-          const components = registryEntry.anyOf;
-          const Component = components[0];
-          return (
-            <Component
-              inputData={{ ...fieldData, type: actualType }}
-              path={path}
-            />
-          );
-        } else {
-          // Direct component reference (legacy support)
-          const Component = registryEntry;
-          return (
-            <Component
-              inputData={{ ...fieldData, type: actualType }}
-              path={path}
-            />
-          );
-        }
+      if (
+        registryEntry &&
+        typeof registryEntry === "object" &&
+        "main" in registryEntry
+      ) {
+        const Component = registryEntry.main;
+        return (
+          <Component
+            inputData={{ ...fieldData, type: actualType }}
+            path={path}
+          />
+        );
       }
     }
 
@@ -164,7 +143,7 @@ export default memo(function InputFieldDisplay({
 
   return (
     <div className="flex flex-col flex-1 gap-1.5">
-      <div className="flex flex-1 items-center gap-1 h-8">
+      <div className="flex flex-1 items-center gap-1">
         {isEditableKey ? (
           <EditableKey fieldName={fieldName} path={path} />
         ) : (

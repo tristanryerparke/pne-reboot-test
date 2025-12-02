@@ -14,7 +14,8 @@ export default function SingleLineTextDisplay({
   return (
     <div
       className={cn(
-        "flex flex-1 h-8  rounded-md border dark:bg-input/30 px-2 py-1 text-base shadow-xs border-input overflow-hidden items-center",
+        "flex flex-1 min-w-20 truncate",
+        "h-8  rounded-md border dark:bg-input/30 px-2 py-1 text-base shadow-xs border-input overflow-hidden items-center",
         dimmed && "text-gray-400",
         disabled && "opacity-50 cursor-not-allowed",
       )}
