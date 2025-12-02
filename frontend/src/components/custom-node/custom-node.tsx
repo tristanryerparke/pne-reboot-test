@@ -17,12 +17,10 @@ export default memo(function CustomNode({
 
   const path = [id];
 
-  // console.log(data);
-
   return (
     <div
       ref={nodeRef}
-      className="relative w-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
+      className="w-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
     >
       <InspectableFieldWrapper path={path}>
         <div>

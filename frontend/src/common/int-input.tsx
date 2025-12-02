@@ -44,14 +44,16 @@ export default memo(function IntInput({ inputData, path }: IntInputProps) {
   };
 
   return (
-    <NumberInput
-      value={value}
-      decimalScale={0}
-      onValueChange={handleValueChange}
-      onBlur={() => handleValueChange(value)}
-      disabled={isConnected}
-      className="nodrag nopan noscroll h-9 w-full min-w-20"
-      placeholder="Enter integer"
-    />
+    <div className="flex flex-1 min-w-40 nodrag nopan noscroll h-9">
+      <NumberInput
+        value={value}
+        decimalScale={0}
+        onValueChange={handleValueChange}
+        onBlur={() => handleValueChange(value)}
+        disabled={isConnected}
+        className="nodrag nopan noscroll h-9"
+        placeholder="Enter integer"
+      />
+    </div>
   );
 });

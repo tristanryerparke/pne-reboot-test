@@ -11,7 +11,7 @@ export default memo(function NodeHeader({ data }: NodeHeaderProps) {
   }
 
   return (
-    <div className="h-fit flex items-center p-1 w-fit min-w-full">
+    <div className="h-fit flex items-center p-1 w-full">
       <span className="px-1 text-sm font-bold shrink-0">{data.name}</span>
     </div>
   );

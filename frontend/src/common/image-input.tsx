@@ -49,8 +49,6 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
 
   // Check if there's image data
   const hasImage = !!(inputData as any).cacheKey;
-  const width = (inputData as any)._width;
-  const height = (inputData as any)._height;
   const storedFilename = (inputData as any).filename;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -48,10 +48,10 @@ export default function Inputs({ arguments: args, path }: InputsProps) {
   const hasExistingArguments = Object.keys(args || {}).length !== 0;
 
   return (
-    <div className="w-full min-w-0">
+    <div className="flex flex-col">
       {sortedArguments.map(([argName, argData], index) => {
         return (
-          <div key={argName} className="w-full">
+          <div key={argName} className="flex-1">
             {index > 0 && <Separator className="w-full" />}
             <InputFieldHandleWrapper
               fieldData={argData}

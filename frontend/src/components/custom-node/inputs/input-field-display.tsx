@@ -153,7 +153,7 @@ export default memo(function InputFieldDisplay({
 
     const ExpandedComponent = expandedComponent;
     return (
-      <div className="pr-0.5">
+      <div className="pr-0.5 flex-1">
         <ExpandedComponent
           inputData={{ ...fieldData, type: actualType }}
           path={path}
@@ -163,15 +163,15 @@ export default memo(function InputFieldDisplay({
   };
 
   return (
-    <div className="flex flex-col w-full gap-1.5">
-      <div className="flex w-full items-center gap-1 h-8">
+    <div className="flex flex-col flex-1 gap-1.5">
+      <div className="flex flex-1 items-center gap-1 h-8">
         {isEditableKey ? (
           <EditableKey fieldName={fieldName} path={path} />
         ) : (
           <span className="shrink-0">{fieldName}</span>
         )}
         <span className="shrink-0">:</span>
-        <div className="flex-1">{renderMainInput()}</div>
+        <div className="flex-1 min-w-0">{renderMainInput()}</div>
         <InputMenu path={path} fieldData={fieldData} />
       </div>
       {renderExpandedContent()}

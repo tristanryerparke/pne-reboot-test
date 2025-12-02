@@ -46,7 +46,7 @@ export default memo(function FloatInput({ inputData, path }: FloatInputProps) {
       onValueChange={handleValueChange}
       onBlur={() => handleValueChange(value)}
       disabled={isConnected}
-      className="nodrag nopan noscroll h-9 w-full min-w-20"
+      className="nodrag nopan noscroll h-9"
       placeholder="Enter float"
     />
   );

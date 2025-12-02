@@ -1,7 +1,7 @@
-import { memo, useState, useMemo } from "react";
+import { memo, useMemo } from "react";
 import type { CSSProperties } from "react";
-import { Resizable } from "re-resizable";
-import { CustomHandle } from "./expanded-constants";
+import SyncedResizable from "./synced-resizable";
+import { useNodeData } from "@/stores/flowStore";
 import type { FrontendFieldDataWrapper } from "@/types/types";
 
 interface ImageExpandedProps {
@@ -10,19 +10,20 @@ interface ImageExpandedProps {
   path: (string | number)[];
 }
 
-interface Size {
-  width: number;
-  height: number;
-}
+const DEFAULT_AND_MIN_SIZE = {
+  width: 270,
+  height: 270,
+};
 
-const DEFAULT_AND_MIN_SIZE: Size = {
-  width: 260,
-  height: 260,
+const MAX_SIZE = {
+  width: 800,
+  height: 800,
 };
 
 export default memo(function ImageExpanded({
   inputData,
   outputData,
+  path,
 }: ImageExpandedProps) {
   // Support both inputData and outputData
   const data = inputData || outputData;
@@ -32,17 +33,36 @@ export default memo(function ImageExpanded({
 
   // Image data is stored directly on the data object (from image-input.tsx)
   // Check if data has the image properties directly or in value
-  const imageValue = (data as any)._preview
-    ? data
-    : (data.value as {
-        cacheKey?: string;
-        _width?: number;
-        _height?: number;
-        _mode?: string;
-        _preview?: string;
-      } | null);
+  const imageValue = (
+    (data as any)._preview
+      ? data
+      : (data.value as {
+          cacheKey?: string;
+          _width?: number;
+          _height?: number;
+          _mode?: string;
+          _preview?: string;
+        } | null)
+  ) as {
+    cacheKey?: string;
+    _width?: number;
+    _height?: number;
+    _mode?: string;
+    _preview?: string;
+  } | null;
 
-  const [currentSize, setCurrentSize] = useState<Size>(DEFAULT_AND_MIN_SIZE);
+  // Get current size from the synced resizable component
+  const storedWidth = useNodeData([...path, "_expandedWidth"]) as
+    | number
+    | undefined;
+  const storedHeight = useNodeData([...path, "_expandedHeight"]) as
+    | number
+    | undefined;
+
+  const currentSize = {
+    width: storedWidth || DEFAULT_AND_MIN_SIZE.width,
+    height: storedHeight || DEFAULT_AND_MIN_SIZE.height,
+  };
 
   // Calculate image style to maintain aspect ratio within container
   const imageStyle = useMemo((): CSSProperties | undefined => {
@@ -68,61 +88,30 @@ export default memo(function ImageExpanded({
   const hasImage = !!imageValue?._preview;
 
   return (
-    <div className="w-full">
-      <Resizable
-        size={currentSize}
-        minHeight={DEFAULT_AND_MIN_SIZE.height}
-        minWidth={DEFAULT_AND_MIN_SIZE.width}
-        maxHeight={800}
-        maxWidth={800}
-        enable={{
-          top: false,
-          right: true,
-          bottom: true,
-          left: false,
-          topRight: false,
-          bottomRight: true,
-          bottomLeft: false,
-          topLeft: false,
-        }}
-        handleComponent={{
-          bottomRight: <CustomHandle />,
-        }}
-        handleStyles={{
-          bottomRight: {
-            bottom: "4px",
-            right: "4px",
-            width: "16px",
-            height: "16px",
-          },
-        }}
-        className="nodrag"
-        onResizeStop={(_e, _direction, _ref, d) => {
-          setCurrentSize({
-            width: currentSize.width + d.width,
-            height: currentSize.height + d.height,
-          });
-        }}
-      >
-        <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden">
-          {hasImage ? (
-            <img
-              src={`data:image/webp;base64,${imageValue._preview}`}
-              alt="Preview"
-              style={imageStyle}
-              className="max-w-full max-h-full"
-              draggable={false}
-            />
-          ) : (
-            <span className="text-sm text-muted-foreground">No image</span>
-          )}
-        </div>
-      </Resizable>
+    <SyncedResizable
+      path={path}
+      defaultSize={DEFAULT_AND_MIN_SIZE}
+      minSize={DEFAULT_AND_MIN_SIZE}
+      maxSize={MAX_SIZE}
+    >
+      <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden">
+        {hasImage ? (
+          <img
+            src={`data:image/webp;base64,${imageValue._preview}`}
+            alt="Preview"
+            style={imageStyle}
+            className="max-w-full max-h-full"
+            draggable={false}
+          />
+        ) : (
+          <span className="text-sm text-muted-foreground">No image</span>
+        )}
+      </div>
       {hasImage && imageValue._width && imageValue._height && (
         <p className="text-xs text-muted-foreground mt-1">
           {imageValue._width} × {imageValue._height} ({imageValue._mode})
         </p>
       )}
-    </div>
+    </SyncedResizable>
   );
 });

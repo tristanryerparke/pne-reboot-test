@@ -50,7 +50,7 @@ export default memo(function StringInput({
 
   // Render transparent div when expanded
   if (isExpanded) {
-    return <div className="h-9 w-full min-w-20 bg-transparent" />;
+    return <div className="h-9 flex-1 bg-transparent" />;
   }
 
   return (
@@ -60,7 +60,7 @@ export default memo(function StringInput({
       onChange={handleValueChange}
       onBlur={(e) => setValue(e.target.value)}
       disabled={isConnected}
-      className="nodrag nopan noscroll h-9 w-full min-w-20"
+      className="nodrag nopan noscroll h-9"
       placeholder="Enter text"
     />
   );

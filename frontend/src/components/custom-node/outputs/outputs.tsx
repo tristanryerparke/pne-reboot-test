@@ -12,13 +12,13 @@ interface OutputsProps {
 
 export default function Outputs({ data, path }: OutputsProps) {
   return (
-    <div className="w-full min-w-0">
+    <div className="flex flex-col">
       {Object.entries(data.outputs).map(
         (
           [outputName, outputDef]: [string, FrontendFieldDataWrapper],
           index,
         ) => (
-          <div key={outputName} className="w-full">
+          <div key={outputName} className="flex-1">
             {index > 0 && <Separator className="w-full" />}
             <OutputFieldHandleWrapper
               fieldData={outputDef}
