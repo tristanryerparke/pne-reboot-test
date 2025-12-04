@@ -49,7 +49,7 @@ export default function SyncedResizable({
 
     // Update the shared width at the node level (all components will see this)
     updateNodeData([nodeId, "_expandedComponentWidth"], newWidth, {
-      prefix: "shared width update",
+      suppress: true,
     });
   };
 

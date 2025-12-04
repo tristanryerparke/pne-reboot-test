@@ -7,10 +7,8 @@ import { TYPE_COMPONENT_REGISTRY } from "../components/custom-node/inputs/input-
  * This should be called when creating a new node (e.g., on drop).
  */
 export function initializeUIData(nodeData: any): void {
-  // Initialize _latestResized to track which expanded component was last resized
-  if (nodeData._latestResized === undefined) {
-    nodeData._latestResized = null;
-  }
+  // Note: _expandedComponentWidth is not initialized here
+  // It will be set dynamically when the first component is resized
 
   // Initialize arguments
   if (nodeData.arguments) {
