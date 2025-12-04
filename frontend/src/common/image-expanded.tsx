@@ -1,7 +1,5 @@
-import { memo, useMemo } from "react";
-import type { CSSProperties } from "react";
+import { memo } from "react";
 import SyncedResizable from "./synced-resizable";
-import { useNodeData } from "@/stores/flowStore";
 import type { FrontendFieldDataWrapper } from "@/types/types";
 
 interface ImageExpandedProps {
@@ -11,8 +9,8 @@ interface ImageExpandedProps {
 }
 
 const DEFAULT_AND_MIN_SIZE = {
-  width: 270,
-  height: 270,
+  width: 200,
+  height: 200,
 };
 
 const MAX_SIZE = {
@@ -51,44 +49,10 @@ export default memo(function ImageExpanded({
     _preview?: string;
   } | null;
 
-  // Get current size from the synced resizable component
-  const storedWidth = useNodeData([...path, "_expandedWidth"]) as
-    | number
-    | undefined;
-  const storedHeight = useNodeData([...path, "_expandedHeight"]) as
-    | number
-    | undefined;
-
-  const currentSize = {
-    width: storedWidth || DEFAULT_AND_MIN_SIZE.width,
-    height: storedHeight || DEFAULT_AND_MIN_SIZE.height,
-  };
-
-  // Calculate image style to maintain aspect ratio within container
-  const imageStyle = useMemo((): CSSProperties | undefined => {
-    if (!imageValue?._width || !imageValue?._height) return undefined;
-
-    const containerRatio = currentSize.width / currentSize.height;
-    const imageRatio = imageValue._width / imageValue._height;
-
-    return {
-      aspectRatio: `${imageValue._width} / ${imageValue._height}`,
-      width:
-        containerRatio < imageRatio
-          ? `min(${imageValue._width}px, 100%)`
-          : undefined,
-      height:
-        containerRatio < imageRatio
-          ? undefined
-          : `min(${imageValue._height}px, 100%)`,
-      objectFit: "contain",
-    };
-  }, [currentSize, imageValue?._width, imageValue?._height]);
-
   const hasImage = !!imageValue?._preview;
 
   return (
-    <div>
+    <div className="w-full h-full">
       <SyncedResizable
         path={path}
         defaultSize={DEFAULT_AND_MIN_SIZE}
@@ -100,8 +64,7 @@ export default memo(function ImageExpanded({
             <img
               src={`data:image/webp;base64,${imageValue._preview}`}
               alt="Preview"
-              style={imageStyle}
-              className="max-w-full max-h-full"
+              className="w-full h-full object-contain"
               draggable={false}
             />
           ) : (

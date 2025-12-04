@@ -30,7 +30,11 @@ type FlowStoreActions = {
   onNodesChange: OnNodesChange<FunctionNode>;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
-  updateNodeData: (path: (string | number)[], newData: unknown) => void;
+  updateNodeData: (
+    path: (string | number)[],
+    newData: unknown,
+    options?: { suppress?: boolean; prefix?: string },
+  ) => void;
   getNodeData: (path: (string | number)[]) => unknown;
   deleteNodeData: (path: (string | number)[]) => void;
 };
@@ -82,7 +86,8 @@ const useFlowStore = createWithEqualityFn<
 
       setRfInstance: (instance) => set({ rfInstance: instance }),
 
-      updateNodeData: (path, newData) => {
+      updateNodeData: (path, newData, options = {}) => {
+        const { suppress = false, prefix = "" } = options;
         const oldValue = get().getNodeData(path);
 
         set(
@@ -112,7 +117,17 @@ const useFlowStore = createWithEqualityFn<
           }),
         );
 
-        console.log("updating ", path, "\n from", oldValue, "to", newData);
+        if (!suppress) {
+          const message = prefix ? `${prefix} ` : "";
+          console.log(
+            `${message}updating `,
+            path,
+            "\n from",
+            oldValue,
+            "to",
+            newData,
+          );
+        }
       },
 
       getNodeData: (path) => {

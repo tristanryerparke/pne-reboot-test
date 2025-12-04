@@ -5,6 +5,7 @@ import Outputs from "./outputs/outputs";
 import { Separator } from "../ui/separator";
 import type { FunctionSchema } from "../../types/types";
 import InspectableFieldWrapper from "../inspector-sidebar/inspectable-field-wrapper";
+import { useNodeData } from "@/stores/flowStore";
 
 export default memo(function CustomNode({
   data,
@@ -16,6 +17,11 @@ export default memo(function CustomNode({
   const nodeRef = useRef<HTMLDivElement>(null);
 
   const path = [id];
+
+  // Subscribe to _latestResized and _resizing to trigger re-renders when resizing occurs
+  // This ensures the parent node recalculates its w-fit size during drag
+  useNodeData([id, "_latestResized"]);
+  useNodeData([id, "_resizing"]);
 
   return (
     <div
