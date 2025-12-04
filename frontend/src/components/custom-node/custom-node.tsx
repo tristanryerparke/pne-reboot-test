@@ -18,9 +18,8 @@ export default memo(function CustomNode({
 
   const path = [id];
 
-  // Subscribe to _latestResized and _resizing to trigger re-renders when resizing occurs
+  // Subscribe to _resizing to trigger re-renders when resizing occurs
   // This ensures the parent node recalculates its w-fit size during drag
-  useNodeData([id, "_latestResized"]);
   useNodeData([id, "_resizing"]);
 
   return (

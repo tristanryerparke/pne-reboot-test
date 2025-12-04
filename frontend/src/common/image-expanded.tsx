@@ -52,7 +52,7 @@ export default memo(function ImageExpanded({
   const hasImage = !!imageValue?._preview;
 
   return (
-    <div className="w-full h-full">
+    <div className="flex flex-col flex-1">
       <SyncedResizable
         path={path}
         defaultSize={DEFAULT_AND_MIN_SIZE}

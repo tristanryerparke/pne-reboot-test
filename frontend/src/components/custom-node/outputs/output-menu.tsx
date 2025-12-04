@@ -55,35 +55,6 @@ export default function OutputMenu({ path, fieldData }: OutputMenuProps) {
   const handleToggleExpanded = () => {
     const newExpandedState = !isExpanded;
     updateNodeData([...path, "_expanded"], newExpandedState);
-
-    // If expanding (maximizing), add this path to the _latestResized array
-    if (newExpandedState && nodeId) {
-      const currentLatestResized =
-        (getNodeData([nodeId, "_latestResized"]) as
-          | (string | number)[][]
-          | null) || [];
-      const pathString = path.join(":");
-
-      // Remove this path if it already exists in the array
-      const filteredArray = currentLatestResized.filter(
-        (p) => p.join(":") !== pathString,
-      );
-
-      // Append this path to the end of the array
-      const newLatestResized = [...filteredArray, path];
-      updateNodeData([nodeId, "_latestResized"], newLatestResized);
-    } else if (!newExpandedState && nodeId) {
-      // If minimizing, remove this path from the _latestResized array
-      const currentLatestResized =
-        (getNodeData([nodeId, "_latestResized"]) as
-          | (string | number)[][]
-          | null) || [];
-      const pathString = path.join(":");
-      const newLatestResized = currentLatestResized.filter(
-        (p) => p.join(":") !== pathString,
-      );
-      updateNodeData([nodeId, "_latestResized"], newLatestResized);
-    }
   };
 
   return (

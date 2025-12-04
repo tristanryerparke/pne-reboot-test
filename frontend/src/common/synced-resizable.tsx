@@ -1,7 +1,7 @@
-import { useRef, useCallback, useMemo, type ReactNode } from "react";
+import { useRef, useState, useEffect, type ReactNode } from "react";
 import { Resizable } from "re-resizable";
-import type { ResizeCallback } from "re-resizable";
 import { CustomHandle } from "./expanded-constants";
+import { useNodeData } from "@/stores/flowStore";
 import useFlowStore from "@/stores/flowStore";
 
 interface SyncedResizableProps {
@@ -22,84 +22,155 @@ export default function SyncedResizable({
   className = "",
 }: SyncedResizableProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
-  const nodeId = path[0];
 
-  // Memoized selector for shared width - only re-renders when this specific value changes
-  const sharedWidth = useFlowStore(
-    useCallback(
-      (state) => {
-        const node = state.nodes.find((n) => n.id === nodeId);
-        return (
-          (node?.data._expandedComponentWidth as number | undefined) ||
-          defaultSize.width
-        );
-      },
-      [nodeId, defaultSize.width],
-    ),
+  // Track if this specific component is resizing
+  const [amIResizing, setAmIResizing] = useState(false);
+
+  // Check who is currently resizing in this node
+  const whoIsResizing = useNodeData([path[0], "_whoIsResizing"]) as
+    | string
+    | undefined;
+  const myPathKey = path.join(".");
+  const isSomeoneElseResizing = Boolean(
+    whoIsResizing && whoIsResizing !== myPathKey,
   );
 
-  // Memoized path for stored size lookup
-  const sizePath = useMemo(() => [...path, "_expandedSize"], [path]);
-
-  // Memoized selector for component height
-  const componentHeight = useFlowStore(
-    useCallback(
-      (state) => {
-        const node = state.nodes.find((n) => n.id === path[0]);
-        if (!node) return defaultSize.height;
-
-        let current = node.data;
-        const pathToProperty = sizePath.slice(1);
-
-        for (let i = 0; i < pathToProperty.length; i++) {
-          if (current?.[pathToProperty[i]] === undefined) {
-            return defaultSize.height;
-          }
-          current = current[pathToProperty[i]];
-        }
-
-        return (
-          (current as { width: number; height: number } | undefined)?.height ||
-          defaultSize.height
-        );
-      },
-      [path, sizePath, defaultSize.height],
-    ),
-  );
+  // Get stored height using useNodeData
+  const storedSize = useNodeData([...path, "_expandedSize"]) as
+    | { width: number; height: number }
+    | undefined;
+  const storedHeight = storedSize?.height || defaultSize.height;
+  let storedWidth: string | number;
+  if (amIResizing) {
+    storedWidth = "auto";
+  } else if (isSomeoneElseResizing) {
+    storedWidth = "100%";
+  } else {
+    storedWidth = storedSize?.width || defaultSize.width;
+  }
 
   const resizableRef = useRef<Resizable>(null);
 
-  // All components use the shared width
-  const currentSize = {
-    width: sharedWidth,
-    height: componentHeight,
-  };
+  // Initialize store with default size if not present
+  useEffect(() => {
+    if (!storedSize) {
+      updateNodeData([...path, "_expandedSize"], defaultSize, {
+        suppress: true,
+      });
+    }
+  }, [storedSize, path, defaultSize, updateNodeData]);
 
-  const handleResize: ResizeCallback = (_e, _direction, _ref) => {
-    const newWidth = _ref.offsetWidth;
+  // Track the latest observed size
+  const latestObservedSize = useRef<{ width: number; height: number } | null>(
+    null,
+  );
 
-    // Update the shared width at the node level (all components will see this)
-    updateNodeData([nodeId, "_expandedComponentWidth"], newWidth, {
+  // Use ResizeObserver to track actual rendered size when someone else is resizing
+  useEffect(() => {
+    if (!resizableRef.current || amIResizing) return;
+
+    const element = resizableRef.current.resizable;
+    if (!element) return;
+
+    // Only observe when someone else is resizing (width is "100%")
+    if (!isSomeoneElseResizing) return;
+
+    // console.log(`[${myPathKey}] Starting ResizeObserver`);
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        // contentRect gives us the actual content dimensions
+        const { width, height } = entry.contentRect;
+        // console.log(
+        //   `[${myPathKey}] ResizeObserver: width = ${width}, height = ${height}`,
+        // );
+
+        // Store in ref for later use
+        latestObservedSize.current = {
+          width: Math.round(width),
+          height: Math.round(height),
+        };
+      }
+    });
+
+    resizeObserver.observe(element);
+
+    return () => {
+      // console.log(`[${myPathKey}] Stopping ResizeObserver`);
+      resizeObserver.disconnect();
+    };
+  }, [isSomeoneElseResizing, amIResizing, myPathKey]);
+
+  // Watch for falling edge when someone else stops resizing
+  const prevWhoIsResizingRef = useRef(whoIsResizing);
+  useEffect(() => {
+    const prevWhoIsResizing = prevWhoIsResizingRef.current;
+    const currentWhoIsResizing = whoIsResizing;
+
+    // Check if someone else (not me) was resizing before
+    const wasSomeoneElseResizing =
+      prevWhoIsResizing && prevWhoIsResizing !== myPathKey;
+    // Check if someone else (not me) is resizing now
+    const isSomeoneElseResizingNow =
+      currentWhoIsResizing && currentWhoIsResizing !== myPathKey;
+
+    // Detect falling edge: someone else was resizing, but now they stopped
+    if (wasSomeoneElseResizing && !isSomeoneElseResizingNow) {
+      console.log(`[${myPathKey}] Watcher: Someone else stopped resizing`);
+
+      if (latestObservedSize.current) {
+        console.log(
+          `[${myPathKey}] Watcher: Using observed size =`,
+          latestObservedSize.current,
+        );
+
+        updateNodeData([...path, "_expandedSize"], latestObservedSize.current, {
+          prefix: "(synced-resizable-watcher)",
+        });
+
+        // Clear the observed size
+        latestObservedSize.current = null;
+      }
+    }
+
+    // Update the ref for next comparison
+    prevWhoIsResizingRef.current = whoIsResizing;
+  }, [whoIsResizing, myPathKey, path, updateNodeData]);
+
+  function handleResizeStart(): void {
+    // Set this component as the one resizing
+    setAmIResizing(true);
+    updateNodeData([path[0], "_whoIsResizing"], myPathKey, {
       suppress: true,
     });
-  };
+  }
 
-  const handleResizeStop: ResizeCallback = (_e, _direction, ref) => {
-    const newWidth = ref.offsetWidth;
-    const newHeight = ref.offsetHeight;
-
-    // Store the final dimensions when resize is complete
-    updateNodeData(
-      [...path, "_expandedSize"],
-      { width: newWidth, height: newHeight },
-      { prefix: "component resize complete" },
-    );
-  };
+  function handleResizeStop(): void {
+    // Clear the resizing flag and store the final size
+    if (resizableRef.current) {
+      const element = resizableRef.current.resizable;
+      if (element) {
+        const computedWidth = element.offsetWidth;
+        const computedHeight = element.offsetHeight;
+        updateNodeData(
+          [...path, "_expandedSize"],
+          { width: computedWidth, height: computedHeight },
+          {
+            prefix: "(synced-resizable)",
+          },
+        );
+      }
+    }
+    setAmIResizing(false);
+    updateNodeData([path[0], "_whoIsResizing"], undefined, {
+      suppress: true,
+    });
+  }
 
   return (
     <Resizable
       ref={resizableRef}
-      size={currentSize}
+      size={{ width: storedWidth, height: storedHeight }}
       minHeight={minSize.height}
       minWidth={minSize.width}
       maxHeight={maxSize.height}
@@ -126,7 +197,7 @@ export default function SyncedResizable({
         },
       }}
       className={`nodrag ${className}`}
-      onResize={handleResize}
+      onResizeStart={handleResizeStart}
       onResizeStop={handleResizeStop}
     >
       {children}
