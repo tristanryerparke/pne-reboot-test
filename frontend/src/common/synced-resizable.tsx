@@ -1,8 +1,7 @@
-import { useRef, type ReactNode } from "react";
+import { useRef, useCallback, useMemo, type ReactNode } from "react";
 import { Resizable } from "re-resizable";
 import type { ResizeCallback } from "re-resizable";
 import { CustomHandle } from "./expanded-constants";
-import { useNodeData } from "@/stores/flowStore";
 import useFlowStore from "@/stores/flowStore";
 
 interface SyncedResizableProps {
@@ -25,16 +24,48 @@ export default function SyncedResizable({
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
   const nodeId = path[0];
 
-  // Get the shared width for all synced resizable components on this node
-  const sharedWidth =
-    (useNodeData([nodeId, "_expandedComponentWidth"]) as number | undefined) ||
-    defaultSize.width;
+  // Memoized selector for shared width - only re-renders when this specific value changes
+  const sharedWidth = useFlowStore(
+    useCallback(
+      (state) => {
+        const node = state.nodes.find((n) => n.id === nodeId);
+        return (
+          (node?.data._expandedComponentWidth as number | undefined) ||
+          defaultSize.width
+        );
+      },
+      [nodeId, defaultSize.width],
+    ),
+  );
 
-  // Get this component's stored height (each component can have its own height)
-  const storedSize = useNodeData([...path, "_expandedSize"]) as
-    | { width: number; height: number }
-    | undefined;
-  const componentHeight = storedSize?.height || defaultSize.height;
+  // Memoized path for stored size lookup
+  const sizePath = useMemo(() => [...path, "_expandedSize"], [path]);
+
+  // Memoized selector for component height
+  const componentHeight = useFlowStore(
+    useCallback(
+      (state) => {
+        const node = state.nodes.find((n) => n.id === path[0]);
+        if (!node) return defaultSize.height;
+
+        let current = node.data;
+        const pathToProperty = sizePath.slice(1);
+
+        for (let i = 0; i < pathToProperty.length; i++) {
+          if (current?.[pathToProperty[i]] === undefined) {
+            return defaultSize.height;
+          }
+          current = current[pathToProperty[i]];
+        }
+
+        return (
+          (current as { width: number; height: number } | undefined)?.height ||
+          defaultSize.height
+        );
+      },
+      [path, sizePath, defaultSize.height],
+    ),
+  );
 
   const resizableRef = useRef<Resizable>(null);
 
