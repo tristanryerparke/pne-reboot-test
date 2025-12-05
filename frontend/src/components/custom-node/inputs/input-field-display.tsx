@@ -132,7 +132,7 @@ export default memo(function InputFieldDisplay({
 
     const ExpandedComponent = expandedComponent;
     return (
-      <div className="pr-0.5 flex-1">
+      <div className="flex-1">
         <ExpandedComponent
           inputData={{ ...fieldData, type: actualType }}
           path={path}

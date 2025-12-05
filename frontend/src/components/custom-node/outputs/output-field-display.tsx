@@ -42,7 +42,7 @@ export default function OutputDisplay({ fieldData, path }: OutputDisplayProps) {
 
     const ExpandedComponent = expandedComponent;
     return (
-      <div className="pr-0.5 flex-1">
+      <div className="flex-1">
         <ExpandedComponent
           outputData={{ ...fieldData, type: actualType }}
           path={path}
@@ -54,7 +54,7 @@ export default function OutputDisplay({ fieldData, path }: OutputDisplayProps) {
 
   return (
     <div className="flex flex-col flex-1 gap-1.5">
-      <div className="flex flex-1 items-center gap-1 h-8">
+      <div className="flex flex-1 items-center gap-1">
         <span className="shrink-0">{fieldName}</span>
         <span className="shrink-0">:</span>
         <OutputRenderer outputData={fieldData} path={path} />
