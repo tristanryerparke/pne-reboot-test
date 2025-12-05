@@ -17,6 +17,7 @@ interface OutputMenuProps {
 
 export default function OutputMenu({ path, fieldData }: OutputMenuProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
+  const deleteNodeData = useFlowStore((state) => state.deleteNodeData);
   const getNodeData = useFlowStore((state) => state.getNodeData);
 
   const nodeId = path[0];
@@ -55,6 +56,11 @@ export default function OutputMenu({ path, fieldData }: OutputMenuProps) {
   const handleToggleExpanded = () => {
     const newExpandedState = !isExpanded;
     updateNodeData([...path, "_expanded"], newExpandedState);
+
+    // If minimizing, clear the stored size
+    if (!newExpandedState) {
+      deleteNodeData([...path, "_expandedSize"]);
+    }
   };
 
   return (

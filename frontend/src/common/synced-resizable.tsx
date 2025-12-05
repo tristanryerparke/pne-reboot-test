@@ -43,7 +43,8 @@ export default function SyncedResizable({
   let storedWidth: string | number;
   if (amIResizing) {
     storedWidth = "auto";
-  } else if (isSomeoneElseResizing) {
+  } else if (isSomeoneElseResizing || !storedSize) {
+    // Use 100% when someone else is resizing OR on first render (no stored size yet)
     storedWidth = "100%";
   } else {
     storedWidth = storedSize?.width || defaultSize.width;
@@ -51,14 +52,32 @@ export default function SyncedResizable({
 
   const resizableRef = useRef<Resizable>(null);
 
-  // Initialize store with default size if not present
+  // On first render, measure the actual width at 100% and store it
   useEffect(() => {
-    if (!storedSize) {
-      updateNodeData([...path, "_expandedSize"], defaultSize, {
-        suppress: true,
-      });
-    }
-  }, [storedSize, path, defaultSize, updateNodeData]);
+    if (storedSize || !resizableRef.current) return;
+
+    const element = resizableRef.current.resizable;
+    if (!element) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        updateNodeData(
+          [...path, "_expandedSize"],
+          { width: Math.round(width), height: Math.round(height) },
+          { suppress: true },
+        );
+        // Disconnect after first measurement
+        resizeObserver.disconnect();
+      }
+    });
+
+    resizeObserver.observe(element);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [storedSize, path, updateNodeData]);
 
   // Track the latest observed size
   const latestObservedSize = useRef<{ width: number; height: number } | null>(

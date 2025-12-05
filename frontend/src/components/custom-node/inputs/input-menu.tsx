@@ -107,6 +107,11 @@ export default function InputMenu({ path, fieldData }: InputMenuProps) {
 
     const newExpandedState = !isExpanded;
     updateNodeData([...path, "_expanded"], newExpandedState);
+
+    // If minimizing, clear the stored size
+    if (!newExpandedState) {
+      deleteNodeData([...path, "_expandedSize"]);
+    }
   };
 
   const handleDelete = () => {
