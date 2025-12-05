@@ -64,28 +64,35 @@ export default memo(function StringExpanded({
   };
 
   return (
-    <SyncedResizable
-      path={path}
-      defaultSize={DEFAULT_AND_MIN_SIZE}
-      minSize={DEFAULT_AND_MIN_SIZE}
-      maxSize={MAX_SIZE}
-    >
-      <Textarea
-        value={value}
-        onChange={handleValueChange}
-        onBlur={(e) => setValue(e.target.value)}
-        disabled={isDisabled}
-        className={cn(
-          "nopan nowheel flex flex-1 overflow-x-hidden overflow-y-auto",
-          readOnly && "cursor-default",
-        )}
-        placeholder="Enter text"
-        style={{
-          wordBreak: "break-word",
-          overflowWrap: "anywhere",
-          opacity: readOnly ? 1 : undefined,
-        }}
-      />
-    </SyncedResizable>
+    <div className="flex flex-col">
+      <SyncedResizable
+        path={path}
+        defaultSize={DEFAULT_AND_MIN_SIZE}
+        minSize={DEFAULT_AND_MIN_SIZE}
+        maxSize={MAX_SIZE}
+      >
+        <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden">
+          <Textarea
+            value={value}
+            onChange={handleValueChange}
+            onBlur={(e) => setValue(e.target.value)}
+            disabled={isDisabled}
+            className={cn(
+              "nopan nowheel border-none",
+              "w-full h-full",
+              readOnly && "cursor-default",
+            )}
+            placeholder=""
+            style={{
+              wordBreak: "break-word",
+              overflowWrap: "anywhere",
+              opacity: readOnly ? 1 : undefined,
+              resize: "none",
+              fieldSizing: "fixed",
+            }}
+          />
+        </div>
+      </SyncedResizable>
+    </div>
   );
 });
