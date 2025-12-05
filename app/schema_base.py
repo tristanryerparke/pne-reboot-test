@@ -1,10 +1,17 @@
-from typing import Literal, TypeAlias
+from typing import ClassVar, Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
+
+class UserModel(BaseModel):
+    _deconstruct_node: ClassVar[bool] = True
+    _construct_node: ClassVar[bool] = True
+
+
 # Base types that don't depend on anything
-BASE_DATATYPES: TypeAlias = int | float | str
+# Note: UserModel is included to support user-defined model instances
+BASE_DATATYPES: TypeAlias = int | float | str | UserModel
 
 
 class CamelBaseModel(BaseModel):

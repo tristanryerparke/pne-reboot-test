@@ -4,7 +4,8 @@ import types
 import typing
 from typing import Any, Dict, Set
 
-from app.schema import MultipleOutputs, UserModel
+from app.schema import MultipleOutputs
+from app.schema_base import UserModel
 
 
 def merge_types_dict(master_types, incoming_types):

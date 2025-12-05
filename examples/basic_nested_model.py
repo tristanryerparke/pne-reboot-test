@@ -1,4 +1,4 @@
-from app.schema import UserModel
+from app.schema_base import UserModel
 from examples.basic_user_model import Point2D
 
 

@@ -132,7 +132,7 @@ def test_single_image_node_execute():
                 "id": "blur-node-1",
                 "position": {"x": 0, "y": 0},
                 "data": {
-                    "callable_id": "blur_image",
+                    "callableId": "blur_image",
                     "arguments": {
                         "image": {
                             "type": "Image",
@@ -144,7 +144,7 @@ def test_single_image_node_execute():
                         },
                     },
                     "outputs": {"image_blurred": {"type": "Image"}},
-                    "output_style": "single",
+                    "outputStyle": "single",
                 },
             },
         ],
@@ -197,7 +197,7 @@ def test_two_connected_image_nodes():
                 "id": "blur-node-1",
                 "position": {"x": 0, "y": 0},
                 "data": {
-                    "callable_id": "blur_image",
+                    "callableId": "blur_image",
                     "arguments": {
                         "image": {
                             "type": "Image",
@@ -209,14 +209,14 @@ def test_two_connected_image_nodes():
                         },
                     },
                     "outputs": {"image_blurred": {"type": "Image"}},
-                    "output_style": "single",
+                    "outputStyle": "single",
                 },
             },
             {
                 "id": "blur-node-2",
                 "position": {"x": 200, "y": 0},
                 "data": {
-                    "callable_id": "blur_image",
+                    "callableId": "blur_image",
                     "arguments": {
                         "image": {
                             "type": "Image",
@@ -228,7 +228,7 @@ def test_two_connected_image_nodes():
                         },
                     },
                     "outputs": {"image_blurred": {"type": "Image"}},
-                    "output_style": "single",
+                    "outputStyle": "single",
                 },
             },
         ],

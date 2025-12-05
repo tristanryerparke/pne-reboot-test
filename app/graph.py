@@ -53,13 +53,19 @@ async def execute_graph(graph: Graph):
 
         # Normalize result to dict format
         # For single outputs, wrap in {output_key: value}
-        # For multiple outputs, result is already a dict
+        # For multiple outputs, result is already a dict or MultipleOutputs instance
         if node.data.output_style == "single":
             # Get the actual output key name (e.g., 'return' or 'image_blurred')
             output_key = list(node.data.outputs.keys())[0]
             result_dict = {output_key: result}
         else:
-            result_dict = result
+            # Handle MultipleOutputs instances from user model deconstructors
+            from app.schema import MultipleOutputs
+
+            if isinstance(result, MultipleOutputs):
+                result_dict = result.model_dump()
+            else:
+                result_dict = result
 
         node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
 

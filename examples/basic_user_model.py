@@ -1,4 +1,4 @@
-from app.schema import UserModel
+from app.schema_base import UserModel
 
 
 class Point2D(UserModel):

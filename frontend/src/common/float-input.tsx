@@ -40,14 +40,16 @@ export default memo(function FloatInput({ inputData, path }: FloatInputProps) {
   };
 
   return (
-    <NumberInput
-      value={value}
-      decimalScale={3}
-      onValueChange={handleValueChange}
-      onBlur={() => handleValueChange(value)}
-      disabled={isConnected}
-      className="nodrag nopan nowheel h-9"
-      placeholder="Enter float"
-    />
+    <div className="flex flex-1 min-w-35 nodrag nopan nowheel">
+      <NumberInput
+        value={value}
+        decimalScale={3}
+        onValueChange={handleValueChange}
+        onBlur={() => handleValueChange(value)}
+        disabled={isConnected}
+        className="nodrag nopan nowheel"
+        placeholder="Enter float"
+      />
+    </div>
   );
 });

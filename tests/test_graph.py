@@ -53,13 +53,13 @@ def test_single_node_execute():
                 "id": "node1",
                 "position": {"x": 0, "y": 0},
                 "data": {
-                    "callable_id": "function1-add",
+                    "callableId": "function1-add",
                     "arguments": {
                         "a": {"type": "int", "value": 5},
                         "b": {"type": "int", "value": 3},
                     },
                     "outputs": {"return": {"type": "int"}},
-                    "output_style": "single",
+                    "outputStyle": "single",
                 },
             },
         ],
@@ -85,26 +85,26 @@ def test_two_nodes_execute():
                 "id": "node1",
                 "position": {"x": 0, "y": 0},
                 "data": {
-                    "callable_id": "function1-add",
+                    "callableId": "function1-add",
                     "arguments": {
                         "a": {"type": "int", "value": 5},
                         "b": {"type": "int", "value": 3},
                     },
                     "outputs": {"return": {"type": "int"}},
-                    "output_style": "single",
+                    "outputStyle": "single",
                 },
             },
             {
                 "id": "node2",
                 "position": {"x": 200, "y": 0},
                 "data": {
-                    "callable_id": "function2-multiply",
+                    "callableId": "function2-multiply",
                     "arguments": {
                         "x": {"type": "int", "value": 4},
                         "y": {"type": "int", "value": 2},
                     },
                     "outputs": {"return": {"type": "int"}},
-                    "output_style": "single",
+                    "outputStyle": "single",
                 },
             },
         ],
@@ -134,26 +134,26 @@ def test_two_connected_nodes_execute():
                 "id": "node1",
                 "position": {"x": 0, "y": 0},
                 "data": {
-                    "callable_id": "function1-add",
+                    "callableId": "function1-add",
                     "arguments": {
                         "a": {"type": "int", "value": 5},
                         "b": {"type": "int", "value": 3},
                     },
                     "outputs": {"return": {"type": "int"}},
-                    "output_style": "single",
+                    "outputStyle": "single",
                 },
             },
             {
                 "id": "node2",
                 "position": {"x": 200, "y": 0},
                 "data": {
-                    "callable_id": "function2-multiply",
+                    "callableId": "function2-multiply",
                     "arguments": {
                         "x": {"type": "int", "value": None},
                         "y": {"type": "int", "value": 2},
                     },
                     "outputs": {"return": {"type": "int"}},
-                    "output_style": "single",
+                    "outputStyle": "single",
                 },
             },
         ],

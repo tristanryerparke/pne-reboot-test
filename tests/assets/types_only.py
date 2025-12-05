@@ -1,6 +1,6 @@
 from typing import Union
 
-from app.schema import UserModel
+from app.schema_base import UserModel
 
 
 # Type analysis is recursive and needs access to the file's globals

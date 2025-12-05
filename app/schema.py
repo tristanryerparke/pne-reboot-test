@@ -1,19 +1,20 @@
-from typing import Any, ClassVar, Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, field_serializer, model_validator
 
 from app.large_data.base import CachedDataWrapper
-from app.schema_base import BASE_DATATYPES, CamelBaseModel, StructDescr, UnionDescr
+from app.schema_base import (
+    BASE_DATATYPES,
+    CamelBaseModel,
+    StructDescr,
+    UnionDescr,
+    UserModel,
+)
 
 
-# We don't want the fields on UserModel or MultipleOutputs to be converted to camel case
+# We don't want the fields on MultipleOutputs to be converted to camel case
 class MultipleOutputs(BaseModel):
     pass
-
-
-class UserModel(BaseModel):
-    _deconstruct_node: ClassVar[bool] = True
-    _construct_node: ClassVar[bool] = True
 
 
 class DataWrapper(CamelBaseModel):
@@ -21,6 +22,13 @@ class DataWrapper(CamelBaseModel):
 
     type: str | UnionDescr | StructDescr
     value: BASE_DATATYPES | None = None
+
+    @field_serializer("value")
+    def serialize_value(self, value: BASE_DATATYPES | None):
+        """Usermodel subclasses need to get serialized normally"""
+        if isinstance(value, UserModel):
+            return value.model_dump()
+        return value
 
 
 # We allow arbitrary types on FunctionAsNode for passing it around in the backend
