@@ -67,12 +67,10 @@ def test_image_upload():
     result = response.json()
     assert "cacheKey" in result
     assert result["type"] == "Image"
-    assert result["filename"] == "test_image.png"
+    assert result["_filename"] == "test_image.png"
     assert "_preview" in result
-    assert "_width" in result
-    assert "_height" in result
-    assert result["_width"] == 100
-    assert result["_height"] == 100
+    assert "_displayName" in result
+    assert "Image(100x100, RGB)" in result["_displayName"]
 
 
 def test_cache_exists():
