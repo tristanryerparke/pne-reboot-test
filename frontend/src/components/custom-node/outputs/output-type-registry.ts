@@ -16,6 +16,7 @@ export type OutputComponentRegistryEntry =
   | {
       main: React.ComponentType<OutputRendererProps>;
       expanded?: React.ComponentType<OutputRendererProps>;
+      hideMainWhenExpanded?: boolean;
     };
 
 // Add more output types here
@@ -24,5 +25,9 @@ export const OUTPUT_TYPE_COMPONENT_REGISTRY: Record<
   OutputComponentRegistryEntry
 > = {
   Image: { main: ImageOutput, expanded: ImageExpanded },
-  str: { main: StringOutput, expanded: StringExpanded },
+  str: {
+    main: StringOutput,
+    expanded: StringExpanded,
+    hideMainWhenExpanded: true,
+  },
 };

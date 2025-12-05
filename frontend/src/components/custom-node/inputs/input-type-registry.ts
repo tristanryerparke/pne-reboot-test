@@ -17,16 +17,22 @@ export type ComponentRegistryEntry =
   | {
       anyOf: React.ComponentType<InputRendererProps>[];
       expanded?: React.ComponentType<InputRendererProps>;
+      hideMainWhenExpanded?: boolean;
     }
   | {
       main: React.ComponentType<InputRendererProps>;
       expanded?: React.ComponentType<InputRendererProps>;
+      hideMainWhenExpanded?: boolean;
     };
 
 // Add more input types here
 export const TYPE_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> = {
   float: { main: FloatInput },
   int: { main: IntInput },
-  str: { main: StringInput, expanded: StringExpanded },
+  str: {
+    main: StringInput,
+    expanded: StringExpanded,
+    hideMainWhenExpanded: true,
+  },
   Image: { main: ImageInput, expanded: ImageExpanded },
 };

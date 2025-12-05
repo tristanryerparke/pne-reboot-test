@@ -12,15 +12,20 @@ export default function SingleLineTextDisplay({
   disabled = false,
 }: SingleLineTextDisplayProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-1 w-0 overflow-x-auto overflow-y-hidden nowheel nodrag",
-        "h-8 rounded-md border dark:bg-input/30 px-2 py-1 text-base shadow-xs border-input items-center",
-        dimmed && "text-gray-400",
-        disabled && "opacity-50 cursor-not-allowed",
-      )}
-    >
-      <span className="whitespace-nowrap text-sm">{content}</span>
+    <div className="flex flex-1 min-w-35 nodrag nopan nowheel">
+      <span
+        className={cn(
+          "flex flex-1 w-0 text-sm",
+          "h-8 rounded-md border dark:bg-input/30 px-2 py-1 shadow-xs border-input items-center",
+          disabled && "opacity-50",
+        )}
+      >
+        <span
+          className={cn("truncate min-w-0 flex-1", dimmed && "text-gray-400")}
+        >
+          {content}
+        </span>
+      </span>
     </div>
   );
 }

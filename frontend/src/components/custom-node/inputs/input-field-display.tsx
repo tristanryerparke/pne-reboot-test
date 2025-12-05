@@ -62,6 +62,14 @@ export default memo(function InputFieldDisplay({
         typeof registryEntry === "object" &&
         "main" in registryEntry
       ) {
+        // Check if we should hide the main component when expanded
+        const isExpanded = fieldData._expanded ?? false;
+        const shouldHide = isExpanded && registryEntry.hideMainWhenExpanded;
+
+        if (shouldHide) {
+          return <div className="flex flex-1 min-h-8" />;
+        }
+
         const Component = registryEntry.main;
         return (
           <Component
@@ -131,8 +139,13 @@ export default memo(function InputFieldDisplay({
     }
 
     const ExpandedComponent = expandedComponent;
+
     return (
-      <div className="flex-1">
+      <div
+        className={
+          registryEntry.hideMainWhenExpanded ? "flex-1" : "flex-1 mt-1.5"
+        }
+      >
         <ExpandedComponent
           inputData={{ ...fieldData, type: actualType }}
           path={path}
@@ -142,7 +155,7 @@ export default memo(function InputFieldDisplay({
   };
 
   return (
-    <div className="flex flex-col flex-1 gap-1.5">
+    <div className="flex flex-col flex-1">
       <div className="flex flex-1 items-center gap-1">
         {isEditableKey ? (
           <EditableKey fieldName={fieldName} path={path} />

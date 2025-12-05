@@ -54,14 +54,16 @@ export default memo(function StringInput({
   }
 
   return (
-    <Input
-      type="text"
-      value={value}
-      onChange={handleValueChange}
-      onBlur={(e) => setValue(e.target.value)}
-      disabled={isConnected}
-      className="nodrag nopan noscroll h-9"
-      placeholder="Enter text"
-    />
+    <div className="flex flex-1 min-w-35 nodrag nopan nowheel">
+      <Input
+        type="text"
+        value={value}
+        onChange={handleValueChange}
+        onBlur={(e) => setValue(e.target.value)}
+        disabled={isConnected}
+        className="nodrag nopan nowheel"
+        placeholder="Enter text"
+      />
+    </div>
   );
 });
