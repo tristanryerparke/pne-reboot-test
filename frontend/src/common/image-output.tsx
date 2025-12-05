@@ -14,5 +14,7 @@ export default memo(function ImageOutput({ outputData }: ImageOutputProps) {
     return <SingleLineTextDisplay content="No image" dimmed={true} />;
   }
 
-  return <SingleLineTextDisplay content="Generated Image" dimmed={false} />;
+  const displayName = (outputData as any)._displayName || "Generated Image";
+
+  return <SingleLineTextDisplay content={displayName} dimmed={false} />;
 });

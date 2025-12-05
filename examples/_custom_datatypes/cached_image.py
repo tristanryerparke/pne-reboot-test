@@ -40,7 +40,10 @@ class CachedImageDataModel(CachedDataWrapper):
     value: Image.Image | None = Field(
         exclude=True, default=None
     )  # we can't send the image object to the frontend so we exclude it
-    filename: str | None = None
+    filename_: str | None = Field(
+        default=None, alias="_filename", serialization_alias="_filename"
+    )  # pydantic would make an underscore field a private attribute so if we want a non-computed
+    # field that is for frontend use only, we need to use the alias and serialization_alias parameters
 
     @classmethod
     def deserialize_to_cache(cls, data: dict) -> "CachedImageDataModel":
@@ -61,7 +64,7 @@ class CachedImageDataModel(CachedDataWrapper):
             return cls(
                 type="Image",
                 value=img,
-                filename=data.get("filename"),
+                filename_=data.get("filename"),
             )
         except KeyError as e:
             raise ValueError(f"Missing required field for CachedImageDataModel: {e}")
@@ -77,20 +80,5 @@ class CachedImageDataModel(CachedDataWrapper):
 
     @computed_field
     @property
-    def _size(self) -> tuple[int, int]:
-        return self.value.size
-
-    @computed_field
-    @property
-    def _width(self) -> int:
-        return self.value.width
-
-    @computed_field
-    @property
-    def _height(self) -> int:
-        return self.value.height
-
-    @computed_field
-    @property
-    def _mode(self) -> str:
-        return self.value.mode
+    def _display_name(self) -> str:
+        return f"Image({self.value.width}x{self.value.height}, {self.value.mode})"

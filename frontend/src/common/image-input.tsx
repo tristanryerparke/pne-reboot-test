@@ -51,7 +51,6 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
 
   // Check if there's image data
   const hasImage = !!(inputData as any).cacheKey;
-  const storedFilename = (inputData as any).filename;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -91,18 +90,8 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
 
         const data = await response.json();
 
-        // Update node data with all image data (cacheKey, _preview, _width, _height, _mode, filename)
-        // Preserve all UI data (anything starting with _) from existing inputData
-        const mergedData = preserveUIData(inputData as any, {
-          type: data.type,
-          cacheKey: data.cacheKey,
-          _preview: data._preview,
-          _size: data._size,
-          _width: data._width,
-          _height: data._height,
-          _mode: data._mode,
-          filename: data.filename,
-        });
+        // Preserve UI data from existing inputData, merge with all new data from backend
+        const mergedData = preserveUIData(inputData as any, data);
         updateNodeData(path, mergedData);
       };
 
@@ -115,22 +104,32 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
     }
   };
 
+  const displayName = (inputData as any)._displayName || "Generated Image";
+
   // When connected, show as read-only display (like output)
   if (isConnected) {
     return (
-      <div className="flex max-h-8 w-full rounded-md border border-input bg-transparent dark:bg-input/30 px-2 py-1 items-center opacity-50 cursor-not-allowed">
-        <span className="text-sm truncate">
-          {hasImage ? "Generated Image" : "No image"}
+      <div className="flex flex-1 min-w-35 nodrag nopan nowheel">
+        <span
+          className={cn(
+            "flex flex-1 w-0 text-sm",
+            "h-8 rounded-md border dark:bg-input/30 px-2 py-1 shadow-xs border-input items-center",
+            "opacity-50",
+          )}
+        >
+          <span className="truncate min-w-0 flex-1">
+            {hasImage ? displayName : "No image"}
+          </span>
         </span>
       </div>
     );
   }
 
   // When not connected, show file picker
-  const displayText = storedFilename || "Choose File";
+  const uploadText = (inputData as any)._displayName || "Upload Image";
 
   return (
-    <div className="flex flex-1 min-w-30">
+    <div className="flex flex-1 min-w-35 nodrag nopan nowheel">
       <Input
         ref={fileInputRef}
         type="file"
@@ -143,11 +142,10 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
       />
       <div
         className={cn(
-          "flex flex-1 w-0 max-h-8",
-          "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input rounded-md border bg-transparent px-2 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm overflow-x-auto overflow-y-hidden text-left file:mr-2",
-          "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-          "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-          "items-center cursor-pointer",
+          "flex flex-1 w-0 text-sm",
+          "h-8 rounded-md border dark:bg-input/30 px-2 py-1 shadow-xs border-input items-center",
+          uploading && "opacity-50",
+          "cursor-pointer",
         )}
         onClick={() => {
           if (!uploading && fileInputRef.current) {
@@ -155,7 +153,7 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
           }
         }}
       >
-        <span className="truncate">{displayText}</span>
+        <span className="truncate min-w-0 flex-1">{uploadText}</span>
       </div>
       {uploading && (
         <p className="text-xs text-muted-foreground">Uploading...</p>

@@ -40,6 +40,8 @@ export default memo(function ImageExpanded({
           _height?: number;
           _mode?: string;
           _preview?: string;
+          _displayName?: string;
+          _filename?: string;
         } | null)
   ) as {
     cacheKey?: string;
@@ -47,6 +49,8 @@ export default memo(function ImageExpanded({
     _height?: number;
     _mode?: string;
     _preview?: string;
+    _displayName?: string;
+    _filename?: string;
   } | null;
 
   const hasImage = !!imageValue?._preview;
@@ -73,9 +77,9 @@ export default memo(function ImageExpanded({
           )}
         </div>
       </SyncedResizable>
-      {hasImage && imageValue._width && imageValue._height && (
+      {hasImage && imageValue._filename && (
         <p className="text-xs text-muted-foreground mt-1">
-          {imageValue._width} × {imageValue._height} ({imageValue._mode})
+          {imageValue._filename}
         </p>
       )}
     </div>

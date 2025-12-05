@@ -24,7 +24,10 @@ export const OUTPUT_TYPE_COMPONENT_REGISTRY: Record<
   string,
   OutputComponentRegistryEntry
 > = {
-  Image: { main: ImageOutput, expanded: ImageExpanded },
+  Image: {
+    main: ImageOutput,
+    expanded: ImageExpanded,
+  },
   str: {
     main: StringOutput,
     expanded: StringExpanded,
