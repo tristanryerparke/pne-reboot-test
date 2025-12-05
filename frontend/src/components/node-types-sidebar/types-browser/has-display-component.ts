@@ -8,8 +8,12 @@ function getPropertyTypeName(propType: PropertyType): string | null {
   if ("anyOf" in propType) {
     return null;
   }
-  if ("type" in propType && propType.type === "list" && "items" in propType) {
-    return getPropertyTypeName(propType.items);
+  if (
+    "type" in propType &&
+    propType.type === "list" &&
+    "itemsType" in propType
+  ) {
+    return getPropertyTypeName(propType.itemsType);
   }
   return null;
 }

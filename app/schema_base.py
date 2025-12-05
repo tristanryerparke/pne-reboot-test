@@ -11,7 +11,8 @@ class UserModel(BaseModel):
 
 # Base types that don't depend on anything
 # Note: UserModel is included to support user-defined model instances
-BASE_DATATYPES: TypeAlias = int | float | str | UserModel
+# Note: list and dict are included to support structured types like list[float], dict[str, float]
+BASE_DATATYPES: TypeAlias = int | float | str | list | dict | UserModel
 
 
 class CamelBaseModel(BaseModel):

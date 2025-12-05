@@ -25,9 +25,20 @@ class DataWrapper(CamelBaseModel):
 
     @field_serializer("value")
     def serialize_value(self, value: BASE_DATATYPES | None):
-        """Usermodel subclasses need to get serialized normally"""
+        """Usermodel subclasses need to get serialized normally.
+        Dicts and lists need to be serialized recursively to handle nested UserModels."""
         if isinstance(value, UserModel):
             return value.model_dump()
+        if isinstance(value, dict):
+            return {
+                k: v.model_dump() if isinstance(v, UserModel) else v
+                for k, v in value.items()
+            }
+        if isinstance(value, list):
+            return [
+                item.model_dump() if isinstance(item, UserModel) else item
+                for item in value
+            ]
         return value
 
 

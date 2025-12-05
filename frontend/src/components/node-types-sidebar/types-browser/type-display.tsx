@@ -23,8 +23,12 @@ function formatPropertyType(propType: PropertyType): string {
   if ("anyOf" in propType) {
     return propType.anyOf.map(formatPropertyType).join(" | ");
   }
-  if ("type" in propType && propType.type === "list" && "items" in propType) {
-    return `list[${formatPropertyType(propType.items)}]`;
+  if (
+    "type" in propType &&
+    propType.type === "list" &&
+    "itemsType" in propType
+  ) {
+    return `list[${formatPropertyType(propType.itemsType)}]`;
   }
   return JSON.stringify(propType);
 }

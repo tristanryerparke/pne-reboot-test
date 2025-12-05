@@ -21,7 +21,6 @@ mock_callables = {
     "function2-multiply": mock_multiply,
 }
 
-server_module.CALLABLES.clear()
 server_module.CALLABLES.update(mock_callables)
 
 

@@ -4,6 +4,7 @@ import { useNodeConnections } from "@xyflow/react";
 import { preserveUIData } from "../utils/preserve-ui-data";
 import { Input } from "../components/ui/input";
 import { cn } from "@/lib/utils";
+import type { FrontendFieldDataWrapper } from "../types/types";
 
 interface ImageInputProps {
   inputData: FrontendFieldDataWrapper;

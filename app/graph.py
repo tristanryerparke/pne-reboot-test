@@ -14,7 +14,7 @@ def infer_concrete_type(value, type_descriptor, TYPES):
     Handles both simple types and union types by checking the runtime type
     of the value against the available types.
     """
-    from app.schema_base import UnionDescr
+    from app.schema_base import StructDescr, UnionDescr
 
     # If it's a union type, find which concrete type matches
     if isinstance(type_descriptor, UnionDescr):
@@ -26,6 +26,10 @@ def infer_concrete_type(value, type_descriptor, TYPES):
         raise ValueError(
             f"Value {value} of type {type(value)} does not match any type in union {type_descriptor.any_of}"
         )
+
+    # If it's a structured type (list[T], dict[K,V]), return as-is
+    if isinstance(type_descriptor, StructDescr):
+        return type_descriptor
 
     # If it's already a concrete type string, return it
     if isinstance(type_descriptor, str):
@@ -88,13 +92,16 @@ async def execute_graph(graph: Graph):
             concrete_type = infer_concrete_type(new_value, data.type, TYPES)
 
             # Check if type exists in TYPES and has referenced_datamodel (e.g., Image -> CachedImageDataModel)
+            # Note: StructDescr types (list[T], dict[K,V]) are not in TYPES, so we skip this check for them
+
             if (
-                concrete_type in TYPES
+                isinstance(concrete_type, str)
+                and concrete_type in TYPES
                 and "referenced_datamodel" in TYPES[concrete_type]
             ):
                 output_class = TYPES[concrete_type]["referenced_datamodel"]
             else:
-                # Fall back to DataWrapper for normal types (int, float, str, etc.)
+                # DataWrapper for normal types (int, float, str, dict, list)
                 from app.schema import DataWrapper
 
                 output_class = DataWrapper

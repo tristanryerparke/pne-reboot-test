@@ -13,12 +13,12 @@ export function formatTypeForDisplay(type: any): string {
     }
     // Handle list types
     if (type.structureType === "list") {
-      const itemsType = type.items || "unknown";
+      const itemsType = type.itemsType || "unknown";
       return `list[${formatTypeForDisplay(itemsType)}]`;
     }
     // Handle dict types
     if (type.structureType === "dict") {
-      const itemsType = type.items || "unknown";
+      const itemsType = type.itemsType || "unknown";
       return `dict[str, ${formatTypeForDisplay(itemsType)}]`;
     }
   }

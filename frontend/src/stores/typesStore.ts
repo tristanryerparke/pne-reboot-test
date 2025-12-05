@@ -8,7 +8,7 @@ export interface UnionType {
 
 export interface ListType {
   type: "list";
-  items: PropertyType;
+  itemsType: PropertyType;
 }
 
 export type PropertyType = string | UnionType | ListType;
