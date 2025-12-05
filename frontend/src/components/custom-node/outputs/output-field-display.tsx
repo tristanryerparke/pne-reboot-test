@@ -57,9 +57,7 @@ export default function OutputDisplay({ fieldData, path }: OutputDisplayProps) {
       <div className="flex flex-1 items-center gap-1 h-8">
         <span className="shrink-0">{fieldName}</span>
         <span className="shrink-0">:</span>
-        <div className="flex-1 min-w-0">
-          <OutputRenderer outputData={fieldData} path={path} />
-        </div>
+        <OutputRenderer outputData={fieldData} path={path} />
         <OutputMenu path={path} fieldData={fieldData} />
       </div>
       {renderExpandedContent()}

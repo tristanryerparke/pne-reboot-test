@@ -14,13 +14,13 @@ export default function SingleLineTextDisplay({
   return (
     <div
       className={cn(
-        "flex flex-1 min-w-20 truncate",
-        "h-8  rounded-md border dark:bg-input/30 px-2 py-1 text-base shadow-xs border-input overflow-hidden items-center",
+        "flex flex-1 w-0 overflow-x-auto overflow-y-hidden nowheel nodrag",
+        "h-8 rounded-md border dark:bg-input/30 px-2 py-1 text-base shadow-xs border-input items-center",
         dimmed && "text-gray-400",
         disabled && "opacity-50 cursor-not-allowed",
       )}
     >
-      <span className="truncate w-full text-sm">{content}</span>
+      <span className="whitespace-nowrap text-sm">{content}</span>
     </div>
   );
 }
