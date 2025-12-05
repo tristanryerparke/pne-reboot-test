@@ -38,11 +38,17 @@ export function stripGraphForExecute(graph: Graph): StrippedGraph {
           // Deep copy arguments/outputs and remove all frontend-only fields (prefixed with _)
           const data = JSON.parse(JSON.stringify(node.data[field]));
           Object.keys(data).forEach((key) => {
-            Object.keys(data[key]).forEach((prop) => {
-              if (prop.startsWith("_")) {
-                delete data[key][prop];
-              }
-            });
+            if (field === "outputs") {
+              // For outputs, keep only the type field
+              data[key] = { type: data[key].type };
+            } else {
+              // For arguments, remove frontend-only fields (prefixed with _)
+              Object.keys(data[key]).forEach((prop) => {
+                if (prop.startsWith("_")) {
+                  delete data[key][prop];
+                }
+              });
+            }
           });
           strippedData[field] = data;
         } else {
