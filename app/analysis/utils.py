@@ -44,11 +44,14 @@ def check_for_duplicate_callable_ids(functions_schemas_list: list[Any]) -> None:
         )
 
 
-def find_python_files(target_path: str) -> list[str]:
+def find_python_files(
+    target_path: str, ignore_underscore_prefix: bool = True
+) -> list[str]:
     """Find all Python files to analyze.
 
     Args:
         target_path: Path to a file or directory
+        ignore_underscore_prefix: If True, ignore files/folders starting with underscore
 
     Returns:
         List of Python file paths to analyze
@@ -58,8 +61,15 @@ def find_python_files(target_path: str) -> list[str]:
     if os.path.isdir(target_path):
         # Recursively find all .py files in the directory
         for root, dirs, files in os.walk(target_path):
+            # Filter out directories starting with underscore if ignoring
+            if ignore_underscore_prefix:
+                dirs[:] = [d for d in dirs if not d.startswith("_")]
+
             for file in files:
                 if file.endswith(".py"):
+                    # Skip files starting with underscore if ignoring
+                    if ignore_underscore_prefix and file.startswith("_"):
+                        continue
                     py_files.append(os.path.join(root, file))
     else:
         # Single file
@@ -155,7 +165,9 @@ def analyze_files(py_files: list[str], base_dir: str):
     return all_function_schemas, all_callables, all_types
 
 
-def analyze_file_structure(search_paths: str | list[str]):
+def analyze_file_structure(
+    search_paths: str | list[str], ignore_underscore_prefix: bool = True
+):
     if isinstance(search_paths, str):
         search_paths = [search_paths]
 
@@ -163,7 +175,7 @@ def analyze_file_structure(search_paths: str | list[str]):
     base_dirs = set()
 
     for search_path in search_paths:
-        py_files_flat.extend(find_python_files(search_path))
+        py_files_flat.extend(find_python_files(search_path, ignore_underscore_prefix))
 
         if os.path.isdir(search_path):
             base_dirs.add(search_path)

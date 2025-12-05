@@ -14,6 +14,7 @@ FUNCTION_SCHEMAS = []
 CALLABLES = {}
 TYPES = {}
 VERBOSE = False
+IGNORE_UNDERSCORE_PREFIX = True
 
 
 @asynccontextmanager
@@ -32,7 +33,9 @@ async def lifespan(app: FastAPI):
             print(f"The path {search_path} does not exist")
             sys.exit(1)
 
-    function_schemas, callables, types = analyze_file_structure(search_paths)
+    function_schemas, callables, types = analyze_file_structure(
+        search_paths, ignore_underscore_prefix=IGNORE_UNDERSCORE_PREFIX
+    )
     FUNCTION_SCHEMAS.extend(function_schemas)
     CALLABLES.update(callables)
     TYPES.update(types)

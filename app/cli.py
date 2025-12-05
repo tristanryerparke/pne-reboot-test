@@ -11,6 +11,11 @@ def main():
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose output"
     )
+    parser.add_argument(
+        "--do_not_ignore_underscore_prefix",
+        action="store_true",
+        help="Do not ignore files and folders starting with underscore",
+    )
     # Common uvicorn options
     parser.add_argument("--host", default="127.0.0.1", help="Host to bind to")
     parser.add_argument("--port", type=int, default=8000, help="Port to bind to")
@@ -24,6 +29,7 @@ def main():
 
     app.server.VERBOSE = args.verbose
     app.graph.VERBOSE = args.verbose
+    app.server.IGNORE_UNDERSCORE_PREFIX = not args.do_not_ignore_underscore_prefix
 
     # Reconstruct sys.argv for the lifespan handler to read the paths
     sys.argv = [sys.argv[0], args.path]
@@ -50,6 +56,11 @@ def analyze():
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose output"
     )
+    parser.add_argument(
+        "--do_not_ignore_underscore_prefix",
+        action="store_true",
+        help="Do not ignore files and folders starting with underscore",
+    )
 
     args = parser.parse_args()
 
@@ -61,7 +72,10 @@ def analyze():
             exit(1)
 
     print(f"Analyzing: {', '.join(search_paths)}")
-    function_schemas, callables, types = analyze_file_structure(search_paths)
+    ignore_underscore = not args.do_not_ignore_underscore_prefix
+    function_schemas, callables, types = analyze_file_structure(
+        search_paths, ignore_underscore_prefix=ignore_underscore
+    )
 
     print(f"\nFound {len(function_schemas)} functions and {len(types)} types")
 

@@ -2,7 +2,7 @@ from PIL import ImageFilter
 from PIL.Image import Image
 
 from app.display import add_node_options
-from examples.images.cached_image import CachedImageDataModel
+from examples._custom_datatypes.cached_image import CachedImageDataModel
 
 
 @add_node_options(
