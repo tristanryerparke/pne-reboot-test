@@ -42,7 +42,8 @@ function NodeGraph() {
     if (viewport) {
       setReactFlowViewport(viewport, { duration: 0 });
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Save viewport changes
   const onMoveEnd = useCallback<OnMove>(
