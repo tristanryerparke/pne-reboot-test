@@ -2,6 +2,7 @@ import { memo, useRef, useState, useEffect } from "react";
 import useFlowStore from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
 import type { FrontendFieldDataWrapper } from "@/types/types";
+import { preserveUIData } from "../utils/preserve-ui-data";
 
 interface ImageInputProps {
   inputData: FrontendFieldDataWrapper;
@@ -90,8 +91,8 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
         const data = await response.json();
 
         // Update node data with all image data (cacheKey, _preview, _width, _height, _mode, filename)
-        // Preserve _expanded state if it exists
-        updateNodeData(path, {
+        // Preserve all UI data (anything starting with _) from existing inputData
+        const mergedData = preserveUIData(inputData as any, {
           type: data.type,
           cacheKey: data.cacheKey,
           _preview: data._preview,
@@ -100,8 +101,8 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
           _height: data._height,
           _mode: data._mode,
           filename: data.filename,
-          _expanded: inputData._expanded,
         });
+        updateNodeData(path, mergedData);
       };
 
       reader.readAsDataURL(file);

@@ -52,7 +52,7 @@ export default memo(function ImageExpanded({
   const hasImage = !!imageValue?._preview;
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col">
       <SyncedResizable
         path={path}
         defaultSize={DEFAULT_AND_MIN_SIZE}
@@ -66,6 +66,7 @@ export default memo(function ImageExpanded({
               alt="Preview"
               className="w-full h-full object-contain"
               draggable={false}
+              style={{ maxWidth: "100%", maxHeight: "100%" }}
             />
           ) : (
             <span className="text-sm text-muted-foreground">No image</span>
