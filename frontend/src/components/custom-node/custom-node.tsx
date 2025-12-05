@@ -1,47 +1,41 @@
-import { memo, useState, useRef } from "react";
+import { memo, useRef } from "react";
 import NodeHeader from "./node-header";
 import Inputs from "./inputs/inputs";
 import Outputs from "./outputs/outputs";
-import JsonViewer from "./json-viewer";
 import { Separator } from "../ui/separator";
+import type { FunctionSchema } from "../../types/types";
+import InspectableFieldWrapper from "../inspector-sidebar/inspectable-field-wrapper";
+import { useNodeData } from "@/stores/flowStore";
 
 export default memo(function CustomNode({
   data,
   id,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
+  data: FunctionSchema;
   id: string;
 }) {
-  const [isJsonView, setIsJsonView] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
-
-  const toggleView = () => setIsJsonView(!isJsonView);
 
   const path = [id];
 
-  // console.log(data);
+  // Subscribe to _resizing to trigger re-renders when resizing occurs
+  // This ensures the parent node recalculates its w-fit size during drag
+  useNodeData([id, "_resizing"]);
 
   return (
     <div
       ref={nodeRef}
-      className="relative w-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
+      className="w-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
     >
-      <NodeHeader
-        data={data}
-        isJsonView={isJsonView}
-        onToggleView={toggleView}
-      />
+      <InspectableFieldWrapper path={path}>
+        <div>
+          <NodeHeader data={data} />
+        </div>
+      </InspectableFieldWrapper>
       <Separator />
-      {isJsonView ? (
-        <JsonViewer className="w-full" data={data} />
-      ) : (
-        <>
-          <Inputs data={data} nodeId={id} path={path} />
-          <Separator />
-          <Outputs data={data} path={path} />
-        </>
-      )}
+      <Inputs arguments={data.arguments} path={[...path, "arguments"]} />
+      <Separator />
+      <Outputs data={data} path={path} />
     </div>
   );
 });

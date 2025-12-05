@@ -1,15 +1,43 @@
 from devtools import debug as d
 from fastapi import APIRouter
 
-from .schema import Graph, NodeDataFromFrontend, NodeFromFrontend
+from app.large_data.base import CachedDataWrapper
+from app.schema import Graph, NodeDataFromFrontend, NodeFromFrontend
 
 router = APIRouter()
 VERBOSE = False
 
 
+def infer_concrete_type(value, type_descriptor, TYPES):
+    """Infer the concrete type of a value from a type descriptor.
+
+    Handles both simple types and union types by checking the runtime type
+    of the value against the available types.
+    """
+    from app.schema_base import UnionDescr
+
+    # If it's a union type, find which concrete type matches
+    if isinstance(type_descriptor, UnionDescr):
+        for candidate_type in type_descriptor.any_of:
+            if candidate_type in TYPES:
+                type_info = TYPES[candidate_type]
+                if isinstance(value, type_info["_class"]):
+                    return candidate_type
+        raise ValueError(
+            f"Value {value} of type {type(value)} does not match any type in union {type_descriptor.any_of}"
+        )
+
+    # If it's already a concrete type string, return it
+    if isinstance(type_descriptor, str):
+        return type_descriptor
+
+    raise ValueError(f"Unknown type descriptor: {type_descriptor}")
+
+
 @router.post("/graph_execute")
 async def execute_graph(graph: Graph):
     """Execute a graph containing nodes and edges"""
+    from app.server import TYPES
 
     execution_list = topological_order(graph)
 
@@ -23,8 +51,15 @@ async def execute_graph(graph: Graph):
             print(f"Executing node {node.id}")
         result = execute_node(node.data)
 
-        # Handle both single and multiple outputs
-        output_style = node.data.output_style
+        # Normalize result to dict format
+        # For single outputs, wrap in {output_key: value}
+        # For multiple outputs, result is already a dict
+        if node.data.output_style == "single":
+            # Get the actual output key name (e.g., 'return' or 'image_blurred')
+            output_key = list(node.data.outputs.keys())[0]
+            result_dict = {output_key: result}
+        else:
+            result_dict = result
 
         node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
 
@@ -34,36 +69,37 @@ async def execute_graph(graph: Graph):
                 # Extract the argument name from targetHandle
                 argument_name = edge.targetHandle.split(":")[-2]
 
-                # Get the actual value that was propagated to this node
-                actual_value = node.data.arguments[argument_name]["value"]
-                actual_type = node.data.arguments[argument_name]["type"]
+                # Send a copy of the argument wrapper to frontend
+                arg = node.data.arguments[argument_name]
+                node_update["inputs"][argument_name] = arg.model_copy()
 
-                node_update["inputs"][argument_name] = {
-                    "value": actual_value,
-                    "type": actual_type,
-                }
+        # Process all outputs and create the return data model
+        for output_name in node.data.outputs.keys():
+            data = node.data.outputs[output_name]
+            new_value = result_dict[output_name]
 
-        if output_style == "multiple":
-            # For multiple outputs we need to get the model as a dict
-            result_dict = result.model_dump()
-            for output_name, output_def in node.data.outputs.items():
-                # FIXME: We don't need to get the type from the result because the MultipleOutputs
-                # Class is typed already... this could be a problem later on
-                node_update["outputs"][output_name] = {
-                    "type": output_def["type"],
-                    "value": result_dict[output_name],
-                }
-        else:
-            # For single output, use the entire result
-            # The output key is already set correctly in the outputs dict (either return_value_name or "return")
-            # Just get the first (and only) key from outputs
-            output_key = list(node.data.outputs.keys())[0]
-            node_update["outputs"][output_key] = {
-                **node.data.outputs[output_key],
-                "value": result,
-            }
+            # Infer the concrete type from the runtime value
+            concrete_type = infer_concrete_type(new_value, data.type, TYPES)
 
-        # FIXME: What if an upstream node's type changes and the input is no longer compatible?
+            # Check if type exists in TYPES and has referenced_datamodel (e.g., Image -> CachedImageDataModel)
+            if (
+                concrete_type in TYPES
+                and "referenced_datamodel" in TYPES[concrete_type]
+            ):
+                output_class = TYPES[concrete_type]["referenced_datamodel"]
+            else:
+                # Fall back to DataWrapper for normal types (int, float, str, etc.)
+                from app.schema import DataWrapper
+
+                output_class = DataWrapper
+
+            # Programatically create the output data model with the concrete type
+            output_data_model = output_class(
+                type=concrete_type,
+                value=new_value,
+            )
+
+            node_update["outputs"][output_name] = output_data_model
 
         # Propagate outputs to connected nodes via edges
         for edge in graph.edges:
@@ -72,25 +108,15 @@ async def execute_graph(graph: Graph):
                 # Format: nodeId:outputs:outputName:handle
                 output_field_name = edge.sourceHandle.split(":")[-2]
 
-                # Get the value for this specific output field
-                if output_style == "multiple":
-                    output_value = getattr(result, output_field_name)
-                    output_type = node.data.outputs[output_field_name]["type"]
-                else:
-                    output_value = result
-                    # Get the correct output key (either custom return_value_name or "return")
-                    output_key = list(node.data.outputs.keys())[0]
-                    output_type = node.data.outputs[output_key]["type"]
-
                 # Extract target argument name from targetHandle
                 argument_name = edge.targetHandle.split(":")[-2]
 
-                # Update the target node's arguments for execution
+                # Update the target node's arguments with a copy of the output wrapper
                 target_node = next(n for n in execution_list if n.id == edge.target)
-                target_node.data.arguments[argument_name] = {
-                    "value": output_value,
-                    "type": output_type,
-                }
+
+                target_node.data.arguments[argument_name] = node_update["outputs"][
+                    output_field_name
+                ].model_copy()
 
         updates.append(node_update)
 
@@ -120,11 +146,13 @@ def execute_node(node: NodeDataFromFrontend):
         named_args = {}
 
         for k, v in node.arguments.items():
+            arg_value = v.value
+
             # Handle both "_0", "_1" and "0", "1" naming patterns
             if k.isdigit():
-                numbered_args[int(k)] = v["value"]
+                numbered_args[int(k)] = arg_value
             else:
-                named_args[k] = v["value"]
+                named_args[k] = arg_value
 
         # Sort numbered args by index
         sorted_numbered_args = [numbered_args[i] for i in sorted(numbered_args.keys())]
@@ -140,11 +168,19 @@ def execute_node(node: NodeDataFromFrontend):
     elif getattr(callable, "dict_inputs", False):
         # For dict_inputs functions, all arguments are passed as **kwargs
         # The frontend should send them with their key names
-        args = {k: v["value"] for k, v in node.arguments.items()}
+        args = {}
+        for k, v in node.arguments.items():
+            args[k] = v.value
+
         return callable(**args)
     else:
         # Normal execution with kwargs
-        args = {k: v["value"] for k, v in node.arguments.items()}
+        args = {}
+        print("Node arguments being printed:")
+        d(node.arguments)
+        for k, v in node.arguments.items():
+            args[k] = v.value
+
         return callable(**args)
 
 

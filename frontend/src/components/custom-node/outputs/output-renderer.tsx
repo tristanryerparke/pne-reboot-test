@@ -1,15 +1,28 @@
 import { memo } from "react";
 import SingleLineTextDisplay from "../../../common/single-line-text-display";
 import useTypesStore from "@/stores/typesStore";
-
-interface OutputRendererProps {
-  outputData: any;
-}
+import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "./output-type-registry";
+import type { OutputRendererProps } from "./output-type-registry";
 
 export default memo(function OutputRenderer({
   outputData,
+  path,
 }: OutputRendererProps) {
   const types = useTypesStore((state) => state.types);
+
+  // Check if there's a custom component for this type
+  const registryEntry = OUTPUT_TYPE_COMPONENT_REGISTRY[outputData?.type];
+  if (registryEntry) {
+    // Handle new pattern with main/expanded
+    if (typeof registryEntry === "object" && "main" in registryEntry) {
+      const Component = registryEntry.main;
+      return <Component outputData={outputData} path={path} />;
+    } else {
+      // Legacy direct component reference
+      const Component = registryEntry;
+      return <Component outputData={outputData} path={path} />;
+    }
+  }
 
   const displayValue = () => {
     if (outputData?.value !== undefined) {

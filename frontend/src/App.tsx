@@ -1,25 +1,29 @@
 import "./index.css";
 import "@xyflow/react/dist/style.css";
 
-import NodePicker from "./components/node-picker/node-picker";
 import { ReactFlowProvider } from "@xyflow/react";
-import { ThemeProvider } from "./components/theme-provider";
-import { ModeToggle } from "./components/mode-toggle";
-import { Separator } from "./components/ui/separator";
-import { TypesBrowser } from "./components/types-browser/types-browser";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 
+import { Separator } from "./components/ui/separator";
+
+import { ThemeProvider } from "./components/theme-provider";
+
+import Inspector from "./components/inspector-sidebar/inspector";
 import NodeGraph from "./components/node-graph";
-import ExecuteButton from "./components/execute-button";
-import SaveButton from "./components/save-button";
-import { LoadButton } from "./components/load-button";
 import { useEffect } from "react";
 import useTypesStore from "./stores/typesStore";
 import useSchemasStore from "./stores/schemasStore";
+import usePanelsStore from "./stores/panelsStore";
+import NodesTypesSidebar from "./components/node-types-sidebar/nodes-types-sidebar";
 
 function App() {
   const fetchTypes = useTypesStore((state) => state.fetchTypes);
   const fetchNodeSchemas = useSchemasStore((state) => state.fetchNodeSchemas);
+  const { showInspector, showNodePicker } = usePanelsStore();
 
   useEffect(() => {
     fetchTypes();
@@ -31,36 +35,35 @@ function App() {
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <ReactFlowProvider>
           <div className="min-h-full flex h-screen w-screen flex-row overflow-hidden bg-background text-foreground">
-            <div className="min-w-60 flex flex-col h-full">
-              <Tabs
-                defaultValue="nodes"
-                className="w-full gap-0 flex flex-col flex-1 overflow-hidden"
-              >
-                <div className="flex flex-row w-full px-2 pt-2">
-                  <TabsList className="w-full">
-                    <TabsTrigger value="nodes">Nodes</TabsTrigger>
-                    <TabsTrigger value="types">Types</TabsTrigger>
-                  </TabsList>
-                </div>
-                <TabsContent value="nodes" className="flex-1 overflow-hidden">
-                  <NodePicker />
-                </TabsContent>
-                <TabsContent value="types" className="flex-1 overflow-hidden">
-                  <TypesBrowser />
-                </TabsContent>
-              </Tabs>
-              <Separator className="mt-auto" />
-              <div className="w-full flex flex-row px-2 pt-2 gap-2">
-                <ModeToggle />
-                <ExecuteButton />
-              </div>
-              <div className="w-full flex flex-row p-2 gap-2">
-                <SaveButton />
-                <LoadButton />
-              </div>
-            </div>
-            <Separator orientation="vertical" />
-            <NodeGraph />
+            {showNodePicker && (
+              <>
+                <NodesTypesSidebar />
+                <Separator orientation="vertical" />
+              </>
+            )}
+            <ResizablePanelGroup
+              direction="horizontal"
+              autoSaveId="panel-width-save"
+            >
+              <ResizablePanel id="node-graph" order={1}>
+                <NodeGraph />
+              </ResizablePanel>
+              {showInspector && (
+                <>
+                  <ResizableHandle />
+                  <ResizablePanel
+                    id="inspector"
+                    order={2}
+                    defaultSize={25}
+                    minSize={15}
+                    maxSize={75}
+                    className="min-w-60 max-w-[800px]"
+                  >
+                    <Inspector />
+                  </ResizablePanel>
+                </>
+              )}
+            </ResizablePanelGroup>
           </div>
         </ReactFlowProvider>
       </ThemeProvider>

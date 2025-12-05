@@ -1,4 +1,4 @@
-import { MoreVertical, Trash2 } from "lucide-react";
+import { MoreVertical, Trash2, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "../../ui/button";
 import {
   DropdownMenu,
@@ -10,60 +10,71 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
-import useFlowStore from "../../../stores/flowStore";
-import { TYPE_COMPONENT_REGISTRY } from "./type-registry";
+import useFlowStore, { useNodeData } from "../../../stores/flowStore";
+import { TYPE_COMPONENT_REGISTRY } from "./input-type-registry";
+import type {
+  FrontendFieldDataWrapper,
+  StructDescr,
+} from "../../../types/types";
 
 interface InputMenuProps {
   path?: (string | number)[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  nodeData: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fieldData: any;
+  fieldData: FrontendFieldDataWrapper;
 }
 
-export default function InputMenu({
-  path,
-  nodeData,
-  fieldData,
-}: InputMenuProps) {
+export default function InputMenu({ path, fieldData }: InputMenuProps) {
   const deleteNodeData = useFlowStore((state) => state.deleteNodeData);
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
   const getNodeData = useFlowStore((state) => state.getNodeData);
 
+  const nodeId = path ? path[0] : undefined;
+
+  // Get data from Zustand store
+  const dynamicInputType = useNodeData(
+    nodeId ? [nodeId, "dynamicInputType"] : [],
+  ) as StructDescr | null | undefined;
+  const arguments_ = useNodeData(nodeId ? [nodeId, "arguments"] : []) as
+    | Record<string, FrontendFieldDataWrapper>
+    | undefined;
+
   // Handle union types - detect from fieldData
   const isUnionType =
-    typeof fieldData.type === "object" && fieldData.type?.anyOf;
-  const unionTypes = isUnionType ? fieldData.type.anyOf : undefined;
+    typeof fieldData.type === "object" && "anyOf" in fieldData.type;
+  const unionTypes =
+    isUnionType &&
+    typeof fieldData.type === "object" &&
+    "anyOf" in fieldData.type
+      ? fieldData.type.anyOf
+      : undefined;
   const selectedType =
-    fieldData.selectedType || (unionTypes ? unionTypes[0] : undefined);
+    fieldData._selectedType || (unionTypes ? unionTypes[0] : undefined);
   const hasUnionTypes = unionTypes && unionTypes.length > 1;
 
-  // Handle component options from registry (e.g., single-line vs multiline for strings)
+  // Check if this type has an expandable area
   const effectiveType = selectedType || fieldData.type;
   const registryEntry =
     typeof effectiveType === "string"
       ? TYPE_COMPONENT_REGISTRY[effectiveType]
       : undefined;
-  const hasComponentOptions =
+  const hasExpandable =
     registryEntry &&
     typeof registryEntry === "object" &&
-    "anyOf" in registryEntry &&
-    registryEntry.anyOf.length > 1;
-  const selectedInputMode = fieldData.inputMode ?? 0;
+    registryEntry.expanded !== undefined;
+  const isExpanded = fieldData._expanded ?? false;
 
   // Detect if this is a dynamic list input
   const argName = path ? String(path[path.length - 1]) : "";
-  const isListInput = /^\d+$/.test(argName);
   const isDynamicListInput =
-    isListInput && nodeData.dynamic_input_type?.structure_type === "list";
+    fieldData._structuredInputType === "list" &&
+    dynamicInputType?.structureType === "list";
 
   // Detect if this is a dynamic dict input
   const isDynamicDictInput =
-    fieldData._isDictInput === true &&
-    nodeData.dynamic_input_type?.structure_type === "dict";
+    fieldData._structuredInputType === "dict" &&
+    dynamicInputType?.structureType === "dict";
 
   // Calculate if this is the highest numbered list input for deletion purposes
-  const numberedArgs = Object.keys(nodeData.arguments || {})
+  const numberedArgs = Object.keys(arguments_ || {})
     .filter((name) => /^\d+$/.test(name))
     .map((name) => parseInt(name));
   const maxListInputNumber =
@@ -76,16 +87,30 @@ export default function InputMenu({
   // For dict inputs, show for all dict inputs
   const showDeleteButton = isHighestListInput || isDynamicDictInput;
 
+  // Determine if menu should be shown at all
+  const shouldShowMenu =
+    isHighestListInput || isDynamicDictInput || isUnionType || hasExpandable;
+
+  // Return null if there's nothing to show in the menu
+  if (!shouldShowMenu) {
+    return null;
+  }
+
   const handleTypeChange = (newType: string) => {
     if (path) {
-      updateNodeData([...path, "selectedType"], newType);
+      updateNodeData([...path, "_selectedType"], newType);
     }
   };
 
-  const handleInputModeChange = (newModeStr: string) => {
-    if (path) {
-      const newMode = parseInt(newModeStr);
-      updateNodeData([...path, "inputMode"], newMode);
+  const handleToggleExpanded = () => {
+    if (!path) return;
+
+    const newExpandedState = !isExpanded;
+    updateNodeData([...path, "_expanded"], newExpandedState);
+
+    // If minimizing, clear the stored size
+    if (!newExpandedState) {
+      deleteNodeData([...path, "_expandedSize"]);
     }
   };
 
@@ -133,6 +158,27 @@ export default function InputMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" side="right" sideOffset={5}>
+        {hasExpandable && (
+          <>
+            <DropdownMenuItem
+              onClick={handleToggleExpanded}
+              className="cursor-pointer"
+            >
+              {isExpanded ? (
+                <>
+                  <Minimize2 className="h-4 w-4" />
+                  Minimize
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="h-4 w-4" />
+                  Maximize
+                </>
+              )}
+            </DropdownMenuItem>
+            {(hasUnionTypes || showDeleteButton) && <DropdownMenuSeparator />}
+          </>
+        )}
         {hasUnionTypes && (
           <>
             <DropdownMenuLabel>Input Type</DropdownMenuLabel>
@@ -146,27 +192,6 @@ export default function InputMenu({
                   {type}
                 </DropdownMenuRadioItem>
               ))}
-            </DropdownMenuRadioGroup>
-            {(hasComponentOptions || showDeleteButton) && (
-              <DropdownMenuSeparator />
-            )}
-          </>
-        )}
-        {hasComponentOptions && (
-          <>
-            <DropdownMenuLabel>Input Mode</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup
-              value={String(selectedInputMode)}
-              onValueChange={handleInputModeChange}
-            >
-              {registryEntry &&
-                "anyOf" in registryEntry &&
-                registryEntry.anyOf.map((_, index) => (
-                  <DropdownMenuRadioItem key={index} value={String(index)}>
-                    {index === 0 ? "Single-line" : "Multiline"}
-                  </DropdownMenuRadioItem>
-                ))}
             </DropdownMenuRadioGroup>
             {showDeleteButton && <DropdownMenuSeparator />}
           </>

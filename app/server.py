@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.analysis.utils import analyze_file_structure
 from app.graph import router as graph_router
+from app.large_data.router import router as large_data_router
 
 FUNCTION_SCHEMAS = []
 CALLABLES = {}
@@ -53,13 +54,17 @@ app = FastAPI(
 
 # Include routers
 app.include_router(graph_router)
+app.include_router(large_data_router, prefix="/data", tags=["data"])
 
 
 @app.get("/nodes")
 async def get_functions():
     """get schema for all loaded functions that are to be served as nodes"""
-    # FastAPI will automatically serialize the dict of FunctionSchema models
-    return FUNCTION_SCHEMAS
+    # Manually serialize with exclude_none to remove auto_generated when False
+    return [
+        schema.model_dump(mode="json", exclude_defaults=True)
+        for schema in FUNCTION_SCHEMAS
+    ]
 
 
 @app.get("/types")
@@ -68,8 +73,13 @@ async def get_types():
     # d(types)
     types_stripped = {}
     for k, v in TYPES.items():
-        if isinstance(v, dict) and "_class" in v:
-            v_copy = {key: value for key, value in v.items() if key != "_class"}
+        if isinstance(v, dict):
+            # Remove non-serializable fields (_class and referenced_datamodel)
+            v_copy = {
+                key: value
+                for key, value in v.items()
+                if key not in ("_class", "referenced_datamodel")
+            }
         else:
             v_copy = v
         types_stripped[k] = v_copy

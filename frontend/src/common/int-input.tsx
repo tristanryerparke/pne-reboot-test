@@ -3,9 +3,10 @@ import { NumberInput } from "../components/ui/number-input";
 import useFlowStore from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
 import { useControlledDebounce } from "../hooks/useControlledDebounce";
+import type { DataWrapper } from "@/types/types";
 
 interface IntInputProps {
-  inputData: any;
+  inputData: DataWrapper;
   path: (string | number)[];
 }
 
@@ -14,11 +15,7 @@ export default memo(function IntInput({ inputData, path }: IntInputProps) {
 
   // Use current value if it exists, otherwise use default_value, otherwise undefined
   const externalValue =
-    typeof inputData.value === "number"
-      ? inputData.value
-      : inputData?.default_value !== undefined
-        ? inputData.default_value
-        : undefined;
+    typeof inputData.value === "number" ? inputData.value : undefined;
 
   // Use controlled debounce - updates store only on user input, not external updates
   const [value, setValue] = useControlledDebounce(
@@ -47,14 +44,16 @@ export default memo(function IntInput({ inputData, path }: IntInputProps) {
   };
 
   return (
-    <NumberInput
-      value={value}
-      decimalScale={0}
-      onValueChange={handleValueChange}
-      onBlur={() => handleValueChange(value)}
-      disabled={isConnected}
-      className="nodrag nopan noscroll h-9 w-full min-w-20"
-      placeholder="Enter integer"
-    />
+    <div className="flex flex-1 min-w-35 nodrag nopan noscroll">
+      <NumberInput
+        value={value}
+        decimalScale={0}
+        onValueChange={handleValueChange}
+        onBlur={() => handleValueChange(value)}
+        disabled={isConnected}
+        className="nodrag nopan noscroll"
+        placeholder="Enter integer"
+      />
+    </div>
   );
 });

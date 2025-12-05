@@ -1,19 +1,26 @@
-import SingleOutputField from "./single-output-field";
+import OutputFieldHandleWrapper from "./output-field-handle-wrapper";
 import { Separator } from "../../ui/separator";
+import type {
+  FunctionSchema,
+  FrontendFieldDataWrapper,
+} from "../../../types/types";
 
 interface OutputsProps {
-  data: any;
-  path: string[];
+  data: FunctionSchema;
+  path: (string | number)[];
 }
 
 export default function Outputs({ data, path }: OutputsProps) {
   return (
-    <div>
+    <div className="flex flex-col">
       {Object.entries(data.outputs).map(
-        ([outputName, outputDef]: [string, any], index) => (
-          <div key={outputName} className="node-field-output">
-            {index > 0 && <Separator />}
-            <SingleOutputField
+        (
+          [outputName, outputDef]: [string, FrontendFieldDataWrapper],
+          index,
+        ) => (
+          <div key={outputName} className="flex-1">
+            {index > 0 && <Separator className="w-full" />}
+            <OutputFieldHandleWrapper
               fieldData={outputDef}
               path={[...path, "outputs", outputName]}
             />

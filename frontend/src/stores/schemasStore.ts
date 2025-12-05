@@ -1,29 +1,10 @@
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/vanilla/shallow";
-
-export interface NodeFunctionData {
-  name: string;
-  group: string;
-  category: string[];
-  arguments: Record<
-    string,
-    {
-      type: string;
-      default_value?: any;
-    }
-  >;
-  dynamic_input_type?: {
-    structure_type: string;
-    items: string;
-  };
-  return: {
-    type: string;
-  };
-  auto_generated: boolean;
-}
+import { persist, createJSONStorage } from "zustand/middleware";
+import type { FunctionSchema } from "@/types/types";
 
 export interface NodesResponse {
-  [functionName: string]: NodeFunctionData;
+  [functionName: string]: FunctionSchema;
 }
 
 type SchemasStoreState = {
@@ -37,23 +18,35 @@ type SchemasStoreActions = {
 
 export type SchemasState = SchemasStoreState & SchemasStoreActions;
 
-const useSchemasStore = createWithEqualityFn<SchemasState>(
-  (set) => ({
-    nodeSchemas: {},
+const useSchemasStore = createWithEqualityFn<
+  SchemasState,
+  [["zustand/persist", unknown]]
+>(
+  persist(
+    (set) => ({
+      nodeSchemas: {},
 
-    setNodeSchemas: (nodeSchemas) => set({ nodeSchemas }),
+      setNodeSchemas: (nodeSchemas) => set({ nodeSchemas }),
 
-    fetchNodeSchemas: async () => {
-      try {
-        const response = await fetch("http://localhost:8000/nodes");
-        const data = await response.json();
-        console.log("node schemas:", data);
-        set({ nodeSchemas: data });
-      } catch (error) {
-        console.error("Failed to fetch node schemas:", error);
-      }
+      fetchNodeSchemas: async () => {
+        try {
+          const response = await fetch("http://localhost:8000/nodes");
+          const data = await response.json();
+          console.log("node schemas:", data);
+          set({ nodeSchemas: data });
+        } catch (error) {
+          console.error("Failed to fetch node schemas:", error);
+        }
+      },
+    }),
+    {
+      name: "schemas-storage",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        nodeSchemas: state.nodeSchemas,
+      }),
     },
-  }),
+  ),
   shallow,
 );
 

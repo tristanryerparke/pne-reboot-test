@@ -4,7 +4,7 @@ import os
 import typing
 from typing import Any, Callable, Dict, Tuple
 
-from app.schema import FunctionSchema, MultipleOutputs
+from app.schema import DataWrapper, FunctionSchema, StructDescr
 
 from .types_analysis import analyze_type, get_type_repr, merge_types_dict
 
@@ -33,7 +33,7 @@ def analyze_function(
     # Get file path and module namespace from the function object
     file_path = inspect.getfile(original_func)
     abs_file_path = os.path.abspath(file_path)
-    module_ns = func_obj.__globals__
+    module_ns = original_func.__globals__
 
     # Get relative path from current working directory
     try:
@@ -63,10 +63,10 @@ def analyze_function(
                 raise ParameterNotTypeAnnotated(
                     f"Parameter *{arg.name} has no annotation"
                 )
-            dynamic_input_type = {
-                "structure_type": "list",
-                "items": get_type_repr(ann, module_ns, short_repr=True),
-            }
+            dynamic_input_type = StructDescr(
+                structure_type="list",
+                items_type=get_type_repr(ann, module_ns, short_repr=True),  # type: ignore[arg-type]
+            )
             # Analyze the argument type and merge with found types
             arg_types = analyze_type(ann, file_path, module_ns)
             merge_types_dict(found_types, arg_types)
@@ -79,10 +79,10 @@ def analyze_function(
                 raise ParameterNotTypeAnnotated(
                     f"Parameter **{arg.name} has no annotation"
                 )
-            dynamic_input_type = {
-                "structure_type": "dict",
-                "items": get_type_repr(ann, module_ns, short_repr=True),
-            }
+            dynamic_input_type = StructDescr(
+                structure_type="dict",
+                items_type=get_type_repr(ann, module_ns, short_repr=True),  # type: ignore[arg-type]
+            )
             # Analyze the argument type and merge with found types
             arg_types = analyze_type(ann, file_path, module_ns)
             merge_types_dict(found_types, arg_types)
@@ -93,11 +93,13 @@ def analyze_function(
         # Force the user to type annotate!
         if ann is inspect.Parameter.empty:
             raise ParameterNotTypeAnnotated(f"Parameter {arg.name} has no annotation")
-        arg_entry = {"type": get_type_repr(ann, module_ns, short_repr=True)}
-        if arg.default is not inspect.Parameter.empty:
-            arg_entry["value"] = arg.default
-        else:
-            arg_entry["value"] = None
+
+        arg_value = arg.default if arg.default is not inspect.Parameter.empty else None
+        arg_entry = DataWrapper(
+            type=get_type_repr(ann, module_ns, short_repr=True),  # type: ignore[arg-type]
+            value=arg_value,
+        )
+
         arguments[arg.name] = arg_entry
 
         # Analyze the argument type and merge with found types
@@ -109,20 +111,27 @@ def analyze_function(
     if ret_ann is inspect.Signature.empty:
         raise Exception(f"Function {func_obj.__name__} has no return annotation")
 
-    # Detect output fields from subclasses of MultipleOutputs return type
+    # Detect output fields from BaseModel subclasses with multiple outputs
     # Having the output_style flag lets a user potentially have an output (of multiple)
     # named "return" without breaking the app
+    # Skip cached types - they should be treated as single outputs
     outputs = {}
-    if inspect.isclass(ret_ann) and issubclass(ret_ann, MultipleOutputs):
+    if (
+        inspect.isclass(ret_ann)
+        and hasattr(ret_ann, "model_fields")
+        and not hasattr(ret_ann, "_is_cached_type")
+    ):
         # Get the model fields using Pydantic's model_fields
         output_style = "multiple"
         for field_name, field_info in ret_ann.model_fields.items():
             if field_info.annotation is not None:
-                output_entry = {
-                    "type": get_type_repr(
+                output_entry = DataWrapper(
+                    type=get_type_repr(  # type: ignore[arg-type]
                         field_info.annotation, module_ns, short_repr=True
-                    )
-                }
+                    ),
+                    value=None,
+                )
+
                 outputs[field_name] = output_entry
 
                 # Analyze the output field type and merge with found types
@@ -135,13 +144,33 @@ def analyze_function(
         # Check if function has a custom return_value_name from decorator
         return_value_name_temp = getattr(func_obj, "return_value_name", None)
         output_key = return_value_name_temp if return_value_name_temp else "return"
-        outputs[output_key] = {
-            "type": get_type_repr(ret_ann, module_ns, short_repr=True)
-        }
+        output_entry = DataWrapper(
+            type=get_type_repr(ret_ann, module_ns, short_repr=True),  # type: ignore[arg-type]
+            value=None,
+        )
+
+        outputs[output_key] = output_entry
 
     # Analyze the return type and merge found types
     ret_types = analyze_type(ret_ann, file_path, module_ns)
     merge_types_dict(found_types, ret_types)
+
+    # Apply type-to-datamodel mappings from decorator
+    if hasattr(func_obj, "_type_datamodel_mappings"):
+        mappings = func_obj._type_datamodel_mappings
+        # mappings is a list of dicts like [{"argument_type": Image, "associated_datamodel": CachedImageDataModel}]
+        for mapping in mappings:
+            argument_type = mapping.get("argument_type")
+            associated_datamodel = mapping.get("associated_datamodel")
+
+            if argument_type is None or associated_datamodel is None:
+                continue
+
+            # Find the type name for this argument_type class in found_types
+            type_name = get_type_repr(argument_type, module_ns, short_repr=True)
+
+            if type_name in found_types:
+                found_types[type_name]["referenced_datamodel"] = associated_datamodel
 
     # Generate callable_id by hashing the function's source code
     source_code = inspect.getsource(original_func)

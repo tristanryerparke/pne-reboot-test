@@ -1,20 +1,31 @@
-import SingleInputField from "./single-input-field";
+import InputFieldHandleWrapper from "./input-field-handle-wrapper";
 import { Separator } from "../../ui/separator";
-import ListDynamicInputs from "./dynamic/list-dynamic-inputs";
-import DictDynamicInputs from "./dynamic/dict-dynamic-inputs";
+import AddListInput from "./dynamic/add-list-input";
+import AddDictInput from "./dynamic/add-dict-input";
+import { useNodeData } from "../../../stores/flowStore";
+import type {
+  FrontendFieldDataWrapper,
+  StructDescr,
+} from "../../../types/types";
 
 interface InputsProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
-  nodeId: string;
-  path: string[];
+  arguments: Record<string, FrontendFieldDataWrapper>;
+  path: (string | number)[];
 }
 
-export default function Inputs({ data, nodeId, path }: InputsProps) {
+export default function Inputs({ arguments: args, path }: InputsProps) {
+  const nodeId = path[0];
+
+  // Get dynamicInputType from Zustand store
+  const dynamicInputType = useNodeData([nodeId, "dynamicInputType"]) as
+    | StructDescr
+    | null
+    | undefined;
+
   // Sort arguments to maintain proper order:
   // 1. Named arguments (non-numeric) come first, in their original order
   // 2. Numbered arguments (from *args) come after, sorted numerically
-  const sortedArguments = Object.entries(data.arguments).sort(
+  const sortedArguments = Object.entries(args || {}).sort(
     ([nameA], [nameB]) => {
       const isNumericA = /^\d+$/.test(nameA);
       const isNumericB = /^\d+$/.test(nameB);
@@ -33,35 +44,33 @@ export default function Inputs({ data, nodeId, path }: InputsProps) {
     },
   );
 
-  const hasExistingArguments = Object.keys(data.arguments).length !== 0;
+  // Flag used for conditionally rendering the separator
+  const hasExistingArguments = Object.keys(args || {}).length !== 0;
 
   return (
-    <div className="w-fit min-w-full">
-      {sortedArguments.map(([argName, argDef], index) => {
+    <div className="flex flex-col">
+      {sortedArguments.map(([argName, argData], index) => {
         return (
-          <div key={argName} className="w-full">
+          <div key={argName} className="flex-1">
             {index > 0 && <Separator className="w-full" />}
-            <SingleInputField
-              fieldData={argDef}
-              path={[...path, "arguments", argName]}
-              nodeData={data}
+            <InputFieldHandleWrapper
+              fieldData={argData}
+              path={[...path, argName]}
             />
           </div>
         );
       })}
-      {data.dynamic_input_type?.structure_type === "list" && (
-        <ListDynamicInputs
-          data={data}
-          nodeId={nodeId}
-          hasExistingArguments={hasExistingArguments}
-        />
+      {dynamicInputType?.structureType === "list" && (
+        <>
+          {hasExistingArguments && <Separator />}
+          <AddListInput path={path} />
+        </>
       )}
-      {data.dynamic_input_type?.structure_type === "dict" && (
-        <DictDynamicInputs
-          data={data}
-          nodeId={nodeId}
-          hasExistingArguments={hasExistingArguments}
-        />
+      {dynamicInputType?.structureType === "dict" && (
+        <>
+          {hasExistingArguments && <Separator />}
+          <AddDictInput path={path} />
+        </>
       )}
     </div>
   );

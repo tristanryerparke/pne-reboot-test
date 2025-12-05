@@ -17,13 +17,22 @@ def merge_types_dict(master_types, incoming_types):
 def get_type_repr(tp, module_ns, short_repr=True):
     """get a string representation of a type"""
     if short_repr:
+        # First try direct match
         for name, val in module_ns.items():
             if val is tp and name.isidentifier():
                 return name
+
+        # Try to find via attribute access (e.g., Image.Image for PIL.Image.Image)
+        if hasattr(tp, "__name__") and hasattr(tp, "__module__"):
+            # Check if any module in namespace has this class as an attribute
+            for name, val in module_ns.items():
+                if inspect.ismodule(val) and hasattr(val, tp.__name__):
+                    if getattr(val, tp.__name__) is tp:
+                        return tp.__name__  # Return just the class name (e.g., "Image")
     # Handle types.UnionType (int | float style)
     if isinstance(tp, types.UnionType):
         return {
-            "anyOf": [
+            "any_of": [
                 get_type_repr(param, module_ns, short_repr) for param in tp.__args__
             ]
         }
@@ -33,19 +42,19 @@ def get_type_repr(tp, module_ns, short_repr=True):
         # print(origin)
         if origin is typing.Union:
             return {
-                "anyOf": [
+                "any_of": [
                     get_type_repr(param, module_ns, short_repr) for param in tp.__args__
                 ]
             }
         elif origin in (list, typing.List):
             return {
                 "structure_type": "list",
-                "items": get_type_repr(tp.__args__[0], module_ns, short_repr),
+                "items_type": get_type_repr(tp.__args__[0], module_ns, short_repr),
             }
         elif origin in (dict, typing.Dict):
             return {
                 "structure_type": "dict",
-                "items": get_type_repr(tp.__args__[1], module_ns, short_repr),
+                "items_type": get_type_repr(tp.__args__[1], module_ns, short_repr),
             }
         else:
             raise ValueError("Unknown origin", tp)
@@ -100,6 +109,29 @@ def analyze_type(
                 _add_type_recursive(arg)
             return
 
+        # Cached types (detected by _is_cached_type marker)
+        if inspect.isclass(t) and hasattr(t, "_is_cached_type"):
+            # Try to find the name in the module namespace first
+            type_name = None
+            for name, val in module_ns.items():
+                if val is t and name.isidentifier():
+                    type_name = name
+                    break
+
+            # If not found in module_ns, use the class's __name__
+            if type_name is None:
+                type_name = t.__name__
+
+            if type_name not in types_dict:
+                types_dict[type_name] = {
+                    "kind": "user",
+                    "_class": t,
+                    "category": os.path.splitext(rel_file_path)[0]
+                    .replace(os.sep, "/")
+                    .split("/"),
+                }
+            return
+
         # Builtin type
         if inspect.isclass(t) and t.__module__ == "builtins":
             tname = t.__name__
@@ -129,14 +161,29 @@ def analyze_type(
                         types_dict[name] = entry
                     break
 
-        # Throw error on other user classes (not derived from UserModel)
+        # Handle third-party classes (not builtin, not UserModel, not cached)
         elif inspect.isclass(t):
+            # Try to find the name in the module namespace
+            type_name = None
             for name, val in module_ns.items():
                 if val is t and name.isidentifier():
-                    raise ValueError(
-                        f"Class '{name}' is not derived from UserModel. "
-                        f"All user-defined classes must inherit from UserModel."
-                    )
+                    type_name = name
+                    break
+
+            # If found in module namespace but not a recognized type, it might be:
+            # 1. A third-party type that will get a referenced_datamodel via decorator
+            # 2. A user class that should inherit from UserModel (error case)
+            if type_name is not None:
+                # Add it as a cached type placeholder
+                # The referenced_datamodel field will be added by functions_analysis.py if applicable
+                if type_name not in types_dict:
+                    types_dict[type_name] = {
+                        "kind": "cached",
+                        "_class": t,
+                        "category": os.path.splitext(rel_file_path)[0]
+                        .replace(os.sep, "/")
+                        .split("/"),
+                    }
 
         # Lists and dicts of user-defined types (e.g., list[int], dict[str, float])
         if hasattr(t, "__origin__") and hasattr(t, "__args__"):

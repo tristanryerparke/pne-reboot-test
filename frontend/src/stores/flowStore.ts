@@ -1,156 +1,200 @@
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/vanilla/shallow";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { addEdge, applyNodeChanges, applyEdgeChanges } from "@xyflow/react";
 import type {
-  Node,
   Edge,
   OnNodesChange,
   OnEdgesChange,
   OnConnect,
   ReactFlowInstance,
+  Viewport,
 } from "@xyflow/react";
 import { produce } from "immer";
+import type { FunctionNode } from "../types/types";
 
 type FlowStoreState = {
-  nodes: Node[];
+  nodes: FunctionNode[];
   edges: Edge[];
-  rfInstance: ReactFlowInstance | null;
+  viewport: Viewport;
+  rfInstance: ReactFlowInstance<FunctionNode, Edge> | null;
 };
 
 type FlowStoreActions = {
-  setNodes: (nodes: Node[] | ((currentNodes: Node[]) => Node[])) => void;
+  setNodes: (
+    nodes: FunctionNode[] | ((currentNodes: FunctionNode[]) => FunctionNode[]),
+  ) => void;
   setEdges: (edges: Edge[]) => void;
-  setRfInstance: (instance: ReactFlowInstance) => void;
-  onNodesChange: OnNodesChange;
+  setViewport: (viewport: Viewport) => void;
+  setRfInstance: (instance: ReactFlowInstance<FunctionNode, Edge>) => void;
+  onNodesChange: OnNodesChange<FunctionNode>;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
-  updateNodeData: (path: (string | number)[], newData: unknown) => void;
+  updateNodeData: (
+    path: (string | number)[],
+    newData: unknown,
+    options?: { suppress?: boolean; prefix?: string },
+  ) => void;
   getNodeData: (path: (string | number)[]) => unknown;
   deleteNodeData: (path: (string | number)[]) => void;
 };
 
 export type FlowState = FlowStoreState & FlowStoreActions;
 
-const useFlowStore = createWithEqualityFn<FlowState>(
-  (set, get) => ({
-    nodes: [],
-    edges: [],
-    rfInstance: null,
+const useFlowStore = createWithEqualityFn<
+  FlowState,
+  [["zustand/persist", unknown]]
+>(
+  persist(
+    (set, get) => ({
+      nodes: [],
+      edges: [],
+      viewport: { x: 0, y: 0, zoom: 1 },
+      rfInstance: null,
 
-    onNodesChange: (changes) => {
-      set(
-        produce((state: FlowState) => {
-          const nodesCopy = [...state.nodes];
-          const updatedNodes = applyNodeChanges(changes, nodesCopy);
-          state.nodes = updatedNodes;
+      onNodesChange: (changes) => {
+        set(
+          produce((state: FlowState) => {
+            const nodesCopy = [...state.nodes];
+            const updatedNodes = applyNodeChanges(changes, nodesCopy);
+            state.nodes = updatedNodes;
+          }),
+        );
+      },
+
+      onEdgesChange: (changes) => {
+        set(
+          produce((state: FlowState) => {
+            const edgesCopy = [...state.edges];
+            const updatedEdges = applyEdgeChanges(changes, edgesCopy);
+            state.edges = updatedEdges;
+          }),
+        );
+      },
+
+      onConnect: (connection) =>
+        set({ edges: addEdge(connection, get().edges) }),
+
+      setNodes: (nodes) =>
+        set({
+          nodes: typeof nodes === "function" ? nodes(get().nodes) : nodes,
         }),
-      );
-    },
 
-    onEdgesChange: (changes) => {
-      set(
-        produce((state: FlowState) => {
-          const edgesCopy = [...state.edges];
-          const updatedEdges = applyEdgeChanges(changes, edgesCopy);
-          state.edges = updatedEdges;
-        }),
-      );
-    },
+      setEdges: (edges) => set({ edges }),
 
-    onConnect: (connection) => set({ edges: addEdge(connection, get().edges) }),
+      setViewport: (viewport) => set({ viewport }),
 
-    setNodes: (nodes) =>
-      set({ nodes: typeof nodes === "function" ? nodes(get().nodes) : nodes }),
+      setRfInstance: (instance) => set({ rfInstance: instance }),
 
-    setEdges: (edges) => set({ edges }),
+      updateNodeData: (path, newData, options = {}) => {
+        const { suppress = false, prefix = "" } = options;
+        const oldValue = get().getNodeData(path);
 
-    setRfInstance: (instance) => set({ rfInstance: instance }),
+        set(
+          produce((state: FlowState) => {
+            const nodeIndex = state.nodes.findIndex(
+              (node) => node.id === path[0],
+            );
+            if (nodeIndex !== -1) {
+              let current = state.nodes[nodeIndex].data;
+              const pathToProperty = path.slice(1);
 
-    updateNodeData: (path, newData) => {
-      const oldValue = get().getNodeData(path);
-
-      set(
-        produce((state: FlowState) => {
-          const nodeIndex = state.nodes.findIndex(
-            (node) => node.id === path[0],
-          );
-          if (nodeIndex !== -1) {
-            let current = state.nodes[nodeIndex].data;
-            const pathToProperty = path.slice(1);
-
-            for (let i = 0; i < pathToProperty.length - 1; i++) {
-              const key = pathToProperty[i];
-              if (current[key] === undefined) {
-                console.warn(
-                  `Creating new nested property: ${key} at path: ${path.slice(0, i + 2).join(".")}`,
-                );
-                current[key] = {};
+              for (let i = 0; i < pathToProperty.length - 1; i++) {
+                const key = pathToProperty[i];
+                if (current[key] === undefined) {
+                  console.warn(
+                    `Creating new nested property: ${key} at path: ${path.slice(0, i + 2).join(".")}`,
+                  );
+                  current[key] = {};
+                }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                current = current[key] as any;
               }
-              current = current[key] as Record<string | number, unknown>;
+
+              const finalKey = pathToProperty[pathToProperty.length - 1];
+              current[finalKey] = newData;
             }
+          }),
+        );
 
-            const finalKey = pathToProperty[pathToProperty.length - 1];
-            current[finalKey] = newData;
-          }
-        }),
-      );
+        if (!suppress) {
+          const message = prefix ? `${prefix} ` : "";
+          console.log(
+            `${message}updating `,
+            path,
+            "\n from",
+            oldValue,
+            "to",
+            newData,
+          );
+        }
+      },
 
-      console.log("updating ", path, "\n from", oldValue, "to", newData);
-    },
+      getNodeData: (path) => {
+        const nodes = get().nodes;
+        const nodeIndex = nodes.findIndex((node) => node.id === path[0]);
 
-    getNodeData: (path) => {
-      const nodes = get().nodes;
-      const nodeIndex = nodes.findIndex((node) => node.id === path[0]);
-
-      if (nodeIndex === -1) {
-        return undefined;
-      }
-
-      let current = nodes[nodeIndex].data;
-      const pathToProperty = path.slice(1);
-
-      for (let i = 0; i < pathToProperty.length; i++) {
-        const key = pathToProperty[i];
-        if (current[key] === undefined) {
+        if (nodeIndex === -1) {
           return undefined;
         }
-        current = current[key] as Record<string | number, unknown>;
-      }
 
-      return current;
-    },
+        let current = nodes[nodeIndex].data;
+        const pathToProperty = path.slice(1);
 
-    deleteNodeData: (path) => {
-      set(
-        produce((state: FlowState) => {
-          const nodeIndex = state.nodes.findIndex(
-            (node) => node.id === path[0],
-          );
-          if (nodeIndex !== -1) {
-            let current = state.nodes[nodeIndex].data;
-            const pathToProperty = path.slice(1);
-
-            // Navigate to the parent object
-            for (let i = 0; i < pathToProperty.length - 1; i++) {
-              const key = pathToProperty[i];
-              if (current[key] === undefined) {
-                console.warn(
-                  `Property not found at path: ${path.slice(0, i + 2).join(".")}`,
-                );
-                return;
-              }
-              current = current[key] as Record<string | number, unknown>;
-            }
-
-            // Delete the final property
-            const finalKey = pathToProperty[pathToProperty.length - 1];
-            delete current[finalKey];
-            console.log("deleted data at path:", path);
+        for (let i = 0; i < pathToProperty.length; i++) {
+          const key = pathToProperty[i];
+          if (current[key] === undefined) {
+            return undefined;
           }
-        }),
-      );
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          current = current[key] as any;
+        }
+
+        return current;
+      },
+
+      deleteNodeData: (path) => {
+        set(
+          produce((state: FlowState) => {
+            const nodeIndex = state.nodes.findIndex(
+              (node) => node.id === path[0],
+            );
+            if (nodeIndex !== -1) {
+              let current = state.nodes[nodeIndex].data;
+              const pathToProperty = path.slice(1);
+
+              // Navigate to the parent object
+              for (let i = 0; i < pathToProperty.length - 1; i++) {
+                const key = pathToProperty[i];
+                if (current[key] === undefined) {
+                  console.warn(
+                    `Property not found at path: ${path.slice(0, i + 2).join(".")}`,
+                  );
+                  return;
+                }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                current = current[key] as any;
+              }
+
+              // Delete the final property
+              const finalKey = pathToProperty[pathToProperty.length - 1];
+              delete current[finalKey];
+              console.log("deleted data at path:", path);
+            }
+          }),
+        );
+      },
+    }),
+    {
+      name: "flow-storage",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        nodes: state.nodes,
+        edges: state.edges,
+        viewport: state.viewport,
+      }),
     },
-  }),
+  ),
   shallow,
 );
 

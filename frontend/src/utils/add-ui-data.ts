@@ -1,37 +1,66 @@
-import { TYPE_COMPONENT_REGISTRY } from "../components/custom-node/inputs/type-registry";
+import { TYPE_COMPONENT_REGISTRY } from "../components/custom-node/inputs/input-type-registry";
 
 /**
- * Initializes UI-specific data for arguments:
- * - selectedType for union type arguments
- * - inputMode for types with multiple component options (e.g., str with single-line/multiline)
+ * Initializes UI-specific data for arguments and outputs:
+ * - _selectedType for union type arguments
+ * - _expanded for types with expandable areas (e.g., Image, str)
  * This should be called when creating a new node (e.g., on drop).
  */
 export function initializeUIData(nodeData: any): void {
-  if (!nodeData.arguments) return;
+  // Note: _expandedComponentWidth is not initialized here
+  // It will be set dynamically when the first component is resized
 
-  Object.keys(nodeData.arguments).forEach((argName) => {
-    const arg = nodeData.arguments[argName];
+  // Initialize arguments
+  if (nodeData.arguments) {
+    Object.keys(nodeData.arguments).forEach((argName) => {
+      const arg = nodeData.arguments[argName];
 
-    // Initialize selectedType for union types (from backend schema)
-    if (typeof arg.type === "object" && arg.type?.anyOf && !arg.selectedType) {
-      arg.selectedType = arg.type.anyOf[0];
-    }
-
-    // Initialize inputMode for types with multiple component options (from frontend registry)
-    const actualType = arg.selectedType || arg.type;
-    if (typeof actualType === "string") {
-      const registryEntry = TYPE_COMPONENT_REGISTRY[actualType];
+      // Initialize _selectedType for union types (from backend schema)
       if (
-        registryEntry &&
-        typeof registryEntry === "object" &&
-        "anyOf" in registryEntry
+        typeof arg.type === "object" &&
+        arg.type?.anyOf &&
+        !arg._selectedType
       ) {
-        // This type has multiple component options
-        if (arg.inputMode === undefined) {
-          // Default to the first option (index 0)
-          arg.inputMode = 0;
+        arg._selectedType = arg.type.anyOf[0];
+      }
+
+      // Initialize _expanded for types based on registry
+      const actualType = arg._selectedType || arg.type;
+      if (typeof actualType === "string") {
+        const registryEntry = TYPE_COMPONENT_REGISTRY[actualType];
+        if (registryEntry && typeof registryEntry === "object") {
+          // Initialize _expanded for types with expandable areas
+          if (registryEntry.expanded) {
+            if (arg._expanded === undefined) {
+              // Default to collapsed (false)
+              arg._expanded = false;
+            }
+          }
         }
       }
-    }
-  });
+    });
+  }
+
+  // Initialize outputs
+  if (nodeData.outputs) {
+    Object.keys(nodeData.outputs).forEach((outputName) => {
+      const output = nodeData.outputs[outputName];
+
+      // Initialize _expanded for outputs with expandable areas
+      const outputType = output.type;
+      if (typeof outputType === "string") {
+        const registryEntry = TYPE_COMPONENT_REGISTRY[outputType];
+        if (
+          registryEntry &&
+          typeof registryEntry === "object" &&
+          registryEntry.expanded
+        ) {
+          if (output._expanded === undefined) {
+            // Default to collapsed (false)
+            output._expanded = false;
+          }
+        }
+      }
+    });
+  }
 }

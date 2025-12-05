@@ -1,16 +1,23 @@
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/vanilla/shallow";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export interface UnionType {
-  anyOf: string[];
+  anyOf: PropertyType[];
 }
+
+export interface ListType {
+  type: "list";
+  items: PropertyType;
+}
+
+export type PropertyType = string | UnionType | ListType;
 
 export interface TypeInfo {
   kind: string;
   category?: string[];
   type: string | UnionType;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  properties?: Record<string, any>;
+  properties?: Record<string, PropertyType>;
 }
 
 type TypesStoreState = {
@@ -24,23 +31,35 @@ type TypesStoreActions = {
 
 export type TypesState = TypesStoreState & TypesStoreActions;
 
-const useTypesStore = createWithEqualityFn<TypesState>(
-  (set) => ({
-    types: {},
+const useTypesStore = createWithEqualityFn<
+  TypesState,
+  [["zustand/persist", unknown]]
+>(
+  persist(
+    (set) => ({
+      types: {},
 
-    setTypes: (types) => set({ types }),
+      setTypes: (types) => set({ types }),
 
-    fetchTypes: async () => {
-      try {
-        const response = await fetch("http://localhost:8000/types");
-        const data = await response.json();
-        console.log("types:", data);
-        set({ types: data });
-      } catch (error) {
-        console.error("Failed to fetch types:", error);
-      }
+      fetchTypes: async () => {
+        try {
+          const response = await fetch("http://localhost:8000/types");
+          const data = await response.json();
+          console.log("types:", data);
+          set({ types: data });
+        } catch (error) {
+          console.error("Failed to fetch types:", error);
+        }
+      },
+    }),
+    {
+      name: "types-storage",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        types: state.types,
+      }),
     },
-  }),
+  ),
   shallow,
 );
 

@@ -4,15 +4,17 @@ import {
   Controls,
   Background,
   BackgroundVariant,
-  type Node,
   type NodeTypes,
   useReactFlow,
+  type OnMove,
 } from "@xyflow/react";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import CustomNode from "./custom-node/custom-node";
 import useFlowStore from "../stores/flowStore";
 import { useTheme } from "./theme-provider";
 import { initializeUIData } from "../utils/add-ui-data";
+import type { FunctionSchema, FunctionNode } from "../types/types";
+import GraphToolbar from "./graph-toolbar/graph-toolbar";
 
 const nodeTypes: NodeTypes = {
   customNode: CustomNode,
@@ -23,14 +25,33 @@ function NodeGraph() {
   const {
     nodes,
     edges,
+    viewport,
     onNodesChange,
     onEdgesChange,
     onConnect,
     setNodes,
+    setViewport,
     setRfInstance,
   } = useFlowStore();
 
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, setViewport: setReactFlowViewport } =
+    useReactFlow();
+
+  // Restore viewport on mount
+  useEffect(() => {
+    if (viewport) {
+      setReactFlowViewport(viewport, { duration: 0 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save viewport changes
+  const onMoveEnd = useCallback<OnMove>(
+    (_event, viewport) => {
+      setViewport(viewport);
+    },
+    [setViewport],
+  );
 
   let colorMode: "dark" | "light";
   if (theme === "system") {
@@ -49,7 +70,7 @@ function NodeGraph() {
       );
       if (!nodeDataString) return;
 
-      const nodeData = JSON.parse(nodeDataString);
+      const nodeData: FunctionSchema = JSON.parse(nodeDataString);
       const position = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
@@ -58,7 +79,7 @@ function NodeGraph() {
       // Initialize selectedType for union types in arguments
       initializeUIData(nodeData);
 
-      const newNode: Node = {
+      const newNode: FunctionNode = {
         id: crypto.randomUUID(),
         position: {
           x: position.x,
@@ -80,7 +101,11 @@ function NodeGraph() {
   }, []);
 
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div
+      style={{ width: "100%", height: "100%" }}
+      className="relative flex items-center justify-center"
+    >
+      <GraphToolbar />
       <ReactFlow
         proOptions={{ hideAttribution: true }}
         nodes={nodes}
@@ -91,18 +116,19 @@ function NodeGraph() {
         onDrop={onDrop}
         onDragOver={onDragOver}
         onInit={setRfInstance}
+        onMoveEnd={onMoveEnd}
         nodeTypes={nodeTypes}
         colorMode={colorMode}
-        // fitView
         panOnScroll
       >
-        <Controls />
+        <Controls showInteractive={false} style={{ backgroundColor: "#ccc" }} />
         <MiniMap position="bottom-right" />
         <Background
           variant={BackgroundVariant.Dots}
           gap={12}
           size={1}
-          bgColor={colorMode === "dark" ? "#111111" : "#f8f8f8"}
+          // dark is tailwind neutral-900, light is tailwind gray-100
+          bgColor={colorMode === "dark" ? "#171717" : "#f3f4f6"}
         />
       </ReactFlow>
     </div>
