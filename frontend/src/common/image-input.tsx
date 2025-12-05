@@ -1,8 +1,9 @@
 import { memo, useRef, useState, useEffect } from "react";
 import useFlowStore from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
-import type { FrontendFieldDataWrapper } from "@/types/types";
 import { preserveUIData } from "../utils/preserve-ui-data";
+import { Input } from "../components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface ImageInputProps {
   inputData: FrontendFieldDataWrapper;
@@ -129,24 +130,32 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
   const displayText = storedFilename || "Choose File";
 
   return (
-    <div className="flex flex-col gap-2 w-0 min-w-full">
-      <input
+    <div className="flex flex-1 min-w-30">
+      <Input
         ref={fileInputRef}
         type="file"
         accept="image/*"
         onChange={handleFileChange}
         disabled={uploading}
-        className="hidden"
+        className="min-w-20"
+        placeholder=""
+        hidden
       />
       <div
-        className="flex max-h-8 w-full rounded-md border border-input bg-transparent dark:bg-input/30 px-2 py-1 items-center cursor-pointer"
+        className={cn(
+          "flex flex-1 w-0 max-h-8",
+          "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input rounded-md border bg-transparent px-2 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm overflow-x-auto overflow-y-hidden text-left file:mr-2",
+          "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+          "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+          "items-center cursor-pointer",
+        )}
         onClick={() => {
           if (!uploading && fileInputRef.current) {
             fileInputRef.current.click();
           }
         }}
       >
-        <span className="text-sm truncate">{displayText}</span>
+        <span className="truncate">{displayText}</span>
       </div>
       {uploading && (
         <p className="text-xs text-muted-foreground">Uploading...</p>

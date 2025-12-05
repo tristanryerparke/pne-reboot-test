@@ -9,8 +9,8 @@ interface ImageExpandedProps {
 }
 
 const DEFAULT_AND_MIN_SIZE = {
-  width: 200,
-  height: 200,
+  width: 240,
+  height: 240,
 };
 
 const MAX_SIZE = {

@@ -5,6 +5,7 @@ import useFlowStore from "../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
 import { useControlledDebounce } from "../hooks/useControlledDebounce";
 import type { DataWrapper } from "@/types/types";
+import { cn } from "@/lib/utils";
 
 interface StringExpandedProps {
   inputData?: DataWrapper;
@@ -14,13 +15,13 @@ interface StringExpandedProps {
 }
 
 const DEFAULT_AND_MIN_SIZE = {
-  width: 260,
-  height: 80,
+  width: 240,
+  height: 120,
 };
 
 const MAX_SIZE = {
-  width: 600,
-  height: 400,
+  width: 800,
+  height: 800,
 };
 
 export default memo(function StringExpanded({
@@ -74,7 +75,10 @@ export default memo(function StringExpanded({
         onChange={handleValueChange}
         onBlur={(e) => setValue(e.target.value)}
         disabled={isDisabled}
-        className={`nopan nowheel h-full w-full resize-none ${readOnly ? "cursor-default" : ""}`}
+        className={cn(
+          "nopan nowheel flex flex-1 overflow-x-hidden overflow-y-auto",
+          readOnly && "cursor-default",
+        )}
         placeholder="Enter text"
         style={{
           wordBreak: "break-word",
