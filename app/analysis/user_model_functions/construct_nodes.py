@@ -7,7 +7,7 @@ from ..types_analysis import get_type_repr
 
 def make_constructor(cls, type_name):
     def constructor(**kwargs):
-        return cls(**kwargs)
+        return cls.model_validate(kwargs)
 
     constructor.__name__ = f"construct_{type_name}"
     return constructor

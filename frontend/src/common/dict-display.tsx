@@ -1,23 +1,25 @@
 import { memo } from "react";
 import SingleLineTextDisplay from "./single-line-text-display";
 import { formatTypeForDisplay } from "@/utils/type-formatting";
+import type { FrontendFieldDataWrapper, StructDescr } from "@/types/types";
 
 interface DictDisplayProps {
-  inputData: any;
+  inputData: FrontendFieldDataWrapper;
   path: (string | number)[];
 }
 
 export default memo(function DictDisplay({ inputData }: DictDisplayProps) {
-  const dictType = inputData.type;
-  const value = inputData.value;
+  const dictType = inputData.type as StructDescr;
+  const value = inputData.value as Record<string, unknown> | null;
 
   // If there's no value, show the "attach" message
   if (value === null || value === undefined) {
-    const itemType = typeof dictType === "object" ? dictType.items : "unknown";
+    const itemType = dictType.itemsType;
     return (
       <SingleLineTextDisplay
         dimmed
-        content={`attach dict[str, ${formatTypeForDisplay(itemType)}]...`}
+        // content={`dict[str, ${formatTypeForDisplay(itemType)}]`}
+        content={"no data"}
       />
     );
   }

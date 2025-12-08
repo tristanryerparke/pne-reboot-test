@@ -32,7 +32,8 @@ export default memo(function OutputRenderer({
       if (
         typeInfo &&
         typeInfo.kind === "user_model" &&
-        typeof outputData.value === "object"
+        typeof outputData.value === "object" &&
+        outputData.value !== null
       ) {
         const fields = Object.entries(outputData.value)
           .map(([key, value]) => `${key}=${value}`)

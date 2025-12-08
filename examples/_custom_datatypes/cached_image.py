@@ -8,6 +8,7 @@ from pydantic import (
     computed_field,
 )
 
+from app.display import add_node_options
 from app.large_data.base import CachedDataWrapper
 
 THUMBNAIL_MAX_SIZE = 200
@@ -82,3 +83,10 @@ class CachedImageDataModel(CachedDataWrapper):
     @property
     def _display_name(self) -> str:
         return f"Image({self.value.width}x{self.value.height}, {self.value.mode})"
+
+
+image_cached_datatype = add_node_options(
+    cached_types=[
+        {"argument_type": Image, "associated_datamodel": CachedImageDataModel}
+    ],
+)
