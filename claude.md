@@ -46,3 +46,4 @@ if __name__ == "__main__":
 6. You can use the app's cli to run the backend analysis functions like so: uv run pne-run-analyze examples/basic_dynamic_inputs.py -v
 
 7. I'm using Pydantic V2 in this project.
+8. If I phrase my prompt as a question, don't immediately go into file editing mode. Answer the question first, pause and wait for further instructions.

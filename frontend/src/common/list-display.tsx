@@ -1,6 +1,5 @@
 import { memo } from "react";
 import SingleLineTextDisplay from "./single-line-text-display";
-import { formatTypeForDisplay } from "@/utils/type-formatting";
 import type { FrontendFieldDataWrapper, StructDescr } from "@/types/types";
 
 interface ListDisplayProps {
@@ -14,20 +13,30 @@ export default memo(function ListDisplay({ inputData }: ListDisplayProps) {
 
   // If there's no value, show the "attach" message
   if (value === null || value === undefined) {
-    const itemType = listType.itemsType;
-    return (
-      <SingleLineTextDisplay
-        dimmed
-        // content={`list[${formatTypeForDisplay(itemType)}]`}
-        content={"no data"}
-      />
-    );
+    return <SingleLineTextDisplay dimmed content={"no data"} />;
   }
 
   // If there's a value, display it
-  const displayValue = Array.isArray(value)
-    ? `[${value.join(", ")}]`
-    : JSON.stringify(value);
+  const displayValue = (() => {
+    if (!Array.isArray(value)) {
+      return JSON.stringify(value);
+    }
+
+    if (value.length === 0) {
+      return "[]";
+    }
+
+    const itemTypeName =
+      typeof listType.itemsType === "string" ? listType.itemsType : "Any";
+
+    // For arrays of objects, show the type name for each item
+    if (typeof value[0] === "object" && value[0] !== null) {
+      return `[${value.map(() => itemTypeName).join(", ")}]`;
+    }
+
+    // For arrays of primitives, show the actual values
+    return `[${value.map((v) => String(v)).join(", ")}]`;
+  })();
 
   return <SingleLineTextDisplay content={displayValue} dimmed />;
 });

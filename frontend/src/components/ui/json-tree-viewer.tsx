@@ -94,6 +94,24 @@ function JsonNode({
       ? Object.keys(data).length
       : 0;
 
+  // For root node, just render children directly without the root header
+  if (isRoot && isExpandable && data !== null && data !== undefined) {
+    return (
+      <div>
+        {Object.keys(data).map((key) => (
+          <JsonNode
+            key={key}
+            name={dataType === "array" ? `${key}` : key}
+            data={data[key]}
+            level={0}
+            defaultExpanded={defaultExpanded}
+            textLimit={textLimit}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn("pl-4 group/object", level > 0 && "border-l border-border")}
