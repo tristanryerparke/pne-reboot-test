@@ -38,8 +38,8 @@ export default memo(function CustomNode({
       </div>
       <div className="px-2">
         <NodeDrawer
-          isExpanded={data._drawerExpanded || false}
-          errorDetails={data.error_details}
+          isExpanded={(data._drawerExpanded as true) || false}
+          terminalOutput={data.terminal_output as string}
           path={path}
         />
       </div>

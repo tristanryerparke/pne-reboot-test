@@ -26,6 +26,8 @@ export default memo(function NodeHeader({ data, nodeId }: NodeHeaderProps) {
       <NodeStatus
         status={data._status || "not-executed"}
         onToggleDrawer={handleToggleDrawer}
+        hasTerminalOutput={!!data.terminal_output}
+        isDrawerOpen={data._drawerExpanded || false}
       />
     </div>
   );

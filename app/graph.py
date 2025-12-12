@@ -54,13 +54,16 @@ async def execute_graph(graph: Graph):
     for node in execution_list:
         if VERBOSE:
             print(f"Executing node {node.id}")
-        success, result = execute_node(node.data)
+        success, result, terminal_output = execute_node(node.data)
 
         node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
 
-        # If execution failed, add error to update and skip output processing
+        # Add terminal output if present
+        if terminal_output:
+            node_update["terminal_output"] = terminal_output
+
+        # If execution failed, skip output processing
         if not success:
-            node_update["error_details"] = result
             node_update["_status"] = "error"
             updates.append(node_update)
             continue
@@ -157,10 +160,19 @@ async def execute_graph(graph: Graph):
 
 def execute_node(node: NodeDataFromFrontend):
     """Finds a node's callable and executes it with the arguments from the frontend"""
+    import io
+    import sys
 
     from app.server import CALLABLES
 
     callable = CALLABLES[node.callable_id]
+
+    # Capture stdout and stderr
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    captured_output = io.StringIO()
+    sys.stdout = captured_output
+    sys.stderr = captured_output
 
     try:
         # Check if this function has list_inputs enabled
@@ -191,7 +203,7 @@ def execute_node(node: NodeDataFromFrontend):
             # Combine: named parameters first, then dynamic numbered inputs
             all_args = named_args_values + sorted_numbered_args
 
-            return (True, callable(*all_args))
+            result = callable(*all_args)
         # Check if this function has dict_inputs enabled
         elif getattr(callable, "dict_inputs", False):
             # For dict_inputs functions, all arguments are passed as **kwargs
@@ -200,7 +212,7 @@ def execute_node(node: NodeDataFromFrontend):
             for k, v in node.arguments.items():
                 args[k] = v.value
 
-            return (True, callable(**args))
+            result = callable(**args)
         else:
             # Normal execution with kwargs
             args = {}
@@ -209,8 +221,23 @@ def execute_node(node: NodeDataFromFrontend):
             for k, v in node.arguments.items():
                 args[k] = v.value
 
-            return (True, callable(**args))
+            result = callable(**args)
+
+        # Restore stdout/stderr and get captured output
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+        terminal_output = captured_output.getvalue()
+
+        # Print the captured output so it still appears in the terminal
+        if terminal_output:
+            print(terminal_output, end="")
+
+        return (True, result, terminal_output if terminal_output else None)
     except Exception as e:
+        # Restore stdout/stderr
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+        terminal_output = captured_output.getvalue()
         # Get the traceback but skip the execute_node frame
         tb = e.__traceback__
         if tb and tb.tb_next:
@@ -220,14 +247,18 @@ def execute_node(node: NodeDataFromFrontend):
         else:
             formatted_tb = traceback.format_exc()
 
-        return (
-            False,
-            {
-                "error_type": type(e).__name__,
-                "error_message": str(e),
-                "traceback": formatted_tb,
-            },
-        )
+        # Print the captured output and error so they still appear in the terminal
+        if terminal_output:
+            print(terminal_output, end="")
+        print(formatted_tb, end="")
+
+        # Combine terminal output with error traceback
+        combined_output = ""
+        if terminal_output:
+            combined_output += terminal_output
+        combined_output += formatted_tb
+
+        return (False, None, combined_output)
 
 
 def topological_order(graph: Graph) -> list[NodeFromFrontend]:

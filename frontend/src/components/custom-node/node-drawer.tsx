@@ -1,15 +1,9 @@
 import { memo } from "react";
 import SyncedResizable from "@/common/utility-components/synced-resizable";
 
-type ErrorDetails = {
-  error_type: string;
-  error_message: string;
-  traceback: string;
-};
-
 type NodeDrawerProps = {
   isExpanded: boolean;
-  errorDetails?: ErrorDetails;
+  terminalOutput?: string;
   path: (string | number)[];
 };
 
@@ -25,25 +19,31 @@ const MAX_SIZE = {
 
 export default memo(function NodeDrawer({
   isExpanded,
-  errorDetails,
+  terminalOutput,
   path,
 }: NodeDrawerProps) {
-  if (!isExpanded || !errorDetails) {
+  console.log("NodeDrawer:", {
+    isExpanded,
+    hasTerminalOutput: !!terminalOutput,
+    path,
+  });
+
+  if (!isExpanded || !terminalOutput) {
     return null;
   }
 
   return (
     <SyncedResizable
-      path={[...path, "error_drawer"]}
+      path={[...path, "terminal_drawer"]}
       defaultSize={DEFAULT_AND_MIN_SIZE}
       minSize={DEFAULT_AND_MIN_SIZE}
       maxSize={MAX_SIZE}
       useDefaultWidthOnFirstRender={true}
-      className="bg-background border-x border-b border-input rounded-b-md shadow-lg"
+      className="bg-card border-x border-b border-input rounded-b-md shadow-lg"
     >
-      <div className="p-3 h-full w-full overflow-auto">
-        <div className="font-mono text-xs whitespace-pre-wrap wrap-break-word">
-          {errorDetails.traceback}
+      <div className="px-2 pt-2 pb-0 h-full w-full overflow-auto">
+        <div className="font-mono text-xs whitespace-pre-wrap break-words">
+          {terminalOutput}
         </div>
       </div>
     </SyncedResizable>

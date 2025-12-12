@@ -49,11 +49,16 @@ export default function ExecuteMenu() {
             updateNodeData(statusPath, update._status);
           }
 
-          // Check if node has an error
-          if (update.error_details) {
-            const errorPath = [nodeId, "error_details"];
-            updateNodeData(errorPath, update.error_details);
-            console.error(`Node ${nodeId} failed:`, update.error_details);
+          // Check if node has terminal output
+          if (update.terminal_output) {
+            const terminalPath = [nodeId, "terminal_output"];
+            updateNodeData(terminalPath, update.terminal_output);
+            if (update._status === "error") {
+              console.error(
+                `Node ${nodeId} failed with output:`,
+                update.terminal_output,
+              );
+            }
           }
 
           // Update inputs (preserve UI data like _expanded)
