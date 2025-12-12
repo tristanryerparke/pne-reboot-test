@@ -2,7 +2,7 @@ from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
 from app.schema import DataWrapper
-from examples.basic_multiple_outputs import (
+from tests.assets.basic_multiple_outputs import (
     integer_division_multiple_outputs,
     integer_division_single_output,
 )
