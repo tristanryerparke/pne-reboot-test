@@ -9,7 +9,7 @@ from examples._custom_datatypes.cached_image import image_cached_datatype
 
 @image_cached_datatype
 def image_from_url(
-    url: str = "https://upload.wikimedia.org/wikipedia/commons/7/74/A-Cat.jpg",
+    url: str = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/A-Cat.jpg/1024px-A-Cat.jpg",
 ) -> Image:
     headers = {"User-Agent": "Mozilla/5.0"}
     response = requests.get(url, headers=headers)
