@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { SearchBar } from "@/common/search-bar";
+import { SearchBar } from "@/common/utility-components/search-bar";
 import { CategoryGroup } from "./category-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import useSchemasStore, { type NodesResponse } from "@/stores/schemasStore";

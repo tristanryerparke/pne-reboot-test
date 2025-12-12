@@ -12,7 +12,7 @@ import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
 from app.graph import router as graph_router
 from app.large_data.router import router as data_router
-from examples.images.blur import blur_image
+from tests.assets.blur import blur_image
 
 # Analyze the blur_image function to get types
 _, schema, _, found_types = analyze_function(blur_image)

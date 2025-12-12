@@ -1,10 +1,11 @@
 // eslint-disable react-refresh/only-export-components
-import FloatInput from "../../../common/float-input";
-import IntInput from "../../../common/int-input";
-import StringInput from "../../../common/string-input";
-import ImageInput from "../../../common/image-input";
-import ImageExpanded from "../../../common/image-expanded";
-import StringExpanded from "../../../common/string-expanded";
+import FloatInput from "../../../common/leaf-inputs/float-input";
+import IntInput from "../../../common/leaf-inputs/int-input";
+import StringInput from "../../../common/leaf-inputs/string-input";
+import ImageInput from "../../../common/leaf-inputs/image-input";
+import StringExpanded from "../../../common/leaf-inputs/expanded/string-expanded";
+import ImageExpanded from "../../../common/leaf-inputs/expanded/image-expanded";
+// import { GrowingComponent } from "@/common/leaf-inputs/expanded/max-size-component-test";
 
 export interface InputRendererProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,4 +36,5 @@ export const TYPE_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> = {
     hideMainWhenExpanded: true,
   },
   Image: { main: ImageInput, expanded: ImageExpanded },
+  // Image: { main: ImageInput, expanded: GrowingComponent },
 };

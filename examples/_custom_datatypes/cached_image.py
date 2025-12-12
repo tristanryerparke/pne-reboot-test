@@ -2,7 +2,8 @@
 import base64
 import io
 
-from PIL import Image
+from PIL import Image as ImageLibrary
+from PIL.Image import Image
 from pydantic import (
     Field,
     computed_field,
@@ -11,12 +12,10 @@ from pydantic import (
 from app.display import add_node_options
 from app.large_data.base import CachedDataWrapper
 
-THUMBNAIL_MAX_SIZE = 200
+THUMBNAIL_MAX_SIZE = 500
 
 
-def generate_thumbnail_base64(
-    image: Image.Image, max_size: int = THUMBNAIL_MAX_SIZE
-) -> str:
+def generate_thumbnail_base64(image: Image, max_size: int = THUMBNAIL_MAX_SIZE) -> str:
     width, height = image.size
     if width > height:
         new_width = max_size
@@ -26,7 +25,7 @@ def generate_thumbnail_base64(
         new_width = int((width / height) * max_size)
 
     thumbnail = image.copy()
-    thumbnail.thumbnail((new_width, new_height), Image.Resampling.LANCZOS)
+    thumbnail.thumbnail((new_width, new_height), ImageLibrary.Resampling.LANCZOS)
 
     thumb_buffer = io.BytesIO()
     thumbnail.save(thumb_buffer, format="WEBP")
@@ -38,7 +37,7 @@ def generate_thumbnail_base64(
 class CachedImageDataModel(CachedDataWrapper):
     """Cached image data wrapper for PIL Image objects"""
 
-    value: Image.Image | None = Field(
+    value: Image | None = Field(
         exclude=True, default=None
     )  # we can't send the image object to the frontend so we exclude it
     filename_: str | None = Field(
@@ -60,7 +59,7 @@ class CachedImageDataModel(CachedDataWrapper):
         """
         try:
             img_data = base64.b64decode(data["img_base64"])
-            img = Image.open(io.BytesIO(img_data))
+            img = ImageLibrary.open(io.BytesIO(img_data))
 
             return cls(
                 type="Image",
@@ -87,6 +86,6 @@ class CachedImageDataModel(CachedDataWrapper):
 
 image_cached_datatype = add_node_options(
     cached_types=[
-        {"argument_type": Image.Image, "associated_datamodel": CachedImageDataModel}
+        {"argument_type": Image, "associated_datamodel": CachedImageDataModel}
     ],
 )

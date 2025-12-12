@@ -1,9 +1,9 @@
 import { memo } from "react";
-import SyncedResizable from "./synced-resizable";
-import { Textarea } from "../components/ui/textarea";
-import useFlowStore from "../stores/flowStore";
+import SyncedResizable from "../../utility-components/synced-resizable";
+import { Textarea } from "../../../components/ui/textarea";
+import useFlowStore from "../../../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
-import { useControlledDebounce } from "../hooks/useControlledDebounce";
+import { useControlledDebounce } from "../../../hooks/useControlledDebounce";
 import type { DataWrapper } from "@/types/types";
 import { cn } from "@/lib/utils";
 
@@ -32,13 +32,17 @@ export default memo(function StringExpanded({
 }: StringExpandedProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
+  // Call all hooks before any early returns
+  const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
+  const connections = useNodeConnections({
+    handleType: "target",
+    handleId: handleId,
+  });
+
   // Support both inputData and outputData
   const data = inputData || outputData;
-  if (!data) {
-    return <div>No data</div>;
-  }
 
-  const externalValue = typeof data.value === "string" ? data.value : "";
+  const externalValue = typeof data?.value === "string" ? data.value : "";
 
   const [value, setValue] = useControlledDebounce(
     externalValue,
@@ -48,11 +52,10 @@ export default memo(function StringExpanded({
     200,
   );
 
-  const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
-  const connections = useNodeConnections({
-    handleType: "target",
-    handleId: handleId,
-  });
+  // Early return after all hooks
+  if (!data) {
+    return <div>No data</div>;
+  }
 
   const isConnected =
     connections.length > 0 && connections[0].targetHandle === handleId;
@@ -71,7 +74,7 @@ export default memo(function StringExpanded({
         minSize={DEFAULT_AND_MIN_SIZE}
         maxSize={MAX_SIZE}
       >
-        <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden">
+        <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input">
           <Textarea
             value={value}
             onChange={handleValueChange}

@@ -136,7 +136,7 @@ def analyze_files(py_files: list[str], base_dir: str):
         sys.path.insert(0, base_dir)
 
     for py_file in py_files:
-        print(f"Analyzing {py_file}:")
+        # print(f"Analyzing {py_file}:")
 
         # Analyze the file
         file_functions, file_callables, file_types = analyze_file(py_file)

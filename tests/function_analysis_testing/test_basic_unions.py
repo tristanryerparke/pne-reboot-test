@@ -2,7 +2,7 @@ from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
 from app.schema import DataWrapper, UnionDescr
-from examples.basic_union_args import add_with_union
+from tests.assets.functions import add_with_union
 
 
 def test_union():
