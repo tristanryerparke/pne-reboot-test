@@ -1,7 +1,6 @@
 from PIL import ImageFilter
 from PIL.Image import Image
 
-from app.display import add_node_options
 from examples._custom_datatypes.cached_image import image_cached_datatype
 
 

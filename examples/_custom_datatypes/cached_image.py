@@ -87,6 +87,6 @@ class CachedImageDataModel(CachedDataWrapper):
 
 image_cached_datatype = add_node_options(
     cached_types=[
-        {"argument_type": Image, "associated_datamodel": CachedImageDataModel}
+        {"argument_type": Image.Image, "associated_datamodel": CachedImageDataModel}
     ],
 )

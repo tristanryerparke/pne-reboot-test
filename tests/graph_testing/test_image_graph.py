@@ -2,6 +2,7 @@ import base64
 import io
 from contextlib import asynccontextmanager
 
+from devtools import debug as d
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
@@ -44,6 +45,26 @@ app.add_middleware(
 )
 
 client = TestClient(app)
+
+
+def test_app_setup():
+    """Test that the blur_image function was analyzed correctly and Image type is registered with referenced_datamodel"""
+    # Verify Image type exists
+    assert "Image" in server_module.TYPES.keys()
+
+    # Verify Image type has correct structure
+    image_type = server_module.TYPES["Image"]
+    assert image_type["kind"] == "cached"
+    assert image_type["_class"] == Image.Image
+    assert "referenced_datamodel" in image_type
+
+    # Verify referenced_datamodel points to the correct class
+    from examples._custom_datatypes.cached_image import CachedImageDataModel
+
+    assert image_type["referenced_datamodel"] == CachedImageDataModel
+
+    # Verify blur_image is registered
+    assert "blur_image" in server_module.CALLABLES
 
 
 def test_image_upload():
@@ -273,3 +294,7 @@ def test_two_connected_image_nodes():
     node2_input = node2_update["inputs"]["image"]
     assert node2_input["type"] == "Image"
     assert node2_input["cacheKey"] == node1_output["cacheKey"]
+
+
+if __name__ == "__main__":
+    test_app_setup()
