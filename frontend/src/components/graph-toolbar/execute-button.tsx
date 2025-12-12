@@ -43,6 +43,19 @@ export default function ExecuteMenu() {
         result.updates.forEach((update: any) => {
           const nodeId = update.node_id;
 
+          // Update status
+          if (update._status) {
+            const statusPath = [nodeId, "_status"];
+            updateNodeData(statusPath, update._status);
+          }
+
+          // Check if node has an error
+          if (update.error_details) {
+            const errorPath = [nodeId, "error_details"];
+            updateNodeData(errorPath, update.error_details);
+            console.error(`Node ${nodeId} failed:`, update.error_details);
+          }
+
           // Update inputs (preserve UI data like _expanded)
           Object.entries(update.inputs).forEach(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

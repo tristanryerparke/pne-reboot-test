@@ -1,7 +1,8 @@
+import traceback
+
 from devtools import debug as d
 from fastapi import APIRouter
 
-from app.large_data.base import CachedDataWrapper
 from app.schema import Graph, NodeDataFromFrontend, NodeFromFrontend
 
 router = APIRouter()
@@ -53,7 +54,19 @@ async def execute_graph(graph: Graph):
     for node in execution_list:
         if VERBOSE:
             print(f"Executing node {node.id}")
-        result = execute_node(node.data)
+        success, result = execute_node(node.data)
+
+        node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
+
+        # If execution failed, add error to update and skip output processing
+        if not success:
+            node_update["error_details"] = result
+            node_update["_status"] = "error"
+            updates.append(node_update)
+            continue
+
+        # Execution succeeded
+        node_update["_status"] = "executed"
 
         # Normalize result to dict format
         # For single outputs, wrap in {output_key: value}
@@ -70,8 +83,6 @@ async def execute_graph(graph: Graph):
                 result_dict = result.model_dump()
             else:
                 result_dict = result
-
-        node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
 
         # Check if this node received inputs from other nodes via edges
         for edge in graph.edges:
@@ -146,55 +157,68 @@ async def execute_graph(graph: Graph):
 
 def execute_node(node: NodeDataFromFrontend):
     """Finds a node's callable and executes it with the arguments from the frontend"""
+
     from app.server import CALLABLES
 
     callable = CALLABLES[node.callable_id]
 
-    # Check if this function has list_inputs enabled
-    if getattr(callable, "list_inputs", False):
-        # For list_inputs functions:
-        # - Named parameters (e.g., arg1) are passed as positional args first
-        # - Numbered parameters (0, 1, 2...) are passed as *args after
-        numbered_args = {}
-        named_args = {}
+    try:
+        # Check if this function has list_inputs enabled
+        if getattr(callable, "list_inputs", False):
+            # For list_inputs functions:
+            # - Named parameters (e.g., arg1) are passed as positional args first
+            # - Numbered parameters (0, 1, 2...) are passed as *args after
+            numbered_args = {}
+            named_args = {}
 
-        for k, v in node.arguments.items():
-            arg_value = v.value
+            for k, v in node.arguments.items():
+                arg_value = v.value
 
-            # Handle both "_0", "_1" and "0", "1" naming patterns
-            if k.isdigit():
-                numbered_args[int(k)] = arg_value
-            else:
-                named_args[k] = arg_value
+                # Handle both "_0", "_1" and "0", "1" naming patterns
+                if k.isdigit():
+                    numbered_args[int(k)] = arg_value
+                else:
+                    named_args[k] = arg_value
 
-        # Sort numbered args by index
-        sorted_numbered_args = [numbered_args[i] for i in sorted(numbered_args.keys())]
+            # Sort numbered args by index
+            sorted_numbered_args = [
+                numbered_args[i] for i in sorted(numbered_args.keys())
+            ]
 
-        # Get named args values in order (maintain dict order from frontend)
-        named_args_values = list(named_args.values())
+            # Get named args values in order (maintain dict order from frontend)
+            named_args_values = list(named_args.values())
 
-        # Combine: named parameters first, then dynamic numbered inputs
-        all_args = named_args_values + sorted_numbered_args
+            # Combine: named parameters first, then dynamic numbered inputs
+            all_args = named_args_values + sorted_numbered_args
 
-        return callable(*all_args)
-    # Check if this function has dict_inputs enabled
-    elif getattr(callable, "dict_inputs", False):
-        # For dict_inputs functions, all arguments are passed as **kwargs
-        # The frontend should send them with their key names
-        args = {}
-        for k, v in node.arguments.items():
-            args[k] = v.value
+            return (True, callable(*all_args))
+        # Check if this function has dict_inputs enabled
+        elif getattr(callable, "dict_inputs", False):
+            # For dict_inputs functions, all arguments are passed as **kwargs
+            # The frontend should send them with their key names
+            args = {}
+            for k, v in node.arguments.items():
+                args[k] = v.value
 
-        return callable(**args)
-    else:
-        # Normal execution with kwargs
-        args = {}
-        # print("Node arguments being printed:")
-        # d(node.arguments)
-        for k, v in node.arguments.items():
-            args[k] = v.value
+            return (True, callable(**args))
+        else:
+            # Normal execution with kwargs
+            args = {}
+            # print("Node arguments being printed:")
+            # d(node.arguments)
+            for k, v in node.arguments.items():
+                args[k] = v.value
 
-        return callable(**args)
+            return (True, callable(**args))
+    except Exception as e:
+        return (
+            False,
+            {
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "traceback": traceback.format_exc(),
+            },
+        )
 
 
 def topological_order(graph: Graph) -> list[NodeFromFrontend]:
