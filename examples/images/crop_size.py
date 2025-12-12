@@ -1,14 +1,9 @@
 from PIL.Image import Image
 
-from app.display import add_node_options
-from examples._custom_datatypes.cached_image import CachedImageDataModel
+from examples._custom_datatypes.cached_image import image_cached_datatype
 
 
-@add_node_options(
-    cached_types=[
-        {"argument_type": Image, "associated_datamodel": CachedImageDataModel}
-    ],
-)
+@image_cached_datatype
 def crop_size(
     image: Image,
     width: int = 512,
