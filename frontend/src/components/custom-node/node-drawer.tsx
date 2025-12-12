@@ -40,8 +40,12 @@ export default memo(function NodeDrawer({
       maxSize={MAX_SIZE}
       className="bg-card border-x border-b border-input rounded-b-md shadow-lg overflow-hidden"
     >
-      <div className="px-2 pt-2 pb-0 h-full w-full overflow-auto">
-        <div className="font-mono text-xs whitespace-pre-wrap break-words">
+      <div
+        className="px-2 pt-2 pb-0 h-full overflow-auto select-text cursor-text"
+        onMouseDown={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <div className="font-mono text-xs whitespace-pre-wrap break-word select-text">
           {terminalOutput}
         </div>
       </div>
