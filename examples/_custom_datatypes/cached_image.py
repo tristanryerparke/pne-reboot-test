@@ -12,7 +12,7 @@ from pydantic import (
 from app.display import add_node_options
 from app.large_data.base import CachedDataWrapper
 
-THUMBNAIL_MAX_SIZE = 200
+THUMBNAIL_MAX_SIZE = 500
 
 
 def generate_thumbnail_base64(image: Image, max_size: int = THUMBNAIL_MAX_SIZE) -> str:

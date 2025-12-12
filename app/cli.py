@@ -1,5 +1,7 @@
 def main():
     import argparse
+    import os
+    import subprocess
     import sys
 
     import uvicorn
@@ -16,12 +18,40 @@ def main():
         action="store_true",
         help="Do not ignore files and folders starting with underscore",
     )
+    parser.add_argument(
+        "-f",
+        "--frontend",
+        action="store_true",
+        help="Build and serve the frontend from the dist folder",
+    )
     # Common uvicorn options
     parser.add_argument("--host", default="127.0.0.1", help="Host to bind to")
     parser.add_argument("--port", type=int, default=8000, help="Port to bind to")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
 
     args = parser.parse_args()
+
+    # Build frontend if --frontend flag is provided
+    if args.frontend:
+        frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
+
+        # Run bun i
+        print("Frontend: Installing dependencies...", end="", flush=True)
+        result = subprocess.run(["bun", "i"], cwd=frontend_dir, capture_output=True)
+        if result.returncode != 0:
+            print(f"\nError installing dependencies: {result.stderr.decode()}")
+            sys.exit(1)
+
+        # Run bun run build
+        print("\rFrontend: Building...                          ", end="", flush=True)
+        result = subprocess.run(
+            ["bun", "run", "build"], cwd=frontend_dir, capture_output=True
+        )
+        if result.returncode != 0:
+            print(f"\nError building frontend: {result.stderr.decode()}")
+            sys.exit(1)
+
+        print("\rFrontend: Build complete!                      ")
 
     # Store verbose flag globally for server and graph to access
     import app.graph
@@ -30,11 +60,21 @@ def main():
     app.server.VERBOSE = args.verbose
     app.graph.VERBOSE = args.verbose
     app.server.IGNORE_UNDERSCORE_PREFIX = not args.do_not_ignore_underscore_prefix
+    app.server.SERVE_FRONTEND = args.frontend
 
     # Reconstruct sys.argv for the lifespan handler to read the paths
     sys.argv = [sys.argv[0], args.path]
 
     from app.server import app as fastapi_app
+
+    # Mount frontend static files if requested (must be done after all routes are added)
+    if args.frontend:
+        app.server.mount_frontend()
+        # ANSI escape codes for blue and clickable link
+        blue = "\033[94m\033]8;;"
+        reset = "\033]8;;\033\\\033[0m"
+        frontend_url = f"http://{args.host}:{args.port}"
+        print(f"Frontend available at: {blue}{frontend_url}\033\\{frontend_url}{reset}")
 
     uvicorn.run(fastapi_app, host=args.host, port=args.port, reload=args.reload)
 

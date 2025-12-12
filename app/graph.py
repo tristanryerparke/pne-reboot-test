@@ -189,8 +189,8 @@ def execute_node(node: NodeDataFromFrontend):
     else:
         # Normal execution with kwargs
         args = {}
-        print("Node arguments being printed:")
-        d(node.arguments)
+        # print("Node arguments being printed:")
+        # d(node.arguments)
         for k, v in node.arguments.items():
             args[k] = v.value
 
