@@ -24,18 +24,15 @@ export default memo(function ImageExpanded({
   path,
 }: ImageExpandedProps) {
   // Support both inputData and outputData
-
-  const data = (inputData || outputData) as FrontendFieldDataWrapper & {
-    cacheKey?: string;
-    _preview?: string;
-    _displayName?: string;
-    _filename?: string;
-  };
+  const data = inputData || outputData;
+  if (!data) {
+    return <div>No data</div>;
+  }
 
   // Image data is stored directly on the data object (from image-input.tsx)
   // Check if data has the image properties directly or in value
   const imageValue = (
-    data._preview
+    (data as any)._preview
       ? data
       : (data.value as {
           cacheKey?: string;
@@ -59,7 +56,7 @@ export default memo(function ImageExpanded({
   const hasImage = !!imageValue?._preview;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col flex-1">
       <SyncedResizable
         path={path}
         defaultSize={DEFAULT_AND_MIN_SIZE}

@@ -38,8 +38,7 @@ export default memo(function NodeDrawer({
       defaultSize={DEFAULT_AND_MIN_SIZE}
       minSize={DEFAULT_AND_MIN_SIZE}
       maxSize={MAX_SIZE}
-      useDefaultWidthOnFirstRender={true}
-      className="bg-card border-x border-b border-input rounded-b-md shadow-lg"
+      className="bg-card border-x border-b border-input rounded-b-md shadow-lg overflow-hidden"
     >
       <div className="px-2 pt-2 pb-0 h-full w-full overflow-auto">
         <div className="font-mono text-xs whitespace-pre-wrap break-words">

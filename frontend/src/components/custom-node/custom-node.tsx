@@ -36,7 +36,7 @@ export default memo(function CustomNode({
         <Separator />
         <Outputs data={data} path={path} />
       </div>
-      <div className="px-2">
+      <div className="px-2 overflow-hidden nowheel">
         <NodeDrawer
           isExpanded={(data._drawerExpanded as true) || false}
           terminalOutput={data.terminal_output as string}

@@ -74,7 +74,7 @@ export default memo(function StringExpanded({
         minSize={DEFAULT_AND_MIN_SIZE}
         maxSize={MAX_SIZE}
       >
-        <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden">
+        <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input">
           <Textarea
             value={value}
             onChange={handleValueChange}
