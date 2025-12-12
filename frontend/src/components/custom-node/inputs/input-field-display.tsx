@@ -3,9 +3,9 @@ import EditableKey from "./dynamic/editable-key";
 import InputMenu from "./input-menu";
 import { useNodeData } from "../../../stores/flowStore";
 import useTypesStore from "@/stores/typesStore";
-import ListDisplay from "@/common/list-display";
-import DictDisplay from "@/common/dict-display";
-import UserModelDisplay from "../../../common/user-model-display";
+import ListDisplay from "@/common/leaf-inputs/list-display";
+import DictDisplay from "@/common/leaf-inputs/dict-display";
+import UserModelDisplay from "../../../common/leaf-inputs/user-model-display";
 import { TYPE_COMPONENT_REGISTRY } from "./input-type-registry";
 import type {
   FrontendFieldDataWrapper,

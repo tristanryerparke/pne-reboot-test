@@ -1,5 +1,5 @@
 import { memo } from "react";
-import SyncedResizable from "./synced-resizable";
+import SyncedResizable from "../../utility-components/synced-resizable";
 import type { FrontendFieldDataWrapper } from "@/types/types";
 
 interface ImageExpandedProps {
@@ -24,15 +24,18 @@ export default memo(function ImageExpanded({
   path,
 }: ImageExpandedProps) {
   // Support both inputData and outputData
-  const data = inputData || outputData;
-  if (!data) {
-    return <div>No data</div>;
-  }
+
+  const data = (inputData || outputData) as FrontendFieldDataWrapper & {
+    cacheKey?: string;
+    _preview?: string;
+    _displayName?: string;
+    _filename?: string;
+  };
 
   // Image data is stored directly on the data object (from image-input.tsx)
   // Check if data has the image properties directly or in value
   const imageValue = (
-    (data as any)._preview
+    data._preview
       ? data
       : (data.value as {
           cacheKey?: string;

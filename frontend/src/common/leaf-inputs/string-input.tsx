@@ -1,8 +1,8 @@
 import { memo } from "react";
-import { Input } from "../components/ui/input";
-import useFlowStore, { useNodeData } from "../stores/flowStore";
+import { Input } from "../../components/ui/input";
+import useFlowStore, { useNodeData } from "../../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
-import { useControlledDebounce } from "../hooks/useControlledDebounce";
+import { useControlledDebounce } from "../../hooks/useControlledDebounce";
 import type { DataWrapper, FrontendFieldDataWrapper } from "@/types/types";
 
 interface StringInputProps {
