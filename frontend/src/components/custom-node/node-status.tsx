@@ -9,9 +9,13 @@ import {
 
 type NodeStatusProps = {
   status: "not-executed" | "executed" | "error";
+  onToggleDrawer?: () => void;
 };
 
-export default memo(function NodeStatus({ status }: NodeStatusProps) {
+export default memo(function NodeStatus({
+  status,
+  onToggleDrawer,
+}: NodeStatusProps) {
   let icon: React.ReactNode;
   let tooltipText: string;
 
@@ -28,11 +32,22 @@ export default memo(function NodeStatus({ status }: NodeStatusProps) {
     return null;
   }
 
+  const handleClick = () => {
+    if (status === "error" && onToggleDrawer) {
+      onToggleDrawer();
+    }
+  };
+
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div>{icon}</div>
+          <div
+            onClick={handleClick}
+            className={status === "error" ? "cursor-pointer" : ""}
+          >
+            {icon}
+          </div>
         </TooltipTrigger>
         <TooltipContent side="top">
           <p>{tooltipText}</p>

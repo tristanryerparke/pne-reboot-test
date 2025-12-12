@@ -14,6 +14,7 @@ export function initializeUIData(nodeData: any): void {
   // Initialize _status field for tracking execution state
   if (nodeData._status === undefined) {
     nodeData._status = "not-executed";
+    nodeData._drawerExpanded = false;
   }
 
   // Initialize arguments

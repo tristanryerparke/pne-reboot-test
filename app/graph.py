@@ -211,12 +211,21 @@ def execute_node(node: NodeDataFromFrontend):
 
             return (True, callable(**args))
     except Exception as e:
+        # Get the traceback but skip the execute_node frame
+        tb = e.__traceback__
+        if tb and tb.tb_next:
+            # Skip the first frame (execute_node's callable() call)
+            tb = tb.tb_next
+            formatted_tb = "".join(traceback.format_exception(type(e), e, tb))
+        else:
+            formatted_tb = traceback.format_exc()
+
         return (
             False,
             {
                 "error_type": type(e).__name__,
                 "error_message": str(e),
-                "traceback": traceback.format_exc(),
+                "traceback": formatted_tb,
             },
         )
 

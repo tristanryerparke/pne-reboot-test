@@ -18,6 +18,7 @@ interface SyncedResizableProps {
   minSize: { width: number; height: number };
   maxSize: { width: number; height: number };
   className?: string;
+  useDefaultWidthOnFirstRender?: boolean;
 }
 
 export default function SyncedResizable({
@@ -27,6 +28,7 @@ export default function SyncedResizable({
   minSize,
   maxSize,
   className = "",
+  useDefaultWidthOnFirstRender = false,
 }: SyncedResizableProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
@@ -50,9 +52,11 @@ export default function SyncedResizable({
   let storedWidth: string | number;
   if (amIResizing) {
     storedWidth = "auto";
-  } else if (isSomeoneElseResizing || !storedSize) {
-    // Use 100% when someone else is resizing OR on first render (no stored size yet)
+  } else if (isSomeoneElseResizing) {
     storedWidth = "100%";
+  } else if (!storedSize) {
+    // On first render with no stored size: use default width if requested, otherwise 100%
+    storedWidth = useDefaultWidthOnFirstRender ? defaultSize.width : "100%";
   } else {
     storedWidth = storedSize?.width || defaultSize.width;
   }

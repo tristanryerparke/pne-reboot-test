@@ -2,6 +2,7 @@ import { memo, useRef } from "react";
 import NodeHeader from "./node-header";
 import Inputs from "./inputs/inputs";
 import Outputs from "./outputs/outputs";
+import NodeDrawer from "./node-drawer";
 import { Separator } from "../ui/separator";
 import type { FunctionSchema } from "../../types/types";
 import InspectableFieldWrapper from "../inspector-sidebar/inspectable-field-wrapper";
@@ -23,19 +24,25 @@ export default memo(function CustomNode({
   useNodeData([id, "_resizing"]);
 
   return (
-    <div
-      ref={nodeRef}
-      className="w-fit shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
-    >
-      <InspectableFieldWrapper path={path}>
-        <div>
-          <NodeHeader data={data} />
-        </div>
-      </InspectableFieldWrapper>
-      <Separator />
-      <Inputs arguments={data.arguments} path={[...path, "arguments"]} />
-      <Separator />
-      <Outputs data={data} path={path} />
+    <div ref={nodeRef} className="w-fit">
+      <div className="shadow-md border border-input rounded-lg bg-background text-secondary-foreground">
+        <InspectableFieldWrapper path={path}>
+          <div>
+            <NodeHeader data={data} nodeId={id} />
+          </div>
+        </InspectableFieldWrapper>
+        <Separator />
+        <Inputs arguments={data.arguments} path={[...path, "arguments"]} />
+        <Separator />
+        <Outputs data={data} path={path} />
+      </div>
+      <div className="px-2">
+        <NodeDrawer
+          isExpanded={data._drawerExpanded || false}
+          errorDetails={data.error_details}
+          path={path}
+        />
+      </div>
     </div>
   );
 });
