@@ -7,8 +7,7 @@ from fastapi.testclient import TestClient
 import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
 from app.graph import router as graph_router
-from tests.assets.error_function import divide_by_zero
-from tests.assets.verbose_output import process_data
+from tests.assets.functions import divide_by_zero, process_data
 
 # Analyze the functions to get types and schemas
 _, verbose_schema, _, verbose_types = analyze_function(process_data)

@@ -2,9 +2,7 @@ from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
 from app.schema import DataWrapper
-from tests.assets.basic_defaultvalue import nth_root
-from tests.assets.basic_percentage import percentage
-from tests.assets.integer_math import add
+from tests.assets.functions import add, nth_root, percentage
 
 
 def test_on_simple_add():
@@ -18,7 +16,7 @@ def test_on_simple_add():
 
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "add"
-    assert schema.category == ["tests", "assets", "integer_math"]
+    assert schema.category == ["tests", "assets", "functions"]
     assert schema.arguments == {
         "a": DataWrapper(type="int"),
         "b": DataWrapper(type="int"),
@@ -41,7 +39,7 @@ def test_find_float_and_int():
 
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "percentage"
-    assert schema.category == ["tests", "assets", "basic_percentage"]
+    assert schema.category == ["tests", "assets", "functions"]
     assert schema.arguments == {
         "x": DataWrapper(type="float"),
         "percentage": DataWrapper(type="int"),
@@ -67,7 +65,7 @@ def test_default_value():
 
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "nth_root"
-    assert schema.category == ["tests", "assets", "basic_defaultvalue"]
+    assert schema.category == ["tests", "assets", "functions"]
     assert schema.arguments == {
         "x": DataWrapper(type="float"),
         "root": DataWrapper(type="int", value=2),

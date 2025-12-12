@@ -2,7 +2,7 @@ from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
 from app.schema import DataWrapper
-from tests.assets.basic_user_model import Point2D, two_point_distance
+from tests.assets.user_model import Point2D, two_point_distance
 from tests.assets.user_model_not_used_in_function import add
 
 
@@ -20,7 +20,7 @@ def test_user_model_detection():
 
     # check that the key parts of the schema are being correctly parsed
     assert schema.name == "two_point_distance"
-    assert schema.category == ["tests", "assets", "basic_user_model"]
+    assert schema.category == ["tests", "assets", "user_model"]
     assert schema.arguments == {
         "a": DataWrapper(type="Point2D"),
         "b": DataWrapper(type="Point2D"),
@@ -34,7 +34,7 @@ def test_user_model_detection():
     assert "Point2D" in found_types
     assert found_types["Point2D"]["kind"] == "user_model"
     assert found_types["Point2D"]["_class"] == Point2D
-    assert found_types["Point2D"]["category"] == ["tests", "assets", "basic_user_model"]
+    assert found_types["Point2D"]["category"] == ["tests", "assets", "user_model"]
     assert found_types["Point2D"]["properties"] == {"x": "float", "y": "float"}
 
 

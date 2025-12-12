@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
 from app.graph import router as graph_router
-from tests.assets.basic_dynamic_inputs import (
+from tests.assets.dynamic_inputs import (
     create_dict_of_floats,
     create_list_of_floats,
     index_dict_of_floats,
