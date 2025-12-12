@@ -6,6 +6,13 @@ import { Input } from "../../components/ui/input";
 import { cn } from "@/lib/utils";
 import type { FrontendFieldDataWrapper } from "../../types/types";
 
+interface CachedImageData extends FrontendFieldDataWrapper {
+  cacheKey?: string;
+  _preview?: string;
+  _displayName?: string;
+  _filename?: string;
+}
+
 interface ImageInputProps {
   inputData: FrontendFieldDataWrapper;
   path: (string | number)[];
@@ -16,9 +23,11 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
+  const imageData = inputData as CachedImageData;
+
   // Check if cache key exists on mount (after page reload with persisted state)
   useEffect(() => {
-    const cacheKey = (inputData as any).cacheKey;
+    const cacheKey = imageData.cacheKey;
     if (!cacheKey) return;
 
     // Verify the cache key still exists in the backend
@@ -51,7 +60,7 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
     connections.length > 0 && connections[0].targetHandle === handleId;
 
   // Check if there's image data
-  const hasImage = !!(inputData as any).cacheKey;
+  const hasImage = !!imageData.cacheKey;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,7 +101,7 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
         const data = await response.json();
 
         // Preserve UI data from existing inputData, merge with all new data from backend
-        const mergedData = preserveUIData(inputData as any, data);
+        const mergedData = preserveUIData(imageData, data);
         updateNodeData(path, mergedData);
       };
 
@@ -105,7 +114,7 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
     }
   };
 
-  const displayName = (inputData as any)._displayName || "Generated Image";
+  const displayName = imageData._displayName || "Generated Image";
 
   // When connected, show as read-only display (like output)
   if (isConnected) {
@@ -127,7 +136,7 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
   }
 
   // When not connected, show file picker
-  const uploadText = (inputData as any)._displayName || "Upload Image";
+  const uploadText = imageData._displayName || "Upload Image";
 
   return (
     <div className="flex flex-1 min-w-35 nodrag nopan nowheel">

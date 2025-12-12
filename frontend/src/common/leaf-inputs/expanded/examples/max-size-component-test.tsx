@@ -1,4 +1,4 @@
-import SyncedResizable from "../../utility-components/synced-resizable";
+import SyncedResizable from "../../../utility-components/synced-resizable";
 
 const DEFAULT_AND_MIN_SIZE = {
   width: 240,
