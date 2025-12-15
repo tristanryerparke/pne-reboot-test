@@ -1,8 +1,8 @@
 // eslint-disable react-refresh/only-export-components
-import ImageOutput from "../../../common/image-output";
-import ImageExpanded from "../../../common/image-expanded";
-import StringOutput from "../../../common/string-output";
-import StringExpanded from "../../../common/string-expanded";
+import ImageOutput from "../../../common/leaf-inputs/image-output";
+import ImageExpanded from "../../../common/leaf-inputs/expanded/image-expanded";
+import StringOutput from "../../../common/leaf-inputs/string-output";
+import StringExpanded from "../../../common/leaf-inputs/expanded/string-expanded";
 
 export interface OutputRendererProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

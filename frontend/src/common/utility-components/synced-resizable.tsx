@@ -1,8 +1,14 @@
 import { useRef, useState, useEffect, type ReactNode } from "react";
 import { Resizable } from "re-resizable";
-import { CustomHandle } from "./expanded-constants";
+import { Grip } from "lucide-react";
 import { useNodeData } from "@/stores/flowStore";
 import useFlowStore from "@/stores/flowStore";
+
+const CustomHandle = () => (
+  <div className="bg-transparent rounded-sm h-full w-full p-0 flex items-center justify-center opacity-30 transition-opacity duration-200 hover:opacity-60">
+    <Grip className="h-3 w-3 text-gray-500" />
+  </div>
+);
 
 interface SyncedResizableProps {
   path: (string | number)[];

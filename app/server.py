@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from devtools import debug as d
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.analysis.utils import analyze_file_structure
 from app.graph import router as graph_router
@@ -15,6 +16,7 @@ CALLABLES = {}
 TYPES = {}
 VERBOSE = False
 IGNORE_UNDERSCORE_PREFIX = True
+SERVE_FRONTEND = False
 
 
 @asynccontextmanager
@@ -40,8 +42,9 @@ async def lifespan(app: FastAPI):
     CALLABLES.update(callables)
     TYPES.update(types)
 
+    print(f"Found {len(FUNCTION_SCHEMAS)} functions and {len(TYPES)} types")
+
     if VERBOSE:
-        print(f"Found {len(FUNCTION_SCHEMAS)} functions and {len(TYPES)} types")
         d(FUNCTION_SCHEMAS)
         d(TYPES)
 
@@ -97,3 +100,15 @@ app.add_middleware(
     allow_headers=["*"],
     max_age=3600,  # Cache preflight requests for 1 hour
 )
+
+
+def mount_frontend():
+    """Mount frontend static files. Called from CLI after setting SERVE_FRONTEND flag."""
+    if SERVE_FRONTEND:
+        frontend_dist = os.path.join(
+            os.path.dirname(__file__), "..", "frontend", "dist"
+        )
+        if os.path.exists(frontend_dist):
+            app.mount(
+                "/", StaticFiles(directory=frontend_dist, html=True), name="static"
+            )

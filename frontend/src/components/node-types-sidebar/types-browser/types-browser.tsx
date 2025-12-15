@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SearchBar } from "@/common/search-bar";
+import { SearchBar } from "@/common/utility-components/search-bar";
 import { KindGroup } from "./kind-group";
 import useTypesStore, { type TypeInfo } from "@/stores/typesStore";
 

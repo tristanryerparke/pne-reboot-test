@@ -1,5 +1,5 @@
 import { memo } from "react";
-import SyncedResizable from "./synced-resizable";
+import SyncedResizable from "../../utility-components/synced-resizable";
 import type { FrontendFieldDataWrapper } from "@/types/types";
 
 interface ImageExpandedProps {
@@ -56,7 +56,7 @@ export default memo(function ImageExpanded({
   const hasImage = !!imageValue?._preview;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col flex-1">
       <SyncedResizable
         path={path}
         defaultSize={DEFAULT_AND_MIN_SIZE}

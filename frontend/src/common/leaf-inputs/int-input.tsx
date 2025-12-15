@@ -1,16 +1,16 @@
 import { memo } from "react";
-import { NumberInput } from "../components/ui/number-input";
-import useFlowStore from "../stores/flowStore";
+import { NumberInput } from "../../components/ui/number-input";
+import useFlowStore from "../../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
-import { useControlledDebounce } from "../hooks/useControlledDebounce";
+import { useControlledDebounce } from "../../hooks/useControlledDebounce";
 import type { DataWrapper } from "@/types/types";
 
-interface FloatInputProps {
+interface IntInputProps {
   inputData: DataWrapper;
   path: (string | number)[];
 }
 
-export default memo(function FloatInput({ inputData, path }: FloatInputProps) {
+export default memo(function IntInput({ inputData, path }: IntInputProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
   // Use current value if it exists, otherwise use default_value, otherwise undefined
@@ -26,29 +26,33 @@ export default memo(function FloatInput({ inputData, path }: FloatInputProps) {
     200,
   );
 
-  // Use the xyflow hook to check if input is connected and blur if so
+  // Use the xyflow hook to check if input is connected
   const handleId = `${path[0]}:${path[1]}:${path[2]}:handle`;
   const connections = useNodeConnections({
     handleType: "target",
     handleId: handleId,
   });
+
+  // Determine if connected based on connections array
   const isConnected =
     connections.length > 0 && connections[0].targetHandle === handleId;
 
   const handleValueChange = (newValue: number | undefined) => {
-    setValue(newValue);
+    // Round to nearest integer for int inputs
+    const intValue = newValue !== undefined ? Math.round(newValue) : undefined;
+    setValue(intValue);
   };
 
   return (
     <div className="flex flex-1 min-w-35 nodrag nopan nowheel">
       <NumberInput
         value={value}
-        decimalScale={3}
+        decimalScale={0}
         onValueChange={handleValueChange}
         onBlur={() => handleValueChange(value)}
         disabled={isConnected}
         className="nodrag nopan nowheel"
-        placeholder="Enter float"
+        placeholder="Enter integer"
       />
     </div>
   );

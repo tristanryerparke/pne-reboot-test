@@ -1,7 +1,8 @@
+import traceback
+
 from devtools import debug as d
 from fastapi import APIRouter
 
-from app.large_data.base import CachedDataWrapper
 from app.schema import Graph, NodeDataFromFrontend, NodeFromFrontend
 
 router = APIRouter()
@@ -53,7 +54,22 @@ async def execute_graph(graph: Graph):
     for node in execution_list:
         if VERBOSE:
             print(f"Executing node {node.id}")
-        result = execute_node(node.data)
+        success, result, terminal_output = execute_node(node.data)
+
+        node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
+
+        # Add terminal output if present
+        if terminal_output:
+            node_update["terminal_output"] = terminal_output
+
+        # If execution failed, skip output processing
+        if not success:
+            node_update["_status"] = "error"
+            updates.append(node_update)
+            continue
+
+        # Execution succeeded
+        node_update["_status"] = "executed"
 
         # Normalize result to dict format
         # For single outputs, wrap in {output_key: value}
@@ -70,8 +86,6 @@ async def execute_graph(graph: Graph):
                 result_dict = result.model_dump()
             else:
                 result_dict = result
-
-        node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
 
         # Check if this node received inputs from other nodes via edges
         for edge in graph.edges:
@@ -146,55 +160,105 @@ async def execute_graph(graph: Graph):
 
 def execute_node(node: NodeDataFromFrontend):
     """Finds a node's callable and executes it with the arguments from the frontend"""
+    import io
+    import sys
+
     from app.server import CALLABLES
 
     callable = CALLABLES[node.callable_id]
 
-    # Check if this function has list_inputs enabled
-    if getattr(callable, "list_inputs", False):
-        # For list_inputs functions:
-        # - Named parameters (e.g., arg1) are passed as positional args first
-        # - Numbered parameters (0, 1, 2...) are passed as *args after
-        numbered_args = {}
-        named_args = {}
+    # Capture stdout and stderr
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    captured_output = io.StringIO()
+    sys.stdout = captured_output
+    sys.stderr = captured_output
 
-        for k, v in node.arguments.items():
-            arg_value = v.value
+    try:
+        # Check if this function has list_inputs enabled
+        if getattr(callable, "list_inputs", False):
+            # For list_inputs functions:
+            # - Named parameters (e.g., arg1) are passed as positional args first
+            # - Numbered parameters (0, 1, 2...) are passed as *args after
+            numbered_args = {}
+            named_args = {}
 
-            # Handle both "_0", "_1" and "0", "1" naming patterns
-            if k.isdigit():
-                numbered_args[int(k)] = arg_value
-            else:
-                named_args[k] = arg_value
+            for k, v in node.arguments.items():
+                arg_value = v.value
 
-        # Sort numbered args by index
-        sorted_numbered_args = [numbered_args[i] for i in sorted(numbered_args.keys())]
+                # Handle both "_0", "_1" and "0", "1" naming patterns
+                if k.isdigit():
+                    numbered_args[int(k)] = arg_value
+                else:
+                    named_args[k] = arg_value
 
-        # Get named args values in order (maintain dict order from frontend)
-        named_args_values = list(named_args.values())
+            # Sort numbered args by index
+            sorted_numbered_args = [
+                numbered_args[i] for i in sorted(numbered_args.keys())
+            ]
 
-        # Combine: named parameters first, then dynamic numbered inputs
-        all_args = named_args_values + sorted_numbered_args
+            # Get named args values in order (maintain dict order from frontend)
+            named_args_values = list(named_args.values())
 
-        return callable(*all_args)
-    # Check if this function has dict_inputs enabled
-    elif getattr(callable, "dict_inputs", False):
-        # For dict_inputs functions, all arguments are passed as **kwargs
-        # The frontend should send them with their key names
-        args = {}
-        for k, v in node.arguments.items():
-            args[k] = v.value
+            # Combine: named parameters first, then dynamic numbered inputs
+            all_args = named_args_values + sorted_numbered_args
 
-        return callable(**args)
-    else:
-        # Normal execution with kwargs
-        args = {}
-        print("Node arguments being printed:")
-        d(node.arguments)
-        for k, v in node.arguments.items():
-            args[k] = v.value
+            result = callable(*all_args)
+        # Check if this function has dict_inputs enabled
+        elif getattr(callable, "dict_inputs", False):
+            # For dict_inputs functions, all arguments are passed as **kwargs
+            # The frontend should send them with their key names
+            args = {}
+            for k, v in node.arguments.items():
+                args[k] = v.value
 
-        return callable(**args)
+            result = callable(**args)
+        else:
+            # Normal execution with kwargs
+            args = {}
+            # print("Node arguments being printed:")
+            # d(node.arguments)
+            for k, v in node.arguments.items():
+                args[k] = v.value
+
+            result = callable(**args)
+
+        # Restore stdout/stderr and get captured output
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+        terminal_output = captured_output.getvalue()
+
+        # Print the captured output so it still appears in the terminal
+        if terminal_output:
+            print(terminal_output, end="")
+
+        return (True, result, terminal_output if terminal_output else None)
+    except Exception as e:
+        # Restore stdout/stderr
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+        terminal_output = captured_output.getvalue()
+        # Get the traceback but skip the execute_node frame
+        tb = e.__traceback__
+        if tb and tb.tb_next:
+            # Skip the first frame (execute_node's callable() call)
+            tb = tb.tb_next
+            formatted_tb = "".join(traceback.format_exception(type(e), e, tb))
+        else:
+            formatted_tb = traceback.format_exc()
+
+        # Print the captured output and error so they still appear in the terminal
+        if terminal_output:
+            print(terminal_output, end="")
+        print(formatted_tb, end="")
+
+        # Combine terminal output with error traceback
+        combined_output = ""
+        if terminal_output:
+            combined_output += terminal_output
+        combined_output += formatted_tb
+
+        return (False, None, combined_output)
 
 
 def topological_order(graph: Graph) -> list[NodeFromFrontend]:
