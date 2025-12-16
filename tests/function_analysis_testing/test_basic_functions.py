@@ -2,6 +2,7 @@ from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
 from app.schema import DataWrapper
+from app.schema_base import TypeDefModel
 from tests.assets.functions import add, nth_root, percentage
 
 
@@ -25,7 +26,9 @@ def test_on_simple_add():
 
     # Make sure we only found the int type
     d(found_types)
-    assert found_types == {"int": {"kind": "builtin", "_class": int}}
+    assert set(found_types.keys()) == {"int"}
+    assert found_types["int"].kind == "builtin"
+    assert found_types["int"]._class is int
 
 
 def test_find_float_and_int():
@@ -48,10 +51,11 @@ def test_find_float_and_int():
 
     # Make sure we found both float and int types
     d(found_types)
-    assert found_types == {
-        "float": {"kind": "builtin", "_class": float},
-        "int": {"kind": "builtin", "_class": int},
-    }
+    assert set(found_types.keys()) == {"float", "int"}
+    assert found_types["float"].kind == "builtin"
+    assert found_types["int"].kind == "builtin"
+    assert found_types["float"]._class is float
+    assert found_types["int"]._class is int
 
 
 def test_default_value():
@@ -74,10 +78,11 @@ def test_default_value():
 
     # Make sure we found both float and int types
     d(found_types)
-    assert found_types == {
-        "float": {"kind": "builtin", "_class": float},
-        "int": {"kind": "builtin", "_class": int},
-    }
+    assert set(found_types.keys()) == {"float", "int"}
+    assert found_types["float"].kind == "builtin"
+    assert found_types["int"].kind == "builtin"
+    assert found_types["float"]._class is float
+    assert found_types["int"]._class is int
 
 
 if __name__ == "__main__":

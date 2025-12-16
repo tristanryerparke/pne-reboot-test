@@ -89,7 +89,7 @@ class NodeDataFromFrontend(CamelBaseModel):
                     type_def = TYPES.get(type_str)
 
                     if type_def and type_def.kind == "cached":
-                        datamodel_class = type_def.referenced_datamodel
+                        datamodel_class = type_def._referenced_datamodel
                         if datamodel_class:
                             # Create properly typed instance with context
                             cached_instance = datamodel_class.model_validate(

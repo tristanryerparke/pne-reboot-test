@@ -1,6 +1,6 @@
 from typing import ClassVar, Literal, TypeAlias
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 from pydantic.alias_generators import to_camel
 
 
@@ -40,10 +40,8 @@ class StructDescr(CamelBaseModel):
 class TypeDefModel(BaseModel):
     """Base model for type definitions. Does not use CamelBaseModel."""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
     kind: str
-    class_: type | None = Field(default=None, exclude=True)
+    _class: type | None = PrivateAttr(default=None)
 
 
 class UserTypeDefModel(TypeDefModel):
@@ -57,4 +55,4 @@ class CachedTypeDefModel(TypeDefModel):
     """Type definition for cached types"""
 
     category: list[str]
-    referenced_datamodel: type | None = Field(default=None, exclude=True)
+    _referenced_datamodel: type | None = PrivateAttr(default=None)

@@ -171,9 +171,9 @@ def analyze_function(
 
             if type_name in found_types:
                 type_def = found_types[type_name]
-                # Set referenced_datamodel on the CachedTypeDefModel instance
-                if hasattr(type_def, "referenced_datamodel"):
-                    type_def.referenced_datamodel = associated_datamodel
+                # Set _referenced_datamodel on the CachedTypeDefModel instance
+                if hasattr(type_def, "_referenced_datamodel"):
+                    type_def._referenced_datamodel = associated_datamodel
 
     # Generate callable_id by hashing the function's source code
     source_code = inspect.getsource(original_func)

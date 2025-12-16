@@ -2,6 +2,7 @@ from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
 from app.schema import DataWrapper
+from app.schema_base import TypeDefModel
 from tests.assets.custominfo import (
     add_with_custom_name,
     add_with_docstring,
@@ -32,7 +33,9 @@ def test_add_with_docstring():
 
     # Make sure we only found the int type
     d(found_types)
-    assert found_types == {"int": {"kind": "builtin", "_class": int}}
+    assert set(found_types.keys()) == {"int"}
+    assert found_types["int"].kind == "builtin"
+    assert found_types["int"]._class is int
 
 
 def test_add_with_custom_name():
@@ -54,7 +57,9 @@ def test_add_with_custom_name():
 
     # Make sure we only found the int type
     d(found_types)
-    assert found_types == {"int": {"kind": "builtin", "_class": int}}
+    assert set(found_types.keys()) == {"int"}
+    assert found_types["int"].kind == "builtin"
+    assert found_types["int"]._class is int
 
 
 def test_custom_return_name():
@@ -76,7 +81,9 @@ def test_custom_return_name():
 
     # Make sure we only found the float type
     d(found_types)
-    assert found_types == {"float": {"kind": "builtin", "_class": float}}
+    assert set(found_types.keys()) == {"float"}
+    assert found_types["float"].kind == "builtin"
+    assert found_types["float"]._class is float
 
 
 if __name__ == "__main__":

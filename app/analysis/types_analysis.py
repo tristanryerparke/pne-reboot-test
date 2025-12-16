@@ -107,7 +107,9 @@ def analyze_type(
         # Special handling for typing.Any
         if t is typing.Any:
             if "Any" not in types_dict:
-                types_dict["Any"] = TypeDefModel(kind="builtin", class_=t)
+                type_def = TypeDefModel(kind="builtin")
+                type_def._class = t
+                types_dict["Any"] = type_def
             return
 
         # Handle types.UnionType (int | float syntax) - must come before builtin check
@@ -131,20 +133,23 @@ def analyze_type(
                 type_name = t.__name__
 
             if type_name not in types_dict:
-                types_dict[type_name] = CachedTypeDefModel(
+                type_def = CachedTypeDefModel(
                     kind="user",
-                    class_=t,
                     category=os.path.splitext(rel_file_path)[0]
                     .replace(os.sep, "/")
                     .split("/"),
                 )
+                type_def._class = t
+                types_dict[type_name] = type_def
             return
 
         # Builtin type
         if inspect.isclass(t) and t.__module__ == "builtins":
             tname = t.__name__
             if tname not in types_dict:
-                types_dict[tname] = TypeDefModel(kind="builtin", class_=t)
+                type_def = TypeDefModel(kind="builtin")
+                type_def._class = t
+                types_dict[tname] = type_def
 
         # User Model types(detected by derivation from our special UserModel class)
         elif inspect.isclass(t) and issubclass(t, UserModel) and t is not UserModel:
@@ -161,14 +166,15 @@ def analyze_type(
                             for field_type in t.__annotations__.values():
                                 _add_type_recursive(field_type)
 
-                        types_dict[name] = UserTypeDefModel(
+                        type_def = UserTypeDefModel(
                             kind="user_model",
-                            class_=t,
                             category=os.path.splitext(rel_file_path)[0]
                             .replace(os.sep, "/")
                             .split("/"),
                             properties=properties,
                         )
+                        type_def._class = t
+                        types_dict[name] = type_def
                     break
 
         # Handle third-party classes (not builtin, not UserModel, not cached)
@@ -187,13 +193,14 @@ def analyze_type(
                 # Add it as a cached type placeholder
                 # The referenced_datamodel field will be added by functions_analysis.py if applicable
                 if type_name not in types_dict:
-                    types_dict[type_name] = CachedTypeDefModel(
+                    type_def = CachedTypeDefModel(
                         kind="cached",
-                        class_=t,
                         category=os.path.splitext(rel_file_path)[0]
                         .replace(os.sep, "/")
                         .split("/"),
                     )
+                    type_def._class = t
+                    types_dict[type_name] = type_def
 
         # Lists and dicts of user-defined types (e.g., list[int], dict[str, float])
         if hasattr(t, "__origin__") and hasattr(t, "__args__"):

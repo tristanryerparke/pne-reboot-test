@@ -39,17 +39,17 @@ async def upload_large_data(upload: LargeDataUpload):
                 f"Kind: {type_def.kind}",
             )
 
-        # Get the referenced_datamodel (the CachedDataWrapper subclass)
+        # Get the _referenced_datamodel (the CachedDataWrapper subclass)
         if (
-            not hasattr(type_def, "referenced_datamodel")
-            or type_def.referenced_datamodel is None
+            not hasattr(type_def, "_referenced_datamodel")
+            or type_def._referenced_datamodel is None
         ):
             raise HTTPException(
                 status_code=500,
                 detail=f"Type {upload.type} does not have a referenced_datamodel",
             )
 
-        cached_data_class = type_def.referenced_datamodel
+        cached_data_class = type_def._referenced_datamodel
 
         # Verify it's a CachedDataWrapper subclass
         if not issubclass(cached_data_class, CachedDataWrapper):
