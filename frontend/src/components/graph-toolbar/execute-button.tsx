@@ -49,8 +49,8 @@ export default function ExecuteMenu() {
             updateNodeData(statusPath, update._status);
           }
 
-          // Check if node has terminal output
-          if (update.terminal_output) {
+          // Update terminal output (including empty string to clear previous errors)
+          if (update.terminal_output !== undefined) {
             const terminalPath = [nodeId, "terminal_output"];
             updateNodeData(terminalPath, update.terminal_output);
             if (update._status === "error") {
