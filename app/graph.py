@@ -21,8 +21,8 @@ def infer_concrete_type(value, type_descriptor, TYPES):
     if isinstance(type_descriptor, UnionDescr):
         for candidate_type in type_descriptor.any_of:
             if candidate_type in TYPES:
-                type_info = TYPES[candidate_type]
-                if isinstance(value, type_info["_class"]):
+                type_def = TYPES[candidate_type]
+                if isinstance(value, type_def.class_):
                     return candidate_type
         raise ValueError(
             f"Value {value} of type {type(value)} does not match any type in union {type_descriptor.any_of}"
@@ -110,9 +110,10 @@ async def execute_graph(graph: Graph):
             if (
                 isinstance(concrete_type, str)
                 and concrete_type in TYPES
-                and "referenced_datamodel" in TYPES[concrete_type]
+                and hasattr(TYPES[concrete_type], "referenced_datamodel")
+                and TYPES[concrete_type].referenced_datamodel is not None
             ):
-                output_class = TYPES[concrete_type]["referenced_datamodel"]
+                output_class = TYPES[concrete_type].referenced_datamodel
             else:
                 # DataWrapper for normal types (int, float, str, dict, list)
                 from app.schema import DataWrapper

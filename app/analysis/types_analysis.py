@@ -5,7 +5,14 @@ import typing
 from typing import Any, Dict, Set
 
 from app.schema import MultipleOutputs
-from app.schema_base import UserModel
+from app.schema_base import (
+    CachedTypeDefModel,
+    StructDescr,
+    TypeDefModel,
+    UnionDescr,
+    UserModel,
+    UserTypeDefModel,
+)
 
 
 def merge_types_dict(master_types, incoming_types):
@@ -16,7 +23,7 @@ def merge_types_dict(master_types, incoming_types):
 
 
 def get_type_repr(tp, module_ns, short_repr=True):
-    """get a string representation of a type"""
+    """get a string representation of a type, returning StructDescr/UnionDescr instances for complex types"""
     if short_repr:
         # First try direct match
         for name, val in module_ns.items():
@@ -32,31 +39,31 @@ def get_type_repr(tp, module_ns, short_repr=True):
                         return tp.__name__  # Return just the class name (e.g., "Image")
     # Handle types.UnionType (int | float style)
     if isinstance(tp, types.UnionType):
-        return {
-            "any_of": [
+        return UnionDescr(
+            any_of=[
                 get_type_repr(param, module_ns, short_repr) for param in tp.__args__
             ]
-        }
+        )
     # Handle regular unions and user aliases (Union[int, float], Number = int | float)
     if hasattr(tp, "__origin__"):
         origin: Any = tp.__origin__
         # print(origin)
         if origin is typing.Union:
-            return {
-                "any_of": [
+            return UnionDescr(
+                any_of=[
                     get_type_repr(param, module_ns, short_repr) for param in tp.__args__
                 ]
-            }
+            )
         elif origin in (list, typing.List):
-            return {
-                "structure_type": "list",
-                "items_type": get_type_repr(tp.__args__[0], module_ns, short_repr),
-            }
+            return StructDescr(
+                structure_type="list",
+                items_type=get_type_repr(tp.__args__[0], module_ns, short_repr),
+            )
         elif origin in (dict, typing.Dict):
-            return {
-                "structure_type": "dict",
-                "items_type": get_type_repr(tp.__args__[1], module_ns, short_repr),
-            }
+            return StructDescr(
+                structure_type="dict",
+                items_type=get_type_repr(tp.__args__[1], module_ns, short_repr),
+            )
         else:
             raise ValueError("Unknown origin", tp)
     if hasattr(tp, "__name__"):
@@ -100,7 +107,7 @@ def analyze_type(
         # Special handling for typing.Any
         if t is typing.Any:
             if "Any" not in types_dict:
-                types_dict["Any"] = {"kind": "builtin", "_class": t}
+                types_dict["Any"] = TypeDefModel(kind="builtin", class_=t)
             return
 
         # Handle types.UnionType (int | float syntax) - must come before builtin check
@@ -124,42 +131,44 @@ def analyze_type(
                 type_name = t.__name__
 
             if type_name not in types_dict:
-                types_dict[type_name] = {
-                    "kind": "user",
-                    "_class": t,
-                    "category": os.path.splitext(rel_file_path)[0]
+                types_dict[type_name] = CachedTypeDefModel(
+                    kind="user",
+                    class_=t,
+                    category=os.path.splitext(rel_file_path)[0]
                     .replace(os.sep, "/")
                     .split("/"),
-                }
+                )
             return
 
         # Builtin type
         if inspect.isclass(t) and t.__module__ == "builtins":
             tname = t.__name__
             if tname not in types_dict:
-                types_dict[tname] = {"kind": "builtin", "_class": t}
+                types_dict[tname] = TypeDefModel(kind="builtin", class_=t)
 
         # User Model types(detected by derivation from our special UserModel class)
         elif inspect.isclass(t) and issubclass(t, UserModel) and t is not UserModel:
             for name, val in module_ns.items():
                 if val is t and name.isidentifier():
                     if name not in types_dict:
-                        entry = {
-                            "kind": "user_model",
-                            "_class": t,
-                            "category": os.path.splitext(rel_file_path)[0]
-                            .replace(os.sep, "/")
-                            .split("/"),
-                        }
+                        properties = None
                         if hasattr(t, "__annotations__") and t.__annotations__:
-                            entry["properties"] = {
+                            properties = {
                                 field: get_type_repr(ftype, module_ns, short_repr=True)
                                 for field, ftype in t.__annotations__.items()
                             }
                             # Recursively add field types
                             for field_type in t.__annotations__.values():
                                 _add_type_recursive(field_type)
-                        types_dict[name] = entry
+
+                        types_dict[name] = UserTypeDefModel(
+                            kind="user_model",
+                            class_=t,
+                            category=os.path.splitext(rel_file_path)[0]
+                            .replace(os.sep, "/")
+                            .split("/"),
+                            properties=properties,
+                        )
                     break
 
         # Handle third-party classes (not builtin, not UserModel, not cached)
@@ -178,13 +187,13 @@ def analyze_type(
                 # Add it as a cached type placeholder
                 # The referenced_datamodel field will be added by functions_analysis.py if applicable
                 if type_name not in types_dict:
-                    types_dict[type_name] = {
-                        "kind": "cached",
-                        "_class": t,
-                        "category": os.path.splitext(rel_file_path)[0]
+                    types_dict[type_name] = CachedTypeDefModel(
+                        kind="cached",
+                        class_=t,
+                        category=os.path.splitext(rel_file_path)[0]
                         .replace(os.sep, "/")
                         .split("/"),
-                    }
+                    )
 
         # Lists and dicts of user-defined types (e.g., list[int], dict[str, float])
         if hasattr(t, "__origin__") and hasattr(t, "__args__"):

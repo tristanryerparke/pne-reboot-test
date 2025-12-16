@@ -1,6 +1,6 @@
 from typing import ClassVar, Literal, TypeAlias
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 
@@ -35,3 +35,26 @@ class UnionDescr(CamelBaseModel):
 class StructDescr(CamelBaseModel):
     structure_type: Literal["list", "dict"]
     items_type: str | UnionDescr
+
+
+class TypeDefModel(BaseModel):
+    """Base model for type definitions. Does not use CamelBaseModel."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    kind: str
+    class_: type | None = Field(default=None, exclude=True)
+
+
+class UserTypeDefModel(TypeDefModel):
+    """Type definition for user-defined models with properties"""
+
+    category: list[str]
+    properties: dict[str, str | StructDescr | UnionDescr] | None = None
+
+
+class CachedTypeDefModel(TypeDefModel):
+    """Type definition for cached types"""
+
+    category: list[str]
+    referenced_datamodel: type | None = Field(default=None, exclude=True)

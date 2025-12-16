@@ -84,21 +84,12 @@ async def get_functions():
 async def get_types():
     """get schema for all loaded types that are to be served as node inputs / outputs"""
 
-    # FIXME: this needs to be pydanticafied
-    # d(types)
-    types_stripped = {}
+    types_serialized = {}
     for k, v in TYPES.items():
-        if isinstance(v, dict):
-            # Remove non-serializable fields (_class and referenced_datamodel)
-            v_copy = {
-                key: value
-                for key, value in v.items()
-                if key not in ("_class", "referenced_datamodel")
-            }
-        else:
-            v_copy = v
-        types_stripped[k] = v_copy
-    return types_stripped
+        # Use model_dump which will automatically exclude _class and referenced_datamodel
+        # and convert snake_case to camelCase for StructDescr/UnionDescr instances
+        types_serialized[k] = v.model_dump(mode="json")
+    return types_serialized
 
 
 app.add_middleware(
