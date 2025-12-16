@@ -1,28 +1,46 @@
-import SyncedResizable from "../../../utility-components/synced-resizable";
+import {
+  ResizableHeight,
+  ResizableHeightHandle,
+} from "../../../utility-components/resizable-height";
+import { SyncedWidthHandle } from "../../../utility-components/synced-width-resizable";
+import useFlowStore, { useNodeData } from "@/stores/flowStore";
 
-const DEFAULT_AND_MIN_SIZE = {
-  width: 240,
-  height: 240,
-};
-
-const MAX_SIZE = {
-  width: 800,
-  height: 800,
-};
+const DEFAULT_AND_MIN_HEIGHT = 60; // Tailwind units
+const MAX_HEIGHT = 200; // Tailwind units
 
 interface GrowingComponentProps {
   path: (string | number)[];
 }
 
 export function GrowingComponent({ path }: GrowingComponentProps) {
+  const updateNodeData = useFlowStore((state) => state.updateNodeData);
+
+  // Get height from store
+  const storedHeight = useNodeData([...path, "_expandedHeight"]) as
+    | number
+    | undefined;
+  const height = storedHeight || DEFAULT_AND_MIN_HEIGHT;
+
+  const setHeight = (newHeight: number) => {
+    updateNodeData([...path, "_expandedHeight"], newHeight);
+  };
+
   return (
-    <SyncedResizable
-      path={path}
-      defaultSize={DEFAULT_AND_MIN_SIZE}
-      minSize={DEFAULT_AND_MIN_SIZE}
-      maxSize={MAX_SIZE}
+    <ResizableHeight
+      height={height}
+      setHeight={setHeight}
+      minHeight={DEFAULT_AND_MIN_HEIGHT}
+      maxHeight={MAX_HEIGHT}
+      useTailwindScale={true}
     >
-      <div className="bg-red-400 h-2000">growing component</div>
-    </SyncedResizable>
+      <div className="bg-red-400 w-full h-full relative">
+        growing component
+        <ResizableHeightHandle>
+          <SyncedWidthHandle>
+            <div className="bg-red-600 h-2 w-2 shrink-0 cursor-nwse-resize absolute bottom-0 right-0" />
+          </SyncedWidthHandle>
+        </ResizableHeightHandle>
+      </div>
+    </ResizableHeight>
   );
 }

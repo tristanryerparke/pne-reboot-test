@@ -7,6 +7,8 @@ import { Separator } from "../ui/separator";
 import type { FunctionSchema } from "../../types/types";
 import InspectableFieldWrapper from "../inspector-sidebar/inspectable-field-wrapper";
 import { useNodeData } from "@/stores/flowStore";
+import { SyncedWidthHandleProvider } from "@/common/utility-components/synced-width-resizable";
+import useFlowStore from "@/stores/flowStore";
 
 export default memo(function CustomNode({
   data,
@@ -16,6 +18,7 @@ export default memo(function CustomNode({
   id: string;
 }) {
   const nodeRef = useRef<HTMLDivElement>(null);
+  const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
   const path = [id];
 
@@ -23,9 +26,21 @@ export default memo(function CustomNode({
   // This ensures the parent node recalculates its w-fit size during drag
   useNodeData([id, "_resizing"]);
 
+  // Get node width from store using useNodeData
+  const nodeWidth = (useNodeData([id, "_nodeWidth"]) as number | null) || null;
+
+  const setNodeWidth = (width: number) => {
+    updateNodeData([id, "_nodeWidth"], width);
+  };
+
   return (
-    <div ref={nodeRef} className="w-fit">
-      <div className="shadow-md border border-input rounded-lg bg-background text-secondary-foreground">
+    <div ref={nodeRef}>
+      <SyncedWidthHandleProvider
+        className="shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
+        useTailwindScale={true}
+        width={nodeWidth}
+        setWidth={setNodeWidth}
+      >
         <InspectableFieldWrapper path={path}>
           <div>
             <NodeHeader data={data} nodeId={id} />
@@ -35,7 +50,7 @@ export default memo(function CustomNode({
         <Inputs arguments={data.arguments} path={[...path, "arguments"]} />
         <Separator />
         <Outputs data={data} path={path} />
-      </div>
+      </SyncedWidthHandleProvider>
       <div className="px-2 overflow-hidden nowheel">
         <NodeDrawer
           isExpanded={(data._drawerExpanded as true) || false}

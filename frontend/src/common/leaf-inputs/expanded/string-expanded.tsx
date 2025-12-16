@@ -1,7 +1,11 @@
 import { memo } from "react";
-import SyncedResizable from "../../utility-components/synced-resizable";
+import {
+  ResizableHeight,
+  ResizableHeightHandle,
+} from "../../utility-components/resizable-height";
+import { SyncedWidthHandle } from "../../utility-components/synced-width-resizable";
 import { Textarea } from "../../../components/ui/textarea";
-import useFlowStore from "../../../stores/flowStore";
+import useFlowStore, { useNodeData } from "../../../stores/flowStore";
 import { useNodeConnections } from "@xyflow/react";
 import { useControlledDebounce } from "../../../hooks/useControlledDebounce";
 import type { DataWrapper } from "@/types/types";
@@ -14,15 +18,8 @@ interface StringExpandedProps {
   readOnly?: boolean;
 }
 
-const DEFAULT_AND_MIN_SIZE = {
-  width: 240,
-  height: 120,
-};
-
-const MAX_SIZE = {
-  width: 800,
-  height: 800,
-};
+const DEFAULT_AND_MIN_HEIGHT = 30; // Tailwind units
+const MAX_HEIGHT = 200; // Tailwind units
 
 export default memo(function StringExpanded({
   inputData,
@@ -52,6 +49,16 @@ export default memo(function StringExpanded({
     200,
   );
 
+  // Get height from store
+  const storedHeight = useNodeData([...path, "_expandedHeight"]) as
+    | number
+    | undefined;
+  const height = storedHeight || DEFAULT_AND_MIN_HEIGHT;
+
+  const setHeight = (newHeight: number) => {
+    updateNodeData([...path, "_expandedHeight"], newHeight);
+  };
+
   // Early return after all hooks
   if (!data) {
     return <div>No data</div>;
@@ -68,11 +75,12 @@ export default memo(function StringExpanded({
 
   return (
     <div className="flex flex-col">
-      <SyncedResizable
-        path={path}
-        defaultSize={DEFAULT_AND_MIN_SIZE}
-        minSize={DEFAULT_AND_MIN_SIZE}
-        maxSize={MAX_SIZE}
+      <ResizableHeight
+        height={height}
+        setHeight={setHeight}
+        minHeight={DEFAULT_AND_MIN_HEIGHT}
+        maxHeight={MAX_HEIGHT}
+        useTailwindScale={true}
       >
         <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input">
           <Textarea
@@ -94,8 +102,13 @@ export default memo(function StringExpanded({
               fieldSizing: "fixed",
             }}
           />
+          <ResizableHeightHandle>
+            <SyncedWidthHandle>
+              <div className="bg-red-600 h-2 w-2 shrink-0 cursor-nwse-resize absolute bottom-0 right-0" />
+            </SyncedWidthHandle>
+          </ResizableHeightHandle>
         </div>
-      </SyncedResizable>
+      </ResizableHeight>
     </div>
   );
 });
