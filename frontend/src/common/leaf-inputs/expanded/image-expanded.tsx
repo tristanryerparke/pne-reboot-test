@@ -6,6 +6,7 @@ import {
 import { SyncedWidthHandle } from "../../utility-components/synced-width-resizable";
 import type { FrontendFieldDataWrapper } from "@/types/types";
 import useFlowStore, { useNodeData } from "@/stores/flowStore";
+import { Grip } from "lucide-react";
 
 interface ImageExpandedProps {
   inputData?: FrontendFieldDataWrapper;
@@ -88,7 +89,9 @@ export default memo(function ImageExpanded({
           )}
           <ResizableHeightHandle>
             <SyncedWidthHandle>
-              <div className="bg-red-600 h-2 w-2 shrink-0 cursor-nwse-resize absolute bottom-0 right-0" />
+              <div className="nodrag shrink-0 cursor-nwse-resize absolute bottom-0 right-0 p-0.5 opacity-50 hover:opacity-100 transition-opacity">
+                <Grip className="h-3 w-3 text-muted-foreground" />
+              </div>
             </SyncedWidthHandle>
           </ResizableHeightHandle>
         </div>

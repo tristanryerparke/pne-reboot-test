@@ -4,6 +4,7 @@ import {
 } from "../../../utility-components/resizable-height";
 import { SyncedWidthHandle } from "../../../utility-components/synced-width-resizable";
 import useFlowStore, { useNodeData } from "@/stores/flowStore";
+import { Grip } from "lucide-react";
 
 const DEFAULT_AND_MIN_HEIGHT = 60; // Tailwind units
 const MAX_HEIGHT = 200; // Tailwind units
@@ -37,7 +38,9 @@ export function GrowingComponent({ path }: GrowingComponentProps) {
         growing component
         <ResizableHeightHandle>
           <SyncedWidthHandle>
-            <div className="bg-red-600 h-2 w-2 shrink-0 cursor-nwse-resize absolute bottom-0 right-0" />
+            <div className="nodrag shrink-0 cursor-nwse-resize absolute bottom-0 right-0 p-0.5 opacity-50 hover:opacity-100 transition-opacity">
+              <Grip className="h-3 w-3 text-muted-foreground" />
+            </div>
           </SyncedWidthHandle>
         </ResizableHeightHandle>
       </div>

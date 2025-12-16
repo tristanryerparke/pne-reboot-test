@@ -10,6 +10,7 @@ import { useNodeConnections } from "@xyflow/react";
 import { useControlledDebounce } from "../../../hooks/useControlledDebounce";
 import type { DataWrapper } from "@/types/types";
 import { cn } from "@/lib/utils";
+import { Grip } from "lucide-react";
 
 interface StringExpandedProps {
   inputData?: DataWrapper;
@@ -104,7 +105,9 @@ export default memo(function StringExpanded({
           />
           <ResizableHeightHandle>
             <SyncedWidthHandle>
-              <div className="bg-red-600 h-2 w-2 shrink-0 cursor-nwse-resize absolute bottom-0 right-0" />
+              <div className="nodrag shrink-0 cursor-nwse-resize absolute bottom-0 right-0 p-0.5 opacity-50 hover:opacity-100 transition-opacity">
+                <Grip className="h-3 w-3 text-muted-foreground" />
+              </div>
             </SyncedWidthHandle>
           </ResizableHeightHandle>
         </div>

@@ -5,6 +5,7 @@ import {
 } from "@/common/utility-components/resizable-height";
 import { SyncedWidthHandle } from "@/common/utility-components/synced-width-resizable";
 import useFlowStore, { useNodeData } from "@/stores/flowStore";
+import { Grip } from "lucide-react";
 
 type NodeDrawerProps = {
   isExpanded: boolean;
@@ -52,19 +53,21 @@ export default memo(function NodeDrawer({
       maxHeight={MAX_HEIGHT}
       useTailwindScale={true}
     >
-      <div className="bg-card border-x border-b border-input rounded-b-md shadow-lg overflow-hidden h-full relative">
+      <div className="nodrag nopan nowheel bg-card border-x border-b border-input rounded-b-md shadow-lg overflow-hidden h-full relative w-full">
         <div
-          className="px-2 pt-2 pb-0 h-full overflow-auto select-text cursor-text"
+          className="px-2 pt-2 pb-0 h-full overflow-auto select-text cursor-text w-full"
           onMouseDown={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <div className="font-mono text-xs whitespace-pre-wrap break-word select-text">
+          <div className="font-mono text-xs whitespace-pre-wrap break-all select-text w-full">
             {terminalOutput}
           </div>
         </div>
         <ResizableHeightHandle>
           <SyncedWidthHandle>
-            <div className="bg-red-600 h-2 w-2 shrink-0 cursor-nwse-resize absolute bottom-0 right-0" />
+            <div className="nodrag shrink-0 cursor-nwse-resize absolute bottom-0 right-0 p-0.5 opacity-50 hover:opacity-100 transition-opacity">
+              <Grip className="h-3 w-3 text-muted-foreground" />
+            </div>
           </SyncedWidthHandle>
         </ResizableHeightHandle>
       </div>

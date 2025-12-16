@@ -36,28 +36,31 @@ export default memo(function CustomNode({
   return (
     <div ref={nodeRef}>
       <SyncedWidthHandleProvider
-        className="shadow-md border border-input rounded-lg bg-background text-secondary-foreground"
         useTailwindScale={true}
         width={nodeWidth}
         setWidth={setNodeWidth}
       >
-        <InspectableFieldWrapper path={path}>
-          <div>
-            <NodeHeader data={data} nodeId={id} />
+        <div className="min-w-min">
+          <div className="shadow-md border border-input rounded-lg bg-background text-secondary-foreground">
+            <InspectableFieldWrapper path={path}>
+              <div>
+                <NodeHeader data={data} nodeId={id} />
+              </div>
+            </InspectableFieldWrapper>
+            <Separator />
+            <Inputs arguments={data.arguments} path={[...path, "arguments"]} />
+            <Separator />
+            <Outputs data={data} path={path} />
           </div>
-        </InspectableFieldWrapper>
-        <Separator />
-        <Inputs arguments={data.arguments} path={[...path, "arguments"]} />
-        <Separator />
-        <Outputs data={data} path={path} />
+          <div className="px-2">
+            <NodeDrawer
+              isExpanded={(data._drawerExpanded as true) || false}
+              terminalOutput={data.terminal_output as string}
+              path={path}
+            />
+          </div>
+        </div>
       </SyncedWidthHandleProvider>
-      <div className="px-2 overflow-hidden nowheel">
-        <NodeDrawer
-          isExpanded={(data._drawerExpanded as true) || false}
-          terminalOutput={data.terminal_output as string}
-          path={path}
-        />
-      </div>
     </div>
   );
 });

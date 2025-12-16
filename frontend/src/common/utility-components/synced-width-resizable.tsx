@@ -4,7 +4,7 @@ import {
   useState,
   useRef,
   useEffect,
-  ReactNode,
+  type ReactNode,
 } from "react";
 
 // Tailwind spacing scale: 1 unit = 0.25rem = 4px
@@ -13,7 +13,7 @@ const TAILWIND_UNIT = 4;
 interface SyncedWidthHandleContextValue {
   parentWidth: number | null;
   setParentWidth: (width: number) => void;
-  parentRef: React.RefObject<HTMLDivElement> | null;
+  parentRef: React.RefObject<HTMLDivElement | null> | null;
   maxWidth?: number;
   useTailwindScale: boolean;
 }
