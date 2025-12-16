@@ -54,9 +54,9 @@ export default function OutputMenu({ path, fieldData }: OutputMenuProps) {
     const newExpandedState = !isExpanded;
     updateNodeData([...path, "_expanded"], newExpandedState);
 
-    // If minimizing, clear the stored size
+    // If minimizing, clear the stored height
     if (!newExpandedState) {
-      deleteNodeData([...path, "_expandedSize"]);
+      deleteNodeData([...path, "_expandedHeight"]);
     }
   };
 

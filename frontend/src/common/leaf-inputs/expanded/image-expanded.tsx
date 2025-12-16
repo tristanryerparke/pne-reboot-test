@@ -1,6 +1,12 @@
 import { memo } from "react";
-import SyncedResizable from "../../utility-components/synced-resizable";
+import {
+  ResizableHeight,
+  ResizableHeightHandle,
+} from "../../utility-components/resizable-height";
+import { SyncedWidthHandle } from "../../utility-components/synced-width-resizable";
 import type { FrontendFieldDataWrapper } from "@/types/types";
+import useFlowStore, { useNodeData } from "@/stores/flowStore";
+import { Grip } from "lucide-react";
 
 interface ImageExpandedProps {
   inputData?: FrontendFieldDataWrapper;
@@ -8,21 +14,26 @@ interface ImageExpandedProps {
   path: (string | number)[];
 }
 
-const DEFAULT_AND_MIN_SIZE = {
-  width: 240,
-  height: 240,
-};
-
-const MAX_SIZE = {
-  width: 800,
-  height: 800,
-};
+const DEFAULT_AND_MIN_HEIGHT = 60; // Tailwind units
+const MAX_HEIGHT = 200; // Tailwind units
 
 export default memo(function ImageExpanded({
   inputData,
   outputData,
   path,
 }: ImageExpandedProps) {
+  const updateNodeData = useFlowStore((state) => state.updateNodeData);
+
+  // Get height from store
+  const storedHeight = useNodeData([...path, "_expandedHeight"]) as
+    | number
+    | undefined;
+  const height = storedHeight || DEFAULT_AND_MIN_HEIGHT;
+
+  const setHeight = (newHeight: number) => {
+    updateNodeData([...path, "_expandedHeight"], newHeight);
+  };
+
   // Support both inputData and outputData
   const data = inputData || outputData;
   if (!data) {
@@ -57,13 +68,14 @@ export default memo(function ImageExpanded({
 
   return (
     <div className="flex flex-col flex-1">
-      <SyncedResizable
-        path={path}
-        defaultSize={DEFAULT_AND_MIN_SIZE}
-        minSize={DEFAULT_AND_MIN_SIZE}
-        maxSize={MAX_SIZE}
+      <ResizableHeight
+        height={height}
+        setHeight={setHeight}
+        minHeight={DEFAULT_AND_MIN_HEIGHT}
+        maxHeight={MAX_HEIGHT}
+        useTailwindScale={true}
       >
-        <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden">
+        <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden relative">
           {hasImage ? (
             <img
               src={`data:image/webp;base64,${imageValue._preview}`}
@@ -75,8 +87,15 @@ export default memo(function ImageExpanded({
           ) : (
             <span className="text-sm text-muted-foreground">No image</span>
           )}
+          <ResizableHeightHandle>
+            <SyncedWidthHandle>
+              <div className="nodrag shrink-0 cursor-nwse-resize absolute bottom-0 right-0 p-0.5 opacity-50 hover:opacity-100 transition-opacity">
+                <Grip className="h-3 w-3 text-muted-foreground" />
+              </div>
+            </SyncedWidthHandle>
+          </ResizableHeightHandle>
         </div>
-      </SyncedResizable>
+      </ResizableHeight>
       {hasImage && imageValue._filename && (
         <p className="text-xs text-muted-foreground mt-1">
           {imageValue._filename}

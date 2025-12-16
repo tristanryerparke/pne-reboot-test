@@ -58,9 +58,8 @@ async def execute_graph(graph: Graph):
 
         node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
 
-        # Add terminal output if present
-        if terminal_output:
-            node_update["terminal_output"] = terminal_output
+        # Add terminal output (empty string on success, error text on failure)
+        node_update["terminal_output"] = terminal_output if terminal_output else ""
 
         # If execution failed, skip output processing
         if not success:
