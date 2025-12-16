@@ -1,13 +1,21 @@
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { LoaderIcon } from "lucide-react";
 import useFlowStore from "../../stores/flowStore";
 import { useState, useCallback } from "react";
 import { stripGraphForExecute } from "../../utils/strip-graph";
 import { type Graph } from "../../utils/strip-graph";
 import { preserveUIData } from "../../utils/preserve-ui-data";
+import { useBackendConnection } from "../../hooks/useBackendConnection";
 
 export default function ExecuteMenu() {
   const [loading, setLoading] = useState(false);
+  const { isConnected, isChecking } = useBackendConnection();
   const nodes = useFlowStore((state) => state.nodes);
   const edges = useFlowStore((state) => state.edges);
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
@@ -46,7 +54,7 @@ export default function ExecuteMenu() {
           // Get existing node data and merge while preserving ui only-data
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const existingNodeData = getNodeData([nodeId]) as any;
-          const { node_id, ...updateData } = update; // Remove node_id from update
+          const { node_id: _node_id, ...updateData } = update; // Remove node_id from update
           const mergedNodeData = preserveUIData(existingNodeData, updateData);
 
           // Update the entire node data at once
@@ -71,17 +79,40 @@ export default function ExecuteMenu() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
 
-  return (
-    <div className="w-full">
-      <Button
-        className="w-25 text-green-700! border-green-700!"
-        variant="outline"
-        size="sm"
-        onClick={execute}
-        disabled={loading}
-      >
-        {loading ? <LoaderIcon className="animate-spin" /> : "Execute"}
-      </Button>
-    </div>
+  const isDisabled = loading || !isConnected || isChecking;
+  const buttonClass =
+    isConnected && !isChecking
+      ? "w-25 text-green-700! border-green-700!"
+      : "w-25";
+
+  const button = (
+    <Button
+      className={buttonClass}
+      variant="outline"
+      size="sm"
+      onClick={execute}
+      disabled={isDisabled}
+    >
+      {loading ? <LoaderIcon className="animate-spin" /> : "Execute"}
+    </Button>
   );
+
+  if (!isConnected && !isChecking) {
+    return (
+      <div className="w-full">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-block w-full">{button}</span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>Backend not connected</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    );
+  }
+
+  return <div className="w-full">{button}</div>;
 }

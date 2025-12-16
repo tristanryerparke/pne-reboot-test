@@ -1,16 +1,16 @@
-import { ModeToggle } from "./mode-toggle";
 import ExecuteButton from "./execute-button";
 import SaveButton from "./save-button";
 import { LoadButton } from "./load-button";
 import { InspectorToggle } from "./inspector-toggle";
 import { NodePickerToggle } from "./node-picker-toggle";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { SettingsModal } from "./settings-modal/settings";
 
 export default function GraphToolbar() {
   return (
     <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex flex-row gap-1.5 bg-background/80 backdrop-blur-sm border rounded-lg p-1.5 shadow-lg">
       <NodePickerToggle />
-      <ModeToggle />
+      <SettingsModal />
       <ExecuteButton />
       <ButtonGroup>
         <SaveButton />

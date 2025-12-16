@@ -1,9 +1,10 @@
+import logging
 import os
 import sys
 from contextlib import asynccontextmanager
 
 from devtools import debug as d
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -63,6 +64,12 @@ app.include_router(graph_router)
 app.include_router(large_data_router, prefix="/data", tags=["data"])
 
 
+@app.get("/health")
+async def health_check(request: Request):
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+    return {"status": "ok"}
+
+
 @app.get("/nodes")
 async def get_functions():
     """get schema for all loaded functions that are to be served as nodes"""
@@ -76,6 +83,8 @@ async def get_functions():
 @app.get("/types")
 async def get_types():
     """get schema for all loaded types that are to be served as node inputs / outputs"""
+
+    # FIXME: this needs to be pydanticafied
     # d(types)
     types_stripped = {}
     for k, v in TYPES.items():
