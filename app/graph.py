@@ -56,7 +56,7 @@ async def execute_graph(graph: Graph):
             print(f"Executing node {node.id}")
         success, result, terminal_output = execute_node(node.data)
 
-        node_update = {"node_id": node.id, "outputs": {}, "inputs": {}}
+        node_update = {"node_id": node.id, "outputs": {}, "arguments": {}}
 
         # Add terminal output (empty string on success, error text on failure)
         node_update["terminal_output"] = terminal_output if terminal_output else ""
@@ -94,7 +94,7 @@ async def execute_graph(graph: Graph):
 
                 # Send a copy of the argument wrapper to frontend
                 arg = node.data.arguments[argument_name]
-                node_update["inputs"][argument_name] = arg.model_copy()
+                node_update["arguments"][argument_name] = arg.model_copy()
 
         # Process all outputs and create the return data model
         for output_name in node.data.outputs.keys():

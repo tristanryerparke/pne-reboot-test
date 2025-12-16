@@ -23,11 +23,11 @@ export default memo(function NodeDrawer({
 }: NodeDrawerProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
-  console.log("NodeDrawer:", {
-    isExpanded,
-    hasTerminalOutput: !!terminalOutput,
-    path,
-  });
+  // console.log("NodeDrawer:", {
+  //   isExpanded,
+  //   hasTerminalOutput: !!terminalOutput,
+  //   path,
+  // });
 
   // Get height from store
   const storedHeight = useNodeData([

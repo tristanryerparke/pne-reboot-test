@@ -7,19 +7,22 @@ from fastapi.testclient import TestClient
 import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
 from app.graph import router as graph_router
-from tests.assets.functions import divide_by_zero, process_data
+from tests.assets.functions import add, divide_by_zero, process_data
 
 # Analyze the functions to get types and schemas
+_, add_schema, _, add_types = analyze_function(add)
 _, verbose_schema, _, verbose_types = analyze_function(process_data)
 _, error_schema, _, error_types = analyze_function(divide_by_zero)
 
 # Register the functions and their types
 mock_callables = {
+    add_schema.callable_id: add,
     verbose_schema.callable_id: process_data,
     error_schema.callable_id: divide_by_zero,
 }
 
 server_module.CALLABLES.update(mock_callables)
+server_module.TYPES.update(add_types)
 server_module.TYPES.update(verbose_types)
 server_module.TYPES.update(error_types)
 
@@ -124,3 +127,41 @@ def test_error_output_capture():
     assert "division by zero" in terminal_output
     assert "divide_by_zero" in terminal_output
     assert "return x / 0" in terminal_output
+
+
+def test_empty_terminal_output_on_success():
+    """Test that terminal output is an empty string when function executes without errors or output"""
+    graph_data = {
+        "nodes": [
+            {
+                "id": "add-node-1",
+                "position": {"x": 0, "y": 0},
+                "data": {
+                    "callableId": add_schema.callable_id,
+                    "arguments": {
+                        "a": {"type": "int", "value": 3},
+                        "b": {"type": "int", "value": 5},
+                    },
+                    "outputs": {"return": {"type": "int"}},
+                    "outputStyle": "single",
+                },
+            },
+        ],
+        "edges": [],
+    }
+
+    response = client.post("/graph_execute", json=graph_data)
+    assert response.status_code == 200
+
+    result = response.json()
+    assert result["status"] == "success"
+    assert len(result["updates"]) == 1
+
+    node_update = result["updates"][0]
+    assert node_update["node_id"] == "add-node-1"
+    assert node_update["_status"] == "executed"
+    assert node_update["outputs"]["return"]["value"] == 8
+
+    # Check that terminal_output is an empty string for successful execution with no output
+    assert "terminal_output" in node_update
+    assert node_update["terminal_output"] == ""

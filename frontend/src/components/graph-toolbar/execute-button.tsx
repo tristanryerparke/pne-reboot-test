@@ -43,52 +43,23 @@ export default function ExecuteMenu() {
         result.updates.forEach((update: any) => {
           const nodeId = update.node_id;
 
-          // Update status
-          if (update._status) {
-            const statusPath = [nodeId, "_status"];
-            updateNodeData(statusPath, update._status);
+          // Get existing node data and merge while preserving ui only-data
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const existingNodeData = getNodeData([nodeId]) as any;
+          const { node_id, ...updateData } = update; // Remove node_id from update
+          const mergedNodeData = preserveUIData(existingNodeData, updateData);
+
+          // Update the entire node data at once
+          updateNodeData([nodeId], mergedNodeData);
+
+          // Log errors for debugging
+          if (update._status === "error") {
+            console.error(
+              `Node ${nodeId} failed with output:`,
+              update.terminal_output,
+            );
           }
-
-          // Update terminal output (including empty string to clear previous errors)
-          if (update.terminal_output !== undefined) {
-            const terminalPath = [nodeId, "terminal_output"];
-            updateNodeData(terminalPath, update.terminal_output);
-            if (update._status === "error") {
-              console.error(
-                `Node ${nodeId} failed with output:`,
-                update.terminal_output,
-              );
-            }
-          }
-
-          // Update inputs (preserve UI data like _expanded)
-          Object.entries(update.inputs).forEach(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ([argName, argData]: [string, any]) => {
-              const path = [nodeId, "arguments", argName];
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const existingInput = getNodeData(path) as any;
-              const mergedInput = preserveUIData(existingInput, argData);
-              updateNodeData(path, mergedInput);
-            },
-          );
-
-          // Update outputs (preserve UI data like _expanded)
-          Object.entries(update.outputs).forEach(
-            ([outputName, outputFieldData]) => {
-              const path = [nodeId, "outputs", outputName];
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const existingOutput = getNodeData(path) as any;
-              const mergedOutput = preserveUIData(
-                existingOutput,
-                outputFieldData,
-              );
-              updateNodeData(path, mergedOutput);
-            },
-          );
         });
-
-        console.log("Graph execution completed successfully");
       } else {
         console.error("Graph execution failed:", result.message);
       }

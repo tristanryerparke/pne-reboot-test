@@ -284,14 +284,14 @@ def test_two_connected_image_nodes():
     node2_update = result["updates"][1]
     assert node2_update["node_id"] == "blur-node-2"
     assert "image_blurred" in node2_update["outputs"]
-    assert "image" in node2_update["inputs"]
+    assert "image" in node2_update["arguments"]
 
     node2_output = node2_update["outputs"]["image_blurred"]
     assert node2_output["type"] == "Image"
     assert "cacheKey" in node2_output
 
     # Verify that the second node received the first node's output
-    node2_input = node2_update["inputs"]["image"]
+    node2_input = node2_update["arguments"]["image"]
     assert node2_input["type"] == "Image"
     assert node2_input["cacheKey"] == node1_output["cacheKey"]
 

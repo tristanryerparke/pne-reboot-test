@@ -181,4 +181,4 @@ def test_two_connected_nodes_execute():
     node2_update = result["updates"][1]
     assert node2_update["node_id"] == "node2"
     assert node2_update["outputs"]["return"]["value"] == 16
-    assert node2_update["inputs"]["x"]["value"] == 8
+    assert node2_update["arguments"]["x"]["value"] == 8

@@ -96,23 +96,29 @@ const useFlowStore = createWithEqualityFn<
               (node) => node.id === path[0],
             );
             if (nodeIndex !== -1) {
-              let current = state.nodes[nodeIndex].data;
               const pathToProperty = path.slice(1);
 
-              for (let i = 0; i < pathToProperty.length - 1; i++) {
-                const key = pathToProperty[i];
-                if (current[key] === undefined) {
-                  console.warn(
-                    `Creating new nested property: ${key} at path: ${path.slice(0, i + 2).join(".")}`,
-                  );
-                  current[key] = {};
-                }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                current = current[key] as any;
-              }
+              // Special case: if path is just [nodeId], replace entire node data
+              if (pathToProperty.length === 0) {
+                state.nodes[nodeIndex].data = newData as FunctionNode["data"];
+              } else {
+                let current = state.nodes[nodeIndex].data;
 
-              const finalKey = pathToProperty[pathToProperty.length - 1];
-              current[finalKey] = newData;
+                for (let i = 0; i < pathToProperty.length - 1; i++) {
+                  const key = pathToProperty[i];
+                  if (current[key] === undefined) {
+                    console.warn(
+                      `Creating new nested property: ${key} at path: ${path.slice(0, i + 2).join(".")}`,
+                    );
+                    current[key] = {};
+                  }
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  current = current[key] as any;
+                }
+
+                const finalKey = pathToProperty[pathToProperty.length - 1];
+                current[finalKey] = newData;
+              }
             }
           }),
         );

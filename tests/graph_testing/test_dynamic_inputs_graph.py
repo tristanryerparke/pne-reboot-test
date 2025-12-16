@@ -227,7 +227,7 @@ def test_create_and_index_dict():
     index_update = result["updates"][1]
     assert index_update["node_id"] == "index-dict"
     assert index_update["outputs"]["return"]["value"] == 2.0
-    assert index_update["inputs"]["dict"]["value"] == {
+    assert index_update["arguments"]["dict"]["value"] == {
         "alpha": 1.0,
         "beta": 2.0,
         "gamma": 3.0,
@@ -306,4 +306,4 @@ def test_create_and_index_list():
     index_update = result["updates"][1]
     assert index_update["node_id"] == "index-list"
     assert index_update["outputs"]["return"]["value"] == 20.0
-    assert index_update["inputs"]["the_list"]["value"] == [10.0, 20.0, 30.0]
+    assert index_update["arguments"]["the_list"]["value"] == [10.0, 20.0, 30.0]

@@ -157,7 +157,7 @@ def test_construct_and_deconstruct():
     assert deconstruct_update["node_id"] == "deconstruct-node-1"
     assert deconstruct_update["outputs"]["x"]["value"] == 3.0
     assert deconstruct_update["outputs"]["y"]["value"] == 5.0
-    assert deconstruct_update["inputs"]["instance"]["value"] == {"x": 3.0, "y": 5.0}
+    assert deconstruct_update["arguments"]["instance"]["value"] == {"x": 3.0, "y": 5.0}
 
 
 def test_two_point_distance_calculation():
@@ -233,5 +233,5 @@ def test_two_point_distance_calculation():
     distance_update = result["updates"][2]
     assert distance_update["node_id"] == "distance-node"
     assert distance_update["outputs"]["return"]["value"] == 5.0
-    assert distance_update["inputs"]["a"]["value"] == {"x": 0.0, "y": 0.0}
-    assert distance_update["inputs"]["b"]["value"] == {"x": 3.0, "y": 4.0}
+    assert distance_update["arguments"]["a"]["value"] == {"x": 0.0, "y": 0.0}
+    assert distance_update["arguments"]["b"]["value"] == {"x": 3.0, "y": 4.0}

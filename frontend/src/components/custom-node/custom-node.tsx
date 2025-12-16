@@ -38,6 +38,7 @@ export default memo(function CustomNode({
       <SyncedWidthHandleProvider
         useTailwindScale={true}
         width={nodeWidth}
+        maxWidth={250}
         setWidth={setNodeWidth}
       >
         <div className="min-w-min">
