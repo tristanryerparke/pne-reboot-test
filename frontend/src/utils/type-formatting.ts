@@ -12,16 +12,16 @@ export function formatTypeForDisplay(type: any): string {
       return type.anyOf.map(formatTypeForDisplay).join(" | ");
     }
     // Handle list types
-    if (type.structure_type === "list") {
-      const itemsType = type.items_type || "unknown";
+    if (type.structureType === "list") {
+      const itemsType = type.itemsType || "unknown";
       return `list[${formatTypeForDisplay(itemsType)}]`;
     }
     // Handle dict types
-    if (type.structure_type === "dict") {
-      const itemsType = type.items_type || "unknown";
+    if (type.structureType === "dict") {
+      const itemsType = type.itemsType || "unknown";
       return `dict[str, ${formatTypeForDisplay(itemsType)}]`;
     }
   }
   // Fallback for unknown types
-  return String(type);
+  return JSON.stringify(type);
 }

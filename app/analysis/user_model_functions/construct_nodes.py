@@ -51,7 +51,7 @@ def create_construct_node(
     const_model = FunctionSchema(
         name=f"construct-{type_name}",
         callable_id=callable_id,
-        category=type_def["category"],
+        category=type_def.category,
         file_path=file_path,
         doc=f"Construct a {type_name} instance",
         arguments=arguments,

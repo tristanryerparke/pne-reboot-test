@@ -54,14 +54,14 @@ def test_app_setup():
 
     # Verify Image type has correct structure
     image_type = server_module.TYPES["Image"]
-    assert image_type["kind"] == "cached"
-    assert image_type["_class"] == Image.Image
-    assert "referenced_datamodel" in image_type
+    assert image_type.kind == "cached"
+    assert image_type._class is Image.Image
+    assert image_type._referenced_datamodel is not None
 
     # Verify referenced_datamodel points to the correct class
     from examples._custom_datatypes.cached_image import CachedImageDataModel
 
-    assert image_type["referenced_datamodel"] == CachedImageDataModel
+    assert image_type._referenced_datamodel is CachedImageDataModel
 
     # Verify blur_image is registered
     assert "blur_image" in server_module.CALLABLES

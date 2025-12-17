@@ -1,4 +1,5 @@
-import { TYPE_COMPONENT_REGISTRY } from "../../custom-node/inputs/input-type-registry";
+import { INPUT_TYPE_COMPONENT_REGISTRY } from "../../custom-node/inputs/input-type-registry";
+import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "../../custom-node/outputs/output-type-registry";
 import type { TypeInfo, PropertyType } from "@/stores/typesStore";
 
 function getPropertyTypeName(propType: PropertyType): string | null {
@@ -9,8 +10,8 @@ function getPropertyTypeName(propType: PropertyType): string | null {
     return null;
   }
   if (
-    "type" in propType &&
-    propType.type === "list" &&
+    "structureType" in propType &&
+    propType.structureType === "list" &&
     "itemsType" in propType
   ) {
     return getPropertyTypeName(propType.itemsType);
@@ -27,7 +28,11 @@ export function hasDisplayComponent(
     return false;
   }
 
-  if (typeName in TYPE_COMPONENT_REGISTRY) {
+  // Check if the type has a display component in either input or output registries
+  if (
+    typeName in INPUT_TYPE_COMPONENT_REGISTRY ||
+    typeName in OUTPUT_TYPE_COMPONENT_REGISTRY
+  ) {
     return true;
   }
 

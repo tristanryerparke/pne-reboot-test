@@ -29,24 +29,27 @@ async def upload_large_data(upload: LargeDataUpload):
         if upload.type not in TYPES:
             raise HTTPException(status_code=400, detail=f"Unknown type: {upload.type}")
 
-        type_info = TYPES[upload.type]
+        type_def = TYPES[upload.type]
 
         # Verify it's a cached type
-        if type_info.get("kind") != "cached":
+        if type_def.kind != "cached":
             raise HTTPException(
                 status_code=400,
                 detail=f"Type {upload.type} is not a cached type. "
-                f"Kind: {type_info.get('kind')}",
+                f"Kind: {type_def.kind}",
             )
 
-        # Get the referenced_datamodel (the CachedDataWrapper subclass)
-        if "referenced_datamodel" not in type_info:
+        # Get the _referenced_datamodel (the CachedDataWrapper subclass)
+        if (
+            not hasattr(type_def, "_referenced_datamodel")
+            or type_def._referenced_datamodel is None
+        ):
             raise HTTPException(
                 status_code=500,
                 detail=f"Type {upload.type} does not have a referenced_datamodel",
             )
 
-        cached_data_class = type_info["referenced_datamodel"]
+        cached_data_class = type_def._referenced_datamodel
 
         # Verify it's a CachedDataWrapper subclass
         if not issubclass(cached_data_class, CachedDataWrapper):

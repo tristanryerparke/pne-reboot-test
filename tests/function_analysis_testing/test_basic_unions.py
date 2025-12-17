@@ -2,6 +2,7 @@ from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
 from app.schema import DataWrapper, UnionDescr
+from app.schema_base import TypeDefModel
 from tests.assets.functions import add_with_union
 
 
@@ -24,10 +25,11 @@ def test_union():
 
     # Make sure we found both int and float types
     d(found_types)
-    assert found_types == {
-        "int": {"kind": "builtin", "_class": int},
-        "float": {"kind": "builtin", "_class": float},
-    }
+    assert set(found_types.keys()) == {"int", "float"}
+    assert found_types["int"].kind == "builtin"
+    assert found_types["float"].kind == "builtin"
+    assert found_types["int"]._class is int
+    assert found_types["float"]._class is float
 
 
 if __name__ == "__main__":

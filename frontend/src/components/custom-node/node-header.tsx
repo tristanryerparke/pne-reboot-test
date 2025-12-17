@@ -12,9 +12,9 @@ export default memo(function NodeHeader({ data, nodeId }: NodeHeaderProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
 
   const handleToggleDrawer = useCallback(() => {
-    const path = [nodeId, "_drawerExpanded"];
-    updateNodeData(path, !data._drawerExpanded);
-  }, [nodeId, data._drawerExpanded, updateNodeData]);
+    const path = [nodeId, "_terminal_drawer", "_expanded"];
+    updateNodeData(path, !data._terminal_drawer?._expanded);
+  }, [nodeId, data._terminal_drawer?._expanded, updateNodeData]);
 
   if (!data) {
     return <div>No node data</div>;
@@ -27,7 +27,7 @@ export default memo(function NodeHeader({ data, nodeId }: NodeHeaderProps) {
         status={data._status ?? "not-executed"}
         onToggleDrawer={handleToggleDrawer}
         hasTerminalOutput={!!data.terminal_output}
-        isDrawerOpen={data._drawerExpanded ?? false}
+        isDrawerOpen={data._terminal_drawer?._expanded ?? false}
       />
     </div>
   );

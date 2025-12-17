@@ -1,4 +1,5 @@
-import { TYPE_COMPONENT_REGISTRY } from "../components/custom-node/inputs/input-type-registry";
+import { INPUT_TYPE_COMPONENT_REGISTRY } from "../components/custom-node/inputs/input-type-registry";
+import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "../components/custom-node/outputs/output-type-registry";
 
 /**
  * Initializes UI-specific data for arguments and outputs:
@@ -14,7 +15,13 @@ export function initializeUIData(nodeData: any): void {
   // Initialize _status field for tracking execution state
   if (nodeData._status === undefined) {
     nodeData._status = "not-executed";
-    nodeData._drawerExpanded = false;
+  }
+
+  // Initialize _terminal_drawer object for terminal drawer state
+  if (nodeData._terminal_drawer === undefined) {
+    nodeData._terminal_drawer = {
+      _expanded: false,
+    };
   }
 
   // Initialize arguments
@@ -34,7 +41,7 @@ export function initializeUIData(nodeData: any): void {
       // Initialize _expanded for types based on registry
       const actualType = arg._selectedType || arg.type;
       if (typeof actualType === "string") {
-        const registryEntry = TYPE_COMPONENT_REGISTRY[actualType];
+        const registryEntry = INPUT_TYPE_COMPONENT_REGISTRY[actualType];
         if (registryEntry && typeof registryEntry === "object") {
           // Initialize _expanded for types with expandable areas
           if (registryEntry.expanded) {
@@ -56,7 +63,7 @@ export function initializeUIData(nodeData: any): void {
       // Initialize _expanded for outputs with expandable areas
       const outputType = output.type;
       if (typeof outputType === "string") {
-        const registryEntry = TYPE_COMPONENT_REGISTRY[outputType];
+        const registryEntry = OUTPUT_TYPE_COMPONENT_REGISTRY[outputType];
         if (
           registryEntry &&
           typeof registryEntry === "object" &&

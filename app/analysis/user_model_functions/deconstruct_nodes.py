@@ -60,7 +60,7 @@ def create_deconstruct_node(
     deconst_model = FunctionSchema(
         name=f"deconstruct-{type_name}",
         callable_id=callable_id,
-        category=type_def["category"],
+        category=type_def.category,
         file_path=file_path,
         doc=f"Deconstruct a {type_name} instance into its fields",
         arguments=arguments,

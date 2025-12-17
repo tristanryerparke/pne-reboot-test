@@ -2,6 +2,7 @@ from devtools import debug as d
 
 from app.analysis.functions_analysis import analyze_function
 from app.schema import DataWrapper
+from app.schema_base import TypeDefModel
 from tests.assets.multiple_outputs import (
     integer_division_multiple_outputs,
     integer_division_single_output,
@@ -33,7 +34,9 @@ def test_integer_division_multiple_outputs():
 
     # Make sure we found the int type
     d(found_types)
-    assert found_types == {"int": {"kind": "builtin", "_class": int}}
+    assert set(found_types.keys()) == {"int"}
+    assert found_types["int"].kind == "builtin"
+    assert found_types["int"]._class is int
 
 
 def test_integer_division_single_output():
@@ -57,7 +60,9 @@ def test_integer_division_single_output():
 
     # Make sure we only found the int type
     d(found_types)
-    assert found_types == {"int": {"kind": "builtin", "_class": int}}
+    assert set(found_types.keys()) == {"int"}
+    assert found_types["int"].kind == "builtin"
+    assert found_types["int"]._class is int
 
 
 if __name__ == "__main__":

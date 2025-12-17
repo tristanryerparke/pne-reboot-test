@@ -1,6 +1,7 @@
 from devtools import debug as d
 
 from app.analysis.types_analysis import analyze_type, get_type_repr
+from app.schema_base import StructDescr, UnionDescr
 from tests.assets.types_only import (
     basic_single_types,
     basic_union_types,
@@ -37,7 +38,7 @@ def test_differing_union_types():
         d(repr_result)
 
         # Both union syntaxes should produce the same any_of structure
-        assert repr_result == {"any_of": ["int", "float"]}
+        assert repr_result == UnionDescr(any_of=["int", "float"])
 
 
 def test_basic_union_types():
@@ -47,19 +48,19 @@ def test_basic_union_types():
     typename = "int | str"
     repr_result = get_type_repr(basic_union_types[typename], module_ns)
     d(repr_result)
-    assert repr_result == {"any_of": ["int", "str"]}
+    assert repr_result == UnionDescr(any_of=["int", "str"])
 
     # Simple int | float union type
     typename = "int | float"
     repr_result = get_type_repr(basic_union_types[typename], module_ns)
     d(repr_result)
-    assert repr_result == {"any_of": ["int", "float"]}
+    assert repr_result == UnionDescr(any_of=["int", "float"])
 
     # Simple int | bool | str union type
     typename = "int | bool | str"
     repr_result = get_type_repr(basic_union_types[typename], module_ns)
     d(repr_result)
-    assert repr_result == {"any_of": ["int", "bool", "str"]}
+    assert repr_result == UnionDescr(any_of=["int", "bool", "str"])
 
 
 def test_unions_in_list():
@@ -69,19 +70,19 @@ def test_unions_in_list():
     typename = "list[int | float]"
     repr_result = get_type_repr(unions_in_list[typename], module_ns)
     d(repr_result)
-    assert repr_result == {
-        "structure_type": "list",
-        "items_type": {"any_of": ["int", "float"]},
-    }
+    assert repr_result == StructDescr(
+        structure_type="list",
+        items_type=UnionDescr(any_of=["int", "float"]),
+    )
 
     # List of int | bool | str union type
     typename = "list[int | bool | str]"
     repr_result = get_type_repr(unions_in_list[typename], module_ns)
     d(repr_result)
-    assert repr_result == {
-        "structure_type": "list",
-        "items_type": {"any_of": ["int", "bool", "str"]},
-    }
+    assert repr_result == StructDescr(
+        structure_type="list",
+        items_type=UnionDescr(any_of=["int", "bool", "str"]),
+    )
 
 
 def test_user_model():
@@ -102,9 +103,9 @@ def test_user_model():
 
     # Check that Command is recognized as a user model
     assert "Command" in types_dict
-    assert types_dict["Command"]["kind"] == "user_model"
-    assert types_dict["Command"]["category"] == ["tests", "assets", "types_only"]
-    assert types_dict["Command"]["properties"] == {
+    assert types_dict["Command"].kind == "user_model"
+    assert types_dict["Command"].category == ["tests", "assets", "types_only"]
+    assert types_dict["Command"].properties == {
         "body": "str",
         "comment": "str",
         "xcoord": "float",
@@ -112,18 +113,18 @@ def test_user_model():
         "zcoord": "float",
         "feedrate": "int",
     }
-    assert "_class" in types_dict["Command"]
+    assert types_dict["Command"]._class is not None
 
     # Check that the property types are also in the types_dict
     assert "str" in types_dict
-    assert types_dict["str"]["kind"] == "builtin"
-    assert "_class" in types_dict["str"]
+    assert types_dict["str"].kind == "builtin"
+    assert types_dict["str"]._class is str
     assert "float" in types_dict
-    assert types_dict["float"]["kind"] == "builtin"
-    assert "_class" in types_dict["float"]
+    assert types_dict["float"].kind == "builtin"
+    assert types_dict["float"]._class is float
     assert "int" in types_dict
-    assert types_dict["int"]["kind"] == "builtin"
-    assert "_class" in types_dict["int"]
+    assert types_dict["int"].kind == "builtin"
+    assert types_dict["int"]._class is int
 
 
 def test_simple_generic():

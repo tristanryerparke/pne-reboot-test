@@ -86,10 +86,10 @@ class NodeDataFromFrontend(CamelBaseModel):
             for arg_name, arg_value in arguments.items():
                 if isinstance(arg_value, dict) and "cacheKey" in arg_value:
                     type_str = arg_value.get("type")
-                    type_info = TYPES.get(type_str)
+                    type_def = TYPES.get(type_str)
 
-                    if type_info and type_info.get("kind") == "cached":
-                        datamodel_class = type_info.get("referenced_datamodel")
+                    if type_def and type_def.kind == "cached":
+                        datamodel_class = type_def._referenced_datamodel
                         if datamodel_class:
                             # Create properly typed instance with context
                             cached_instance = datamodel_class.model_validate(

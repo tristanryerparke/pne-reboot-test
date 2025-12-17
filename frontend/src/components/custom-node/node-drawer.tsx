@@ -32,13 +32,13 @@ export default memo(function NodeDrawer({
   // Get height from store
   const storedHeight = useNodeData([
     ...path,
-    "terminal_drawer",
+    "_terminal_drawer",
     "_expandedHeight",
   ]) as number | undefined;
   const height = storedHeight || DEFAULT_AND_MIN_HEIGHT;
 
   const setHeight = (newHeight: number) => {
-    updateNodeData([...path, "terminal_drawer", "_expandedHeight"], newHeight);
+    updateNodeData([...path, "_terminal_drawer", "_expandedHeight"], newHeight);
   };
 
   if (!isExpanded || !terminalOutput) {

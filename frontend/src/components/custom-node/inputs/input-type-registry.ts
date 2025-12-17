@@ -27,7 +27,10 @@ export type ComponentRegistryEntry =
     };
 
 // Add more input types here
-export const TYPE_COMPONENT_REGISTRY: Record<string, ComponentRegistryEntry> = {
+export const INPUT_TYPE_COMPONENT_REGISTRY: Record<
+  string,
+  ComponentRegistryEntry
+> = {
   float: { main: FloatInput },
   int: { main: IntInput },
   str: {

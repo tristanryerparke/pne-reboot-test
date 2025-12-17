@@ -47,3 +47,5 @@ if __name__ == "__main__":
 
 7. I'm using Pydantic V2 in this project.
 8. If I phrase my prompt as a question, don't immediately go into file editing mode. Answer the question first, pause and wait for further instructions.
+
+9. If we change the name of a data's property or a function/class name, grep the code base for the old name and be sure to update all references.

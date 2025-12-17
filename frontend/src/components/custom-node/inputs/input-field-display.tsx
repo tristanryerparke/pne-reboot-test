@@ -6,7 +6,7 @@ import useTypesStore from "@/stores/typesStore";
 import ListDisplay from "@/common/leaf-inputs/list-display";
 import DictDisplay from "@/common/leaf-inputs/dict-display";
 import UserModelDisplay from "../../../common/leaf-inputs/user-model-display";
-import { TYPE_COMPONENT_REGISTRY } from "./input-type-registry";
+import { INPUT_TYPE_COMPONENT_REGISTRY } from "./input-type-registry";
 import type {
   FrontendFieldDataWrapper,
   StructDescr,
@@ -56,7 +56,7 @@ export default memo(function InputFieldDisplay({
     if (typeof actualType !== "string") {
       // actualType is StructDescr or UnionDescr, handle below
     } else {
-      const registryEntry = TYPE_COMPONENT_REGISTRY[actualType];
+      const registryEntry = INPUT_TYPE_COMPONENT_REGISTRY[actualType];
       if (
         registryEntry &&
         typeof registryEntry === "object" &&
@@ -125,7 +125,7 @@ export default memo(function InputFieldDisplay({
       return null;
     }
 
-    const registryEntry = TYPE_COMPONENT_REGISTRY[actualType];
+    const registryEntry = INPUT_TYPE_COMPONENT_REGISTRY[actualType];
     if (!registryEntry || typeof registryEntry !== "object") {
       return null;
     }
