@@ -55,7 +55,7 @@ export default memo(function CustomNode({
           </div>
           <div className="px-2">
             <NodeDrawer
-              isExpanded={(data._drawerExpanded as true) || false}
+              isExpanded={data._terminal_drawer?._expanded ?? false}
               terminalOutput={data.terminal_output as string}
               path={path}
             />

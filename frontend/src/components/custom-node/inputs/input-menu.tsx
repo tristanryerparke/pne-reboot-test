@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import useFlowStore, { useNodeData } from "../../../stores/flowStore";
-import { TYPE_COMPONENT_REGISTRY } from "./input-type-registry";
+import { INPUT_TYPE_COMPONENT_REGISTRY } from "./input-type-registry";
 import type {
   FrontendFieldDataWrapper,
   StructDescr,
@@ -54,7 +54,7 @@ export default function InputMenu({ path, fieldData }: InputMenuProps) {
   const effectiveType = selectedType || fieldData.type;
   const registryEntry =
     typeof effectiveType === "string"
-      ? TYPE_COMPONENT_REGISTRY[effectiveType]
+      ? INPUT_TYPE_COMPONENT_REGISTRY[effectiveType]
       : undefined;
   const hasExpandable =
     registryEntry &&
