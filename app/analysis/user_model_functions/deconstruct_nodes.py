@@ -38,6 +38,8 @@ def create_deconstruct_node(
 
     # Get the file path where the class is defined
     file_path = inspect.getfile(python_class)
+    # Get the line number where the class is defined
+    line_number = inspect.getsourcelines(python_class)[1]
 
     # Build arguments for deconstructor (single input: the instance)
     arguments = {
@@ -61,7 +63,7 @@ def create_deconstruct_node(
         name=f"deconstruct-{type_name}",
         callable_id=callable_id,
         category=type_def.category,
-        file_path=file_path,
+        file_path=[file_path, line_number],
         doc=f"Deconstruct a {type_name} instance into its fields",
         arguments=arguments,
         output_style="multiple",

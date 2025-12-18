@@ -6,6 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 type NodeStatusProps = {
   status: "not-executed" | "executed" | "error";
@@ -24,7 +25,7 @@ export default memo(function NodeStatus({
   let tooltipText: string;
 
   if (status === "not-executed") {
-    icon = <CircleDashed className="w-4 h-4 text-gray-400" />;
+    icon = <CircleDashed className="w-4 h-4" />;
     tooltipText = "Not Executed";
   } else if (status === "error") {
     icon = <CircleAlert className="w-4 h-4 text-red-500" />;
@@ -51,18 +52,33 @@ export default memo(function NodeStatus({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div
+          <Button
             onClick={handleClick}
-            className={`nodrag relative ${isClickable ? "cursor-pointer" : ""}`}
+            variant="ghost"
+            size="icon"
+            className={`nodrag relative h-6 w-6 ${!isClickable ? "cursor-default pointer-events-auto" : ""}`}
+            disabled={!isClickable}
+            asChild={!isClickable}
           >
-            {icon}
-            {hasTerminalOutput && !isDrawerOpen && (
-              <div className="absolute -top-[0.5px] -right-[0.5px] w-1.5 h-1.5 bg-orange-500 rounded-full" />
+            {!isClickable ? (
+              <span>
+                {icon}
+                {hasTerminalOutput && !isDrawerOpen && (
+                  <div className="absolute -top-[0.5px] -right-[0.5px] w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                )}
+              </span>
+            ) : (
+              <>
+                {icon}
+                {hasTerminalOutput && !isDrawerOpen && (
+                  <div className="absolute -top-[0.5px] -right-[0.5px] w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                )}
+              </>
             )}
-          </div>
+          </Button>
         </TooltipTrigger>
         <TooltipContent side="top">
-          <p>{tooltipText}</p>
+          <p>Status: {tooltipText}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

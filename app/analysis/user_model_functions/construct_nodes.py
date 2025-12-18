@@ -22,6 +22,8 @@ def create_construct_node(
 
     # Get the file path where the class is defined
     file_path = inspect.getfile(python_class)
+    # Get the line number where the class is defined
+    line_number = inspect.getsourcelines(python_class)[1]
 
     # Build arguments for constructor
     arguments = {}
@@ -52,7 +54,7 @@ def create_construct_node(
         name=f"construct-{type_name}",
         callable_id=callable_id,
         category=type_def.category,
-        file_path=file_path,
+        file_path=[file_path, line_number],
         doc=f"Construct a {type_name} instance",
         arguments=arguments,
         output_style="single",

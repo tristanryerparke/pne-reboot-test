@@ -1,6 +1,7 @@
 import type { FunctionSchema } from "@/types/types";
 import { memo, useCallback } from "react";
 import NodeStatus from "./node-status";
+import SourceCodeButton from "./source-code-button";
 import useFlowStore from "@/stores/flowStore";
 
 type NodeHeaderProps = {
@@ -23,12 +24,15 @@ export default memo(function NodeHeader({ data, nodeId }: NodeHeaderProps) {
   return (
     <div className="h-fit flex items-center justify-between p-1 w-full">
       <span className="px-1 text-sm font-bold shrink-0">{data.name}</span>
-      <NodeStatus
-        status={data._status ?? "not-executed"}
-        onToggleDrawer={handleToggleDrawer}
-        hasTerminalOutput={!!data.terminal_output}
-        isDrawerOpen={data._terminal_drawer?._expanded ?? false}
-      />
+      <div className="flex items-center gap-1">
+        <SourceCodeButton filePath={data.filePath} />
+        <NodeStatus
+          status={data._status ?? "not-executed"}
+          onToggleDrawer={handleToggleDrawer}
+          hasTerminalOutput={!!data.terminal_output}
+          isDrawerOpen={data._terminal_drawer?._expanded ?? false}
+        />
+      </div>
     </div>
   );
 });

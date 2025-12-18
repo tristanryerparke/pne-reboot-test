@@ -35,6 +35,9 @@ def analyze_function(
     abs_file_path = os.path.abspath(file_path)
     module_ns = original_func.__globals__
 
+    # Get the line number where the function is defined
+    line_number = inspect.getsourcelines(original_func)[1]
+
     # Get relative path from current working directory
     try:
         rel_file_path = os.path.relpath(abs_file_path, os.getcwd())
@@ -192,7 +195,7 @@ def analyze_function(
             name=func_name,
             callable_id=callable_id,
             category=category_path,
-            file_path=abs_file_path,
+            file_path=[abs_file_path, line_number],
             doc=inspect.getdoc(func_obj),
             arguments=arguments,
             output_style=output_style,
