@@ -110,6 +110,7 @@ function NodeGraph() {
         proOptions={{ hideAttribution: true }}
         nodes={nodes}
         edges={edges}
+        defaultEdgeOptions={{ style: { strokeWidth: 2 } }}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}

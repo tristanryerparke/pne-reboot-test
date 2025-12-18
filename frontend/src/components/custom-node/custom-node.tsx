@@ -13,9 +13,11 @@ import useFlowStore from "@/stores/flowStore";
 export default memo(function CustomNode({
   data,
   id,
+  selected,
 }: {
   data: FunctionSchema;
   id: string;
+  selected?: boolean;
 }) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
@@ -42,7 +44,7 @@ export default memo(function CustomNode({
         setWidth={setNodeWidth}
       >
         <div className="min-w-min">
-          <div className="shadow-md border border-input rounded-lg bg-background text-secondary-foreground">
+          <div className={`shadow-md border border-input rounded-lg bg-background text-secondary-foreground ${selected ? "outline outline-[0.75px] outline-primary outline-offset-0" : ""}`}>
             <InspectableFieldWrapper path={path}>
               <div>
                 <NodeHeader data={data} nodeId={id} />
@@ -58,6 +60,7 @@ export default memo(function CustomNode({
               isExpanded={data._terminal_drawer?._expanded ?? false}
               terminalOutput={data.terminal_output as string}
               path={path}
+              selected={selected}
             />
           </div>
         </div>

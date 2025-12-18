@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 const BACKEND_URL = "http://localhost:8000";
 const POLL_INTERVAL_CONNECTED = 10000; // 10 seconds when connected
-const POLL_INTERVAL_DISCONNECTED = 1000; // 1 second when disconnected
+const POLL_INTERVAL_DISCONNECTED = 5000; // 5 seconds when disconnected (reduced console spam)
 
 export function useBackendConnection() {
   const [isConnected, setIsConnected] = useState(false);
@@ -11,6 +11,8 @@ export function useBackendConnection() {
 
   const checkConnection = useCallback(async () => {
     try {
+      // NOTE: When backend is down, browser will log ERR_CONNECTION_REFUSED to console.
+      // This is normal browser behavior and cannot be suppressed programmatically.
       const response = await fetch(`${BACKEND_URL}/health`, {
         method: "GET",
         signal: AbortSignal.timeout(5000),
@@ -22,7 +24,8 @@ export function useBackendConnection() {
       } else {
         setIsConnected(false);
       }
-    } catch (error) {
+    } catch {
+      // Silently fail - this is expected when backend is down
       setIsConnected(false);
     } finally {
       setIsChecking(false);
