@@ -7,19 +7,22 @@ import {
 } from "@/components/ui/tooltip";
 import { LoaderIcon } from "lucide-react";
 import useFlowStore from "../../stores/flowStore";
+import useSettingsStore from "../../stores/settingsStore";
 import { useState, useCallback } from "react";
-import { stripGraphForExecute } from "../../utils/strip-graph";
 import { type Graph } from "../../utils/strip-graph";
-import { preserveUIData } from "../../utils/preserve-ui-data";
 import { useBackendConnection } from "../../hooks/useBackendConnection";
+import { useExecuteFlowSync } from "../../hooks/useExecuteFlowSync";
+import { useExecuteFlowAsync } from "../../hooks/useExecuteFlowAsync";
 
 export default function ExecuteMenu() {
   const [loading, setLoading] = useState(false);
   const { isConnected, isChecking } = useBackendConnection();
   const nodes = useFlowStore((state) => state.nodes);
   const edges = useFlowStore((state) => state.edges);
-  const updateNodeData = useFlowStore((state) => state.updateNodeData);
-  const getNodeData = useFlowStore((state) => state.getNodeData);
+  const executionMode = useSettingsStore((state) => state.executionMode);
+
+  const { execute: executeSyncFn } = useExecuteFlowSync();
+  const { execute: executeAsyncFn } = useExecuteFlowAsync();
 
   const execute = useCallback(async () => {
     setLoading(true);
@@ -27,57 +30,19 @@ export default function ExecuteMenu() {
       nodes: nodes,
       edges: edges,
     };
-    const executeMessage = stripGraphForExecute(graph);
 
     try {
-      console.log("Executing graph:", executeMessage);
-      const response = await fetch("http://localhost:8000/graph_execute", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(executeMessage),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (result.status === "success") {
-        // Process updates in execution order
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        result.updates.forEach((update: any) => {
-          const nodeId = update.node_id;
-
-          // Get existing node data and merge while preserving ui only-data
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const existingNodeData = getNodeData([nodeId]) as any;
-          const { node_id: _node_id, ...updateData } = update; // Remove node_id from update
-          const mergedNodeData = preserveUIData(existingNodeData, updateData);
-
-          // Update the entire node data at once
-          updateNodeData([nodeId], mergedNodeData);
-
-          // Log errors for debugging
-          if (update._status === "error") {
-            console.error(
-              `Node ${nodeId} failed with output:`,
-              update.terminal_output,
-            );
-          }
-        });
+      if (executionMode === "sync") {
+        await executeSyncFn(graph);
       } else {
-        console.error("Graph execution failed:", result.message);
+        await executeAsyncFn(graph);
       }
     } catch (error) {
       console.error("Error executing graph:", error);
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodes, edges]);
+  }, [nodes, edges, executionMode, executeSyncFn, executeAsyncFn]);
 
   const isDisabled = loading || !isConnected || isChecking;
   const buttonClass =

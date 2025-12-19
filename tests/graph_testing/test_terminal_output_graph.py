@@ -1,12 +1,12 @@
 from contextlib import asynccontextmanager
 
+from app.graph import router as graph_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 
 import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
-from app.graph import router as graph_router
 from tests.assets.functions import add, divide_by_zero, process_data
 
 # Analyze the functions to get types and schemas
@@ -76,7 +76,7 @@ def test_terminal_output_capture():
 
     node_update = result["updates"][0]
     assert node_update["node_id"] == "verbose-node-1"
-    assert node_update["_status"] == "executed"
+    assert node_update["status"] == "executed"
     assert node_update["outputs"]["return"]["value"] == 10
 
     # Check that terminal output was captured
@@ -117,7 +117,7 @@ def test_error_output_capture():
 
     node_update = result["updates"][0]
     assert node_update["node_id"] == "error-node-1"
-    assert node_update["_status"] == "error"
+    assert node_update["status"] == "error"
     assert "outputs" not in node_update or len(node_update.get("outputs", {})) == 0
 
     # Check that error traceback was captured
@@ -159,7 +159,7 @@ def test_empty_terminal_output_on_success():
 
     node_update = result["updates"][0]
     assert node_update["node_id"] == "add-node-1"
-    assert node_update["_status"] == "executed"
+    assert node_update["status"] == "executed"
     assert node_update["outputs"]["return"]["value"] == 8
 
     # Check that terminal_output is an empty string for successful execution with no output

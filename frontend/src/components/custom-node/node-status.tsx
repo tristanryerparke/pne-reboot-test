@@ -1,4 +1,4 @@
-import { CircleDashed, CircleAlert, CircleCheck } from "lucide-react";
+import { CircleDashed, CircleAlert, CircleCheck, Loader2 } from "lucide-react";
 import { memo } from "react";
 import {
   Tooltip,
@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 type NodeStatusProps = {
-  status: "not-executed" | "executed" | "error";
+  status: "not-executed" | "executed" | "error" | "executing";
   onToggleDrawer?: () => void;
   hasTerminalOutput?: boolean;
   isDrawerOpen?: boolean;
@@ -27,6 +27,9 @@ export default memo(function NodeStatus({
   if (status === "not-executed") {
     icon = <CircleDashed className="w-4 h-4" />;
     tooltipText = "Not Executed";
+  } else if (status === "executing") {
+    icon = <Loader2 className="w-4 h-4 animate-spin" />;
+    tooltipText = "Executing";
   } else if (status === "error") {
     icon = <CircleAlert className="w-4 h-4 text-red-500" />;
     tooltipText = hasTerminalOutput ? "Error (traceback available)" : "Error";
@@ -64,14 +67,14 @@ export default memo(function NodeStatus({
               <span>
                 {icon}
                 {hasTerminalOutput && !isDrawerOpen && (
-                  <div className="absolute -top-[0.5px] -right-[0.5px] w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                  <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-orange-500 rounded-full" />
                 )}
               </span>
             ) : (
               <>
                 {icon}
                 {hasTerminalOutput && !isDrawerOpen && (
-                  <div className="absolute -top-[0.5px] -right-[0.5px] w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                  <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-orange-500 rounded-full" />
                 )}
               </>
             )}

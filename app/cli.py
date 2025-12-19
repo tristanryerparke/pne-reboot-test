@@ -53,12 +53,12 @@ def main():
 
         print("\rFrontend: Build complete!                      ")
 
-    # Store verbose flag globally for server and graph to access
-    import app.graph
+    # Store verbose flag globally for server and execution modules to access
+    import app.execution.exec_utils
     import app.server
 
     app.server.VERBOSE = args.verbose
-    app.graph.VERBOSE = args.verbose
+    app.execution.exec_utils.VERBOSE = args.verbose
     app.server.IGNORE_UNDERSCORE_PREFIX = not args.do_not_ignore_underscore_prefix
     app.server.SERVE_FRONTEND = args.frontend
 

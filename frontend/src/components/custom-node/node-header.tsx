@@ -27,7 +27,7 @@ export default memo(function NodeHeader({ data, nodeId }: NodeHeaderProps) {
       <div className="flex items-center gap-1">
         <SourceCodeButton filePath={data.filePath} />
         <NodeStatus
-          status={data._status ?? "not-executed"}
+          status={data.status ?? "not-executed"}
           onToggleDrawer={handleToggleDrawer}
           hasTerminalOutput={!!data.terminal_output}
           isDrawerOpen={data._terminal_drawer?._expanded ?? false}
