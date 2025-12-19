@@ -8,6 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSelect } from "./theme-select";
 import useSettingsStore from "@/stores/settingsStore";
 
@@ -18,6 +19,8 @@ export function SettingsModal() {
   const setOpenInEditorName = useSettingsStore(
     (state) => state.setOpenInEditorName,
   );
+  const executionMode = useSettingsStore((state) => state.executionMode);
+  const setExecutionMode = useSettingsStore((state) => state.setExecutionMode);
 
   return (
     <Dialog>
@@ -27,7 +30,7 @@ export function SettingsModal() {
           <span className="sr-only">Open settings</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
@@ -36,25 +39,39 @@ export function SettingsModal() {
             <label className="text-sm font-medium">Theme</label>
             <ThemeSelect />
           </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <label htmlFor="editor-name" className="text-sm font-medium">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">Execution Mode</label>
+            <Tabs
+              value={executionMode}
+              onValueChange={(value) =>
+                setExecutionMode(value as "sync" | "async")
+              }
+            >
+              <TabsList className="min-w-30 max-w-30 min-h-9">
+                <TabsTrigger value="sync">Sync</TabsTrigger>
+                <TabsTrigger value="async">Async</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <label htmlFor="editor-name" className="text-sm font-medium pt-1">
                 Editor Name
               </label>
-              <Input
-                id="editor-name"
-                type="text"
-                placeholder="e.g., zed, vscode"
-                value={openInEditorName || ""}
-                onChange={(e) => setOpenInEditorName(e.target.value || null)}
-                className="min-w-40 max-w-40 min-h-9"
-              />
+              <p className="text-xs text-muted-foreground">
+                Used for "Open Source Code" links (e.g., zed://file/path)
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Used for "Open in Editor" links (e.g., zed://file/path)
-            </p>
+            <Input
+              id="editor-name"
+              type="text"
+              placeholder="e.g., zed, vscode"
+              value={openInEditorName || ""}
+              onChange={(e) => setOpenInEditorName(e.target.value || null)}
+              className="min-w-30 max-w-30 min-h-9"
+            />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Backend Address</label>
             <div className="text-sm text-muted-foreground font-mono bg-muted px-3 py-2 rounded-md">
               {BACKEND_URL}
