@@ -142,22 +142,22 @@ def topological_order(graph: Graph) -> list[NodeFromFrontend]:
     return result
 
 
-def create_node_update(
-    node, success, result, terminal_output, graph, execution_list, TYPES
-):
+def create_node_update(node, success, result, terminal_output, graph, execution_list):
     """Create a node update object from execution results"""
-    from app.schema import DataWrapper, MultipleOutputs
+    from app.schema import DataWrapper, MultipleOutputs, NodeUpdate
+    from app.server import TYPES
 
-    node_update = {"node_id": node.id, "outputs": {}, "arguments": {}}
+    outputs = {}
 
-    node_update["terminal_output"] = terminal_output if terminal_output else ""
-
+    # if there was an error during execution, send error message
     if not success:
-        node_update["status"] = "error"
-        return node_update
+        return NodeUpdate(
+            node_id=node.id,
+            status="error",
+            terminal_output=terminal_output,
+        )
 
-    node_update["status"] = "executed"
-
+    # Create a dict for processing the outputs whether there are one or multiple
     if node.data.output_style == "single":
         output_key = list(node.data.outputs.keys())[0]
         result_dict = {output_key: result}
@@ -167,18 +167,15 @@ def create_node_update(
         else:
             result_dict = result
 
-    for edge in graph.edges:
-        if edge.target == node.id:
-            argument_name = edge.targetHandle.split(":")[-2]
-            arg = node.data.arguments[argument_name]
-            node_update["arguments"][argument_name] = arg.model_copy()
-
+    # Generate the output data structures
     for output_name in node.data.outputs.keys():
         data = node.data.outputs[output_name]
         new_value = result_dict[output_name]
 
         concrete_type = infer_concrete_type(new_value, data.type, TYPES)
 
+        # If the type has a custom referenced data model, find and create an instance of it
+        # Otheriwse use the generic DataWrapper
         if (
             isinstance(concrete_type, str)
             and concrete_type in TYPES
@@ -194,17 +191,11 @@ def create_node_update(
             value=new_value,
         )
 
-        node_update["outputs"][output_name] = output_data_model
+        outputs[output_name] = output_data_model
 
-    for edge in graph.edges:
-        if edge.source == node.id:
-            output_field_name = edge.sourceHandle.split(":")[-2]
-            argument_name = edge.targetHandle.split(":")[-2]
-
-            target_node = next(n for n in execution_list if n.id == edge.target)
-
-            target_node.data.arguments[argument_name] = node_update["outputs"][
-                output_field_name
-            ].model_copy()
-
-    return node_update
+    return NodeUpdate(
+        node_id=node.id,
+        status="executed",
+        outputs=outputs,
+        terminal_output=terminal_output,
+    )

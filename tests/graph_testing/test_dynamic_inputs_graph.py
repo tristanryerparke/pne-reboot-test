@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
-from app.graph import router as graph_router
+from app.execution.exec_sync import router as graph_router
 from tests.assets.dynamic_inputs import (
     create_dict_of_floats,
     create_list_of_floats,
@@ -90,7 +90,7 @@ def test_create_dict_of_floats():
     assert len(result["updates"]) == 1
 
     node_update = result["updates"][0]
-    assert node_update["node_id"] == "dict-node-1"
+    assert node_update["nodeId"] == "dict-node-1"
     assert "outputs" in node_update
     assert "return" in node_update["outputs"]
 
@@ -141,7 +141,7 @@ def test_create_list_of_floats():
     assert len(result["updates"]) == 1
 
     node_update = result["updates"][0]
-    assert node_update["node_id"] == "list-node-1"
+    assert node_update["nodeId"] == "list-node-1"
     assert "outputs" in node_update
     assert "return" in node_update["outputs"]
 
@@ -212,26 +212,31 @@ def test_create_and_index_dict():
 
     result = response.json()
     assert result["status"] == "success"
-    assert len(result["updates"]) == 2
+    # Now returns 3 updates: create dict, downstream arg update, index dict
+    assert len(result["updates"]) == 3
 
     # Verify create dict node output
     create_update = result["updates"][0]
-    assert create_update["node_id"] == "create-dict"
+    assert create_update["nodeId"] == "create-dict"
     assert create_update["outputs"]["return"]["value"] == {
         "alpha": 1.0,
         "beta": 2.0,
         "gamma": 3.0,
     }
 
-    # Verify index dict node output
-    index_update = result["updates"][1]
-    assert index_update["node_id"] == "index-dict"
-    assert index_update["outputs"]["return"]["value"] == 2.0
-    assert index_update["arguments"]["dict"]["value"] == {
+    # Verify downstream argument propagation
+    downstream_update = result["updates"][1]
+    assert downstream_update["nodeId"] == "index-dict"
+    assert downstream_update["arguments"]["dict"]["value"] == {
         "alpha": 1.0,
         "beta": 2.0,
         "gamma": 3.0,
     }
+
+    # Verify index dict node output
+    index_update = result["updates"][2]
+    assert index_update["nodeId"] == "index-dict"
+    assert index_update["outputs"]["return"]["value"] == 2.0
 
 
 def test_create_and_index_list():
@@ -295,15 +300,20 @@ def test_create_and_index_list():
 
     result = response.json()
     assert result["status"] == "success"
-    assert len(result["updates"]) == 2
+    # Now returns 3 updates: create list, downstream arg update, index list
+    assert len(result["updates"]) == 3
 
     # Verify create list node output
     create_update = result["updates"][0]
-    assert create_update["node_id"] == "create-list"
+    assert create_update["nodeId"] == "create-list"
     assert create_update["outputs"]["return"]["value"] == [10.0, 20.0, 30.0]
 
+    # Verify downstream argument propagation
+    downstream_update = result["updates"][1]
+    assert downstream_update["nodeId"] == "index-list"
+    assert downstream_update["arguments"]["the_list"]["value"] == [10.0, 20.0, 30.0]
+
     # Verify index list node output
-    index_update = result["updates"][1]
-    assert index_update["node_id"] == "index-list"
+    index_update = result["updates"][2]
+    assert index_update["nodeId"] == "index-list"
     assert index_update["outputs"]["return"]["value"] == 20.0
-    assert index_update["arguments"]["the_list"]["value"] == [10.0, 20.0, 30.0]

@@ -30,12 +30,12 @@ export function useExecuteFlowSync() {
         // Process updates in execution order
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         result.updates.forEach((update: any) => {
-          const nodeId = update.node_id;
+          const nodeId = update.nodeId;
 
           // Get existing node data and merge while preserving ui only-data
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const existingNodeData = getNodeData([nodeId]) as any;
-          const { node_id: _node_id, ...updateData } = update; // Remove node_id from update
+          const { nodeId: _nodeId, ...updateData } = update; // Remove nodeId from update
           const mergedNodeData = preserveUIData(existingNodeData, updateData);
 
           // Update the entire node data at once
@@ -45,7 +45,7 @@ export function useExecuteFlowSync() {
           if (update.status === "error") {
             console.error(
               `Node ${nodeId} failed with output:`,
-              update.terminal_output,
+              update.terminalOutput,
             );
           }
         });

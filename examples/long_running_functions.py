@@ -1,9 +1,8 @@
-import re
 import time
 
 
 def slow_add(a: int, b: int) -> int:
-    for i in range(10):
+    for i in range(5):
         remaining = 10 - i
         print(f"Adding {a} and {b} in {remaining} seconds")
         time.sleep(1)

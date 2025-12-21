@@ -7,7 +7,7 @@ from app.execution.exec_utils import (
     execute_node,
     topological_order,
 )
-from app.schema import Graph
+from app.schema import Graph, NodeUpdate
 
 router = APIRouter()
 
@@ -30,12 +30,12 @@ async def execute_graph_sync(graph: Graph):
         success, result, terminal_output = execute_node(node.data)
 
         node_update = create_node_update(
-            node, success, result, terminal_output, graph, execution_list, TYPES
+            node, success, result, terminal_output, graph, execution_list
         )
 
         updates.append(node_update)
 
-        # Create updates for downstream nodes to propagate argument values visually
+        # Propagate outputs to downstream nodes for both execution and visual display
         for edge in graph.edges:
             if edge.source == node.id:
                 # Extract the output field name from the sourceHandle
@@ -45,21 +45,27 @@ async def execute_graph_sync(graph: Graph):
                 target_node_id = edge.target
                 argument_name = edge.targetHandle.split(":")[-2]
 
-                # Create an update for the downstream node with just the argument
-                downstream_update = {
-                    "node_id": target_node_id,
-                    "arguments": {
-                        argument_name: node_update["outputs"][
+                # Update the execution graph so downstream nodes have correct inputs
+                target_node = next(n for n in execution_list if n.id == target_node_id)
+                target_node.data.arguments[argument_name] = node_update.outputs[
+                    output_field_name
+                ].model_copy()
+
+                # Create a visual update for the downstream node
+                downstream_update = NodeUpdate(
+                    node_id=target_node_id,
+                    arguments={
+                        argument_name: node_update.outputs[
                             output_field_name
                         ].model_copy()
                     },
-                }
+                )
 
                 updates.append(downstream_update)
 
     update_message = {
         "status": "success",
-        "updates": updates,
+        "updates": [update.model_dump(exclude_none=True) for update in updates],
     }
 
     if VERBOSE:

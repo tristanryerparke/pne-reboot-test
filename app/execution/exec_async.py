@@ -1,6 +1,6 @@
 import asyncio
-from uuid import uuid4
 
+import shortuuid
 from devtools import debug as d
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -11,38 +11,30 @@ from app.execution.exec_utils import (
     execute_node,
     topological_order,
 )
-from app.schema import Graph
+from app.schema import Graph, NodeUpdate
 
 router = APIRouter()
 
+# Time in seconds to keep completed executions before cleanup
+EXECUTION_CLEANUP_DELAY = 10
+
 
 class ExecutionState(BaseModel):
-    status: str
-    updates: list
-    terminal_output: str
-    error: str | None
-    execution_complete: bool
-    update_index: int
+    status: str = "running"  # "running" or "completed"
+    updates: list[NodeUpdate] = []
+    update_index: int = 0
+    last_sent_index: int = -1
 
 
 EXECUTIONS: dict[str, ExecutionState] = {}
-LAST_SENT_INDEX: dict[str, int] = {}
 
 
 @router.post("/execution_submit")
 async def submit_execution(graph: Graph):
     """Submit a graph for async execution and return an execution ID"""
-    execution_id = str(uuid4())
+    execution_id = shortuuid.uuid()
 
-    EXECUTIONS[execution_id] = ExecutionState(
-        status="running",
-        updates=[],
-        terminal_output="",
-        error=None,
-        execution_complete=False,
-        update_index=0,
-    )
-    LAST_SENT_INDEX[execution_id] = -1
+    EXECUTIONS[execution_id] = ExecutionState(status="running")
 
     asyncio.create_task(execute_graph_async(execution_id, graph))
 
@@ -56,7 +48,7 @@ async def get_execution_status(execution_id: str):
         raise HTTPException(status_code=404, detail="Execution not found")
 
     execution_state = EXECUTIONS[execution_id]
-    last_sent = LAST_SENT_INDEX.get(execution_id, -1)
+    last_sent = execution_state.last_sent_index
     current_index = execution_state.update_index
 
     # If nothing has changed, return only the index
@@ -67,16 +59,24 @@ async def get_execution_status(execution_id: str):
     response = {
         "update_index": current_index,
         "status": execution_state.status,
-        "updates": execution_state.updates,
-        "terminal_output": execution_state.terminal_output,
-        "error": execution_state.error,
-        "execution_complete": execution_state.execution_complete,
+        "updates": [
+            update.model_dump(exclude_none=True) for update in execution_state.updates
+        ],
     }
 
     # Update the last sent index for this execution
-    LAST_SENT_INDEX[execution_id] = current_index
+    execution_state.last_sent_index = current_index
 
     return response
+
+
+async def cleanup_execution(execution_id: str):
+    """Remove execution from memory after a delay"""
+    await asyncio.sleep(EXECUTION_CLEANUP_DELAY)
+    if execution_id in EXECUTIONS:
+        del EXECUTIONS[execution_id]
+        if VERBOSE:
+            print(f"Cleaned up execution {execution_id}")
 
 
 async def execute_graph_async(execution_id: str, graph: Graph):
@@ -94,13 +94,10 @@ async def execute_graph_async(execution_id: str, graph: Graph):
                 print(f"Executing node {node.id}")
 
             # Send initial update when node starts executing
-            executing_update = {
-                "node_id": node.id,
-                "status": "executing",
-                "outputs": {},
-                "arguments": {},
-                "terminal_output": "",
-            }
+            executing_update = NodeUpdate(
+                node_id=node.id,
+                status="executing",
+            )
             EXECUTIONS[execution_id].updates.append(executing_update)
             EXECUTIONS[execution_id].update_index += 1
 
@@ -109,13 +106,13 @@ async def execute_graph_async(execution_id: str, graph: Graph):
             )
 
             node_update = create_node_update(
-                node, success, result, terminal_output, graph, execution_list, TYPES
+                node, success, result, terminal_output, graph, execution_list
             )
 
             # Append the final update
             EXECUTIONS[execution_id].updates.append(node_update)
 
-            # Create updates for downstream nodes to propagate argument values visually
+            # Propagate outputs to downstream nodes for both execution and visual display
             for edge in graph.edges:
                 if edge.source == node.id:
                     # Extract the output field name from the sourceHandle
@@ -125,43 +122,46 @@ async def execute_graph_async(execution_id: str, graph: Graph):
                     target_node_id = edge.target
                     argument_name = edge.targetHandle.split(":")[-2]
 
-                    # Create an update for the downstream node with just the argument
-                    downstream_update = {
-                        "node_id": target_node_id,
-                        "arguments": {
-                            argument_name: node_update["outputs"][output_field_name].model_copy()
+                    # Update the execution graph so downstream nodes have correct inputs
+                    target_node = next(
+                        n for n in execution_list if n.id == target_node_id
+                    )
+                    target_node.data.arguments[argument_name] = node_update.outputs[
+                        output_field_name
+                    ].model_copy()
+
+                    # Create a visual update for the downstream node
+                    downstream_update = NodeUpdate(
+                        node_id=target_node_id,
+                        arguments={
+                            argument_name: node_update.outputs[
+                                output_field_name
+                            ].model_copy()
                         },
-                    }
+                    )
 
                     EXECUTIONS[execution_id].updates.append(downstream_update)
 
             # Increment update_index ONCE after all related updates are added
             EXECUTIONS[execution_id].update_index += 1
 
-            if terminal_output:
-                current_output = EXECUTIONS[execution_id].terminal_output
-                EXECUTIONS[execution_id].terminal_output = (
-                    current_output + terminal_output
-                )
-
             if not success:
-                EXECUTIONS[execution_id].status = "failed"
-                EXECUTIONS[execution_id].error = terminal_output
-                EXECUTIONS[execution_id].execution_complete = True
+                EXECUTIONS[execution_id].status = "completed"
                 EXECUTIONS[execution_id].update_index += 1
                 return
 
         EXECUTIONS[execution_id].status = "completed"
-        EXECUTIONS[execution_id].execution_complete = True
         EXECUTIONS[execution_id].update_index += 1
 
         if VERBOSE:
             d(EXECUTIONS[execution_id])
 
     except Exception as e:
-        EXECUTIONS[execution_id].status = "failed"
-        EXECUTIONS[execution_id].error = str(e)
-        EXECUTIONS[execution_id].execution_complete = True
+        EXECUTIONS[execution_id].status = "completed"
         EXECUTIONS[execution_id].update_index += 1
         if VERBOSE:
             print(f"Execution {execution_id} failed with error: {e}")
+
+    finally:
+        # Schedule cleanup after delay
+        asyncio.create_task(cleanup_execution(execution_id))

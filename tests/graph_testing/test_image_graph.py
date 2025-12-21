@@ -10,7 +10,7 @@ from PIL import Image
 
 import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
-from app.graph import router as graph_router
+from app.execution.exec_sync import router as graph_router
 from app.large_data.router import router as data_router
 from tests.assets.blur import blur_image
 
@@ -182,7 +182,7 @@ def test_single_image_node_execute():
 
     # Verify the output
     node_update = result["updates"][0]
-    assert node_update["node_id"] == "blur-node-1"
+    assert node_update["nodeId"] == "blur-node-1"
     assert "outputs" in node_update
     assert "image_blurred" in node_update["outputs"]
 
@@ -270,30 +270,32 @@ def test_two_connected_image_nodes():
 
     result = response.json()
     assert result["status"] == "success"
-    assert len(result["updates"]) == 2
+    # Now returns 3 updates: blur1, downstream arg update, blur2
+    assert len(result["updates"]) == 3
 
     # Verify first node output
     node1_update = result["updates"][0]
-    assert node1_update["node_id"] == "blur-node-1"
+    assert node1_update["nodeId"] == "blur-node-1"
     assert "image_blurred" in node1_update["outputs"]
     node1_output = node1_update["outputs"]["image_blurred"]
     assert node1_output["type"] == "Image"
     assert "cacheKey" in node1_output
 
-    # Verify second node output and input
-    node2_update = result["updates"][1]
-    assert node2_update["node_id"] == "blur-node-2"
-    assert "image_blurred" in node2_update["outputs"]
-    assert "image" in node2_update["arguments"]
+    # Verify downstream argument propagation
+    downstream_update = result["updates"][1]
+    assert downstream_update["nodeId"] == "blur-node-2"
+    assert "image" in downstream_update["arguments"]
+    node2_input = downstream_update["arguments"]["image"]
+    assert node2_input["type"] == "Image"
+    assert node2_input["cacheKey"] == node1_output["cacheKey"]
 
+    # Verify second node output
+    node2_update = result["updates"][2]
+    assert node2_update["nodeId"] == "blur-node-2"
+    assert "image_blurred" in node2_update["outputs"]
     node2_output = node2_update["outputs"]["image_blurred"]
     assert node2_output["type"] == "Image"
     assert "cacheKey" in node2_output
-
-    # Verify that the second node received the first node's output
-    node2_input = node2_update["arguments"]["image"]
-    assert node2_input["type"] == "Image"
-    assert node2_input["cacheKey"] == node1_output["cacheKey"]
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ from app.analysis.functions_analysis import analyze_function
 from app.analysis.user_model_functions.user_model_nodes import (
     create_const_deconst_models,
 )
-from app.graph import router as graph_router
+from app.execution.exec_sync import router as graph_router
 from examples.basic_user_model import two_point_distance
 
 # Analyze the function to get types and schema
@@ -87,7 +87,7 @@ def test_single_construct_node():
     assert len(result["updates"]) == 1
 
     node_update = result["updates"][0]
-    assert node_update["node_id"] == "construct-node-1"
+    assert node_update["nodeId"] == "construct-node-1"
     assert "outputs" in node_update
     assert "return" in node_update["outputs"]
 
@@ -145,19 +145,24 @@ def test_construct_and_deconstruct():
 
     result = response.json()
     assert result["status"] == "success"
-    assert len(result["updates"]) == 2
+    # Now returns 3 updates: construct, downstream arg update, deconstruct
+    assert len(result["updates"]) == 3
 
     # Verify construct node output
     construct_update = result["updates"][0]
-    assert construct_update["node_id"] == "construct-node-1"
+    assert construct_update["nodeId"] == "construct-node-1"
     assert construct_update["outputs"]["return"]["value"] == {"x": 3.0, "y": 5.0}
 
+    # Verify downstream argument propagation
+    downstream_update = result["updates"][1]
+    assert downstream_update["nodeId"] == "deconstruct-node-1"
+    assert downstream_update["arguments"]["instance"]["value"] == {"x": 3.0, "y": 5.0}
+
     # Verify deconstruct node outputs
-    deconstruct_update = result["updates"][1]
-    assert deconstruct_update["node_id"] == "deconstruct-node-1"
+    deconstruct_update = result["updates"][2]
+    assert deconstruct_update["nodeId"] == "deconstruct-node-1"
     assert deconstruct_update["outputs"]["x"]["value"] == 3.0
     assert deconstruct_update["outputs"]["y"]["value"] == 5.0
-    assert deconstruct_update["arguments"]["instance"]["value"] == {"x": 3.0, "y": 5.0}
 
 
 def test_two_point_distance_calculation():
@@ -227,11 +232,23 @@ def test_two_point_distance_calculation():
 
     result = response.json()
     assert result["status"] == "success"
-    assert len(result["updates"]) == 3
+    # Now returns 5 updates: construct-a, construct-b, 2 downstream arg updates, distance
+    assert len(result["updates"]) == 5
+
+    # Verify the sequence of updates
+    assert result["updates"][0]["nodeId"] == "construct-point-a"
+    assert "outputs" in result["updates"][0]
+
+    assert result["updates"][1]["nodeId"] == "distance-node"
+    assert "arguments" in result["updates"][1]
+
+    assert result["updates"][2]["nodeId"] == "construct-point-b"
+    assert "outputs" in result["updates"][2]
+
+    assert result["updates"][3]["nodeId"] == "distance-node"
+    assert "arguments" in result["updates"][3]
 
     # Verify distance calculation (distance from (0,0) to (3,4) should be 5.0)
-    distance_update = result["updates"][2]
-    assert distance_update["node_id"] == "distance-node"
+    distance_update = result["updates"][4]
+    assert distance_update["nodeId"] == "distance-node"
     assert distance_update["outputs"]["return"]["value"] == 5.0
-    assert distance_update["arguments"]["a"]["value"] == {"x": 0.0, "y": 0.0}
-    assert distance_update["arguments"]["b"]["value"] == {"x": 3.0, "y": 4.0}

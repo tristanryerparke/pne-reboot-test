@@ -1,12 +1,12 @@
 from contextlib import asynccontextmanager
 
-from app.graph import router as graph_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 
 import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
+from app.execution.exec_sync import router as graph_router
 from tests.assets.functions import add, divide_by_zero, process_data
 
 # Analyze the functions to get types and schemas
@@ -75,13 +75,13 @@ def test_terminal_output_capture():
     assert len(result["updates"]) == 1
 
     node_update = result["updates"][0]
-    assert node_update["node_id"] == "verbose-node-1"
+    assert node_update["nodeId"] == "verbose-node-1"
     assert node_update["status"] == "executed"
     assert node_update["outputs"]["return"]["value"] == 10
 
     # Check that terminal output was captured
-    assert "terminal_output" in node_update
-    terminal_output = node_update["terminal_output"]
+    assert "terminalOutput" in node_update
+    terminal_output = node_update["terminalOutput"]
     assert "Starting to process data with input: 5" in terminal_output
     assert "Step 1: Doubling the value..." in terminal_output
     assert "Step 2: Result is 10" in terminal_output
@@ -116,13 +116,13 @@ def test_error_output_capture():
     assert len(result["updates"]) == 1
 
     node_update = result["updates"][0]
-    assert node_update["node_id"] == "error-node-1"
+    assert node_update["nodeId"] == "error-node-1"
     assert node_update["status"] == "error"
     assert "outputs" not in node_update or len(node_update.get("outputs", {})) == 0
 
     # Check that error traceback was captured
-    assert "terminal_output" in node_update
-    terminal_output = node_update["terminal_output"]
+    assert "terminalOutput" in node_update
+    terminal_output = node_update["terminalOutput"]
     assert "ZeroDivisionError" in terminal_output
     assert "division by zero" in terminal_output
     assert "divide_by_zero" in terminal_output
@@ -158,10 +158,10 @@ def test_empty_terminal_output_on_success():
     assert len(result["updates"]) == 1
 
     node_update = result["updates"][0]
-    assert node_update["node_id"] == "add-node-1"
+    assert node_update["nodeId"] == "add-node-1"
     assert node_update["status"] == "executed"
     assert node_update["outputs"]["return"]["value"] == 8
 
-    # Check that terminal_output is an empty string for successful execution with no output
-    assert "terminal_output" in node_update
-    assert node_update["terminal_output"] == ""
+    # Check that terminalOutput is excluded when empty (using exclude_none=True)
+    # An empty terminal output is not included in the response to reduce payload size
+    assert "terminalOutput" not in node_update

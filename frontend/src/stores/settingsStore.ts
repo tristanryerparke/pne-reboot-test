@@ -27,7 +27,7 @@ const useSettingsStore = createWithEqualityFn<
     (set) => ({
       theme: "system",
       openInEditorName: "vscode",
-      executionMode: "sync",
+      executionMode: "async",
 
       setTheme: (theme) => set({ theme }),
 

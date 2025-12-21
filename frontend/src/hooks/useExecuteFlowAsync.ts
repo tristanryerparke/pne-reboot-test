@@ -2,6 +2,7 @@ import { useCallback, useRef } from "react";
 import { stripGraphForExecute, type Graph } from "../utils/strip-graph";
 import { preserveUIData } from "../utils/preserve-ui-data";
 import useFlowStore from "../stores/flowStore";
+import type { NodeUpdate } from "../types/types";
 
 const POLLING_INTERVAL_MS = 250;
 
@@ -45,14 +46,13 @@ export function useExecuteFlowAsync() {
 
         // Process updates if present
         if (result.updates && Array.isArray(result.updates)) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          result.updates.forEach((update: any) => {
-            const nodeId = update.node_id;
+          result.updates.forEach((update: NodeUpdate) => {
+            const nodeId = update.nodeId;
 
             // Get existing node data and merge while preserving ui only-data
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const existingNodeData = getNodeData([nodeId]) as any;
-            const { node_id: _node_id, ...updateData } = update; // Remove node_id from update
+            const { nodeId: _nodeId, ...updateData } = update; // Remove nodeId from update
             const mergedNodeData = preserveUIData(existingNodeData, updateData);
 
             // Update the entire node data at once
@@ -62,15 +62,15 @@ export function useExecuteFlowAsync() {
             if (update.status === "error") {
               console.error(
                 `Node ${nodeId} failed with output:`,
-                update.terminal_output,
+                update.terminalOutput,
               );
             }
           });
         }
 
         // Check if execution is complete
-        if (result.execution_complete) {
-          console.log("Execution complete, stopping polling");
+        if (result.status === "completed") {
+          console.log("Execution completed, stopping polling");
           stopPolling();
           lastSeenIndexRef.current = -1;
 

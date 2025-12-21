@@ -53,3 +53,11 @@ export interface FunctionSchema {
 }
 
 export type FunctionNode = Node<FunctionSchema, "customNode">;
+
+export interface NodeUpdate {
+  nodeId: string;
+  status?: "executing" | "executed" | "error";
+  outputs?: Record<string, FrontendFieldDataWrapper>;
+  arguments?: Record<string, FrontendFieldDataWrapper>;
+  terminalOutput?: string;
+}
