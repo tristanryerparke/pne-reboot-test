@@ -4,6 +4,7 @@ import shortuuid
 from devtools import debug as d
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing_extensions import Literal
 
 from app.execution.exec_utils import (
     VERBOSE,
@@ -20,7 +21,7 @@ EXECUTION_CLEANUP_DELAY = 10
 
 
 class ExecutionState(BaseModel):
-    status: str = "running"  # "running" or "completed"
+    status: Literal["running", "complete"] = "running"  # "running" or "completee"
     updates: list[NodeUpdate] = []
     update_index: int = 0
     last_sent_index: int = -1
@@ -146,18 +147,18 @@ async def execute_graph_async(execution_id: str, graph: Graph):
             EXECUTIONS[execution_id].update_index += 1
 
             if not success:
-                EXECUTIONS[execution_id].status = "completed"
+                EXECUTIONS[execution_id].status = "complete"
                 EXECUTIONS[execution_id].update_index += 1
                 return
 
-        EXECUTIONS[execution_id].status = "completed"
+        EXECUTIONS[execution_id].status = "complete"
         EXECUTIONS[execution_id].update_index += 1
 
         if VERBOSE:
             d(EXECUTIONS[execution_id])
 
     except Exception as e:
-        EXECUTIONS[execution_id].status = "completed"
+        EXECUTIONS[execution_id].status = "complete"
         EXECUTIONS[execution_id].update_index += 1
         if VERBOSE:
             print(f"Execution {execution_id} failed with error: {e}")

@@ -69,8 +69,8 @@ export function useExecuteFlowAsync() {
         }
 
         // Check if execution is complete
-        if (result.status === "completed") {
-          console.log("Execution completed, stopping polling");
+        if (result.status === "complete") {
+          console.log("Execution complete, stopping polling");
           stopPolling();
           lastSeenIndexRef.current = -1;
 
