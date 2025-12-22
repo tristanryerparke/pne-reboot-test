@@ -47,12 +47,9 @@ export default memo(function ImageExpanded({
       ? data
       : (data.value as {
           cacheKey?: string;
-          _width?: number;
-          _height?: number;
-          _mode?: string;
-          _preview?: string;
-          _displayName?: string;
-          _filename?: string;
+          preview?: string;
+          displayName?: string;
+          filename?: string;
         } | null)
   ) as {
     cacheKey?: string;

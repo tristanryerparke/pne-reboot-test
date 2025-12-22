@@ -91,10 +91,10 @@ def test_image_upload():
     result = response.json()
     assert "cacheKey" in result
     assert result["type"] == "Image"
-    assert result["_filename"] == "test_image.png"
+    assert result["filename"] == "test_image.png"
     assert "preview" in result
     assert "displayName" in result
-    assert "Image(100x100, RGB)" in result["_displayName"]
+    assert "Image(100x100, RGB)" in result["displayName"]
 
 
 def test_cache_exists():
@@ -176,7 +176,7 @@ def test_single_image_node_execute():
     assert output["type"] == "Image"
     assert "cacheKey" in output
     assert "preview" in output
-    assert len(output["_preview"]) > 0
+    assert len(output["preview"]) > 0
 
 
 def test_two_connected_image_nodes():
