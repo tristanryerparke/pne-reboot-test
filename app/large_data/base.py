@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Self
 
 from pydantic import (
     ConfigDict,
@@ -102,11 +102,12 @@ class CachedDataWrapper(CamelBaseModel):
         return handler(self)
 
     @classmethod
-    def deserialize_to_cache(cls, data: dict) -> "CachedDataWrapper":
+    def deserialize_to_cache(cls, data: dict) -> Self:
         """
         Deserialize from full data uploaded via the  frontend.
         MUST be overridden by subclasses to handle their specific data format.
         """
+        raise NotImplementedError
 
     @classmethod
     def from_cache_key(

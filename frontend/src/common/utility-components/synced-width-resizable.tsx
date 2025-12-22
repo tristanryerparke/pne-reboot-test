@@ -69,7 +69,7 @@ export function SyncedWidthHandleProvider({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [parentWidth, useTailwindScale]);
+  }, [parentWidth, useTailwindScale, setParentWidth]);
 
   return (
     <SyncedWidthHandleContext.Provider
@@ -100,6 +100,7 @@ export function SyncedWidthHandleProvider({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSyncedWidthHandleContext() {
   const context = useContext(SyncedWidthHandleContext);
   if (!context) {

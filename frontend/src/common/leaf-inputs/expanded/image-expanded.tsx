@@ -53,12 +53,9 @@ export default memo(function ImageExpanded({
         } | null)
   ) as {
     cacheKey?: string;
-    _width?: number;
-    _height?: number;
-    _mode?: string;
     preview?: string;
     displayName?: string;
-    _filename?: string;
+    filename?: string;
   } | null;
 
   const hasImage = !!imageValue?.preview;
@@ -93,9 +90,9 @@ export default memo(function ImageExpanded({
           </ResizableHeightHandle>
         </div>
       </ResizableHeight>
-      {hasImage && imageValue._filename && (
+      {hasImage && imageValue.filename && (
         <p className="text-xs text-muted-foreground mt-1">
-          {imageValue._filename}
+          {imageValue.filename}
         </p>
       )}
     </div>

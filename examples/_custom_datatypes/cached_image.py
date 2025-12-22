@@ -44,7 +44,7 @@ class CachedImageDataModel(CachedDataWrapper):
     filename: str | None = Field(default=None)
 
     @classmethod
-    def deserialize_to_cache(cls, data: dict) -> "CachedImageDataModel":
+    def deserialize_to_cache(cls, data: dict):
         """
         Deserialize image from base64 data uploaded from a non-execution action on the frontend.
 

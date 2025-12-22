@@ -2,7 +2,7 @@ import base64
 import io
 from contextlib import asynccontextmanager
 
-from devtools import debug as d
+# from devtools import debug as d
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
