@@ -4,7 +4,7 @@
 
 ### Python Node Editor (PNE)
 
-Let's say your python project is too flexible or modular to keep re-writing a frontend for it. Or maybe you don't want to keep looking at code while you're tweaking the inputs of some python code. PNE allows you to run your functions from a graphical interface and string them together into a pipeline without writing any frontend code.
+Let's say your python project is too flexible or modular to keep re-writing a frontend for it. Or maybe you don't want to keep looking at code while you're tweaking the inputs and observing the outputs. PNE allows you to run your functions from a graphical interface and string them together into a pipeline without writing any frontend code.
 
 <img src="docs/images/demo.png" alt="Demo">
 
