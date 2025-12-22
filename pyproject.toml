@@ -18,8 +18,10 @@ dependencies = [
 
 
 [project.scripts]
-pne-run-backend = "app.cli:main"
-pne-run-analyze = "app.cli:analyze"
+pne-backend = "app.cli:backend_only"
+pne = "app.cli:main"
+pne-analyze = "app.cli:analyze"
+pne-build-frontend = "app.cli:build_frontend"
 
 [build-system]
 requires = ["hatchling"]

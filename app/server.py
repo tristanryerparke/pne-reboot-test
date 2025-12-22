@@ -107,10 +107,10 @@ app.add_middleware(
 def mount_frontend():
     """Mount frontend static files. Called from CLI after setting SERVE_FRONTEND flag."""
     if SERVE_FRONTEND:
-        frontend_dist = os.path.join(
-            os.path.dirname(__file__), "..", "frontend", "dist"
+        frontend_prebuilt = os.path.join(
+            os.path.dirname(__file__), "..", "frontend", "prebuilt"
         )
-        if os.path.exists(frontend_dist):
+        if os.path.exists(frontend_prebuilt):
             app.mount(
-                "/", StaticFiles(directory=frontend_dist, html=True), name="static"
+                "/", StaticFiles(directory=frontend_prebuilt, html=True), name="static"
             )

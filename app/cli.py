@@ -1,10 +1,5 @@
-def main():
+def _parse_backend_args(builds_frontend):
     import argparse
-    import os
-    import subprocess
-    import sys
-
-    import uvicorn
 
     parser = argparse.ArgumentParser(description="Run the Python Node Editor backend")
     parser.add_argument(
@@ -18,12 +13,13 @@ def main():
         action="store_true",
         help="Do not ignore files and folders starting with underscore",
     )
-    parser.add_argument(
-        "-f",
-        "--frontend",
-        action="store_true",
-        help="Build and serve the frontend from the dist folder",
-    )
+    if builds_frontend:
+        parser.add_argument(
+            "-bf",
+            "--build_frontend",
+            action="store_true",
+            help="Force rebuild of the frontend before serving",
+        )
     # Common uvicorn options
     parser.add_argument("--host", default="127.0.0.1", help="Host to bind to")
     parser.add_argument("--port", type=int, default=8000, help="Port to bind to")
@@ -31,27 +27,60 @@ def main():
 
     args = parser.parse_args()
 
-    # Build frontend if --frontend flag is provided
+    args.frontend = builds_frontend
+
+    return args
+
+
+def _build_frontend():
+    import os
+    import shutil
+    import subprocess
+    import sys
+
+    frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
+    frontend_dist_dir = os.path.join(frontend_dir, "dist")
+    frontend_prebuilt_dir = os.path.join(frontend_dir, "prebuilt")
+
+    # Run bun i
+    print("Frontend: Installing dependencies...", end="", flush=True)
+    result = subprocess.run(["bun", "i"], cwd=frontend_dir, capture_output=True)
+    if result.returncode != 0:
+        print(f"\nError installing dependencies: {result.stderr.decode()}")
+        sys.exit(1)
+
+    # Run bun run build
+    print("\rFrontend: Building...                          ", end="", flush=True)
+    result = subprocess.run(
+        ["bun", "run", "build"], cwd=frontend_dir, capture_output=True
+    )
+    if result.returncode != 0:
+        print(f"\nError building frontend: {result.stderr.decode()}")
+        sys.exit(1)
+
+    if not os.path.isdir(frontend_dist_dir):
+        print("\nError building frontend: dist folder not found.")
+        sys.exit(1)
+
+    shutil.rmtree(frontend_prebuilt_dir, ignore_errors=True)
+    shutil.copytree(frontend_dist_dir, frontend_prebuilt_dir)
+    print("\rFrontend: Build complete!                      ")
+
+
+def _run_backend(args):
+    import os
+    import sys
+
+    import uvicorn
+
     if args.frontend:
         frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
-
-        # Run bun i
-        print("Frontend: Installing dependencies...", end="", flush=True)
-        result = subprocess.run(["bun", "i"], cwd=frontend_dir, capture_output=True)
-        if result.returncode != 0:
-            print(f"\nError installing dependencies: {result.stderr.decode()}")
+        frontend_prebuilt_dir = os.path.join(frontend_dir, "prebuilt")
+        if args.build_frontend:
+            _build_frontend()
+        elif not os.path.isdir(frontend_prebuilt_dir):
+            print("Frontend: prebuilt folder not found. Run with -bf to build it.")
             sys.exit(1)
-
-        # Run bun run build
-        print("\rFrontend: Building...                          ", end="", flush=True)
-        result = subprocess.run(
-            ["bun", "run", "build"], cwd=frontend_dir, capture_output=True
-        )
-        if result.returncode != 0:
-            print(f"\nError building frontend: {result.stderr.decode()}")
-            sys.exit(1)
-
-        print("\rFrontend: Build complete!                      ")
 
     # Store verbose flag globally for server and execution modules to access
     import app.execution.exec_utils
@@ -77,6 +106,20 @@ def main():
         print(f"Frontend available at: {blue}{frontend_url}\033\\{frontend_url}{reset}")
 
     uvicorn.run(fastapi_app, host=args.host, port=args.port, reload=args.reload)
+
+
+def main():
+    args = _parse_backend_args(builds_frontend=True)
+    _run_backend(args)
+
+
+def backend_only():
+    args = _parse_backend_args(builds_frontend=False)
+    _run_backend(args)
+
+
+def build_frontend():
+    _build_frontend()
 
 
 def analyze():
