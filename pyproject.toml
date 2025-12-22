@@ -21,7 +21,6 @@ dependencies = [
 pne-backend = "python_node_editor.cli:backend_only"
 pne = "python_node_editor.cli:main"
 pne-analyze = "python_node_editor.cli:analyze"
-pne-build-frontend = "python_node_editor.cli:build_frontend"
 
 [build-system]
 requires = ["uv_build>=0.9.18,<0.10.0"]

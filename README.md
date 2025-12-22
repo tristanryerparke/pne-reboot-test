@@ -32,5 +32,3 @@ Backend Server Analysis: `uv run pne-analyze path/to/file.py`
 Arguments:
 - `-v`, `--verbose`: Enable verbose logging.
 - `--do_not_ignore_underscore_prefix`
-
-Build Frontend Only: `uv run pne-build-frontend`

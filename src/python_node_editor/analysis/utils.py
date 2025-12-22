@@ -178,7 +178,7 @@ def analyze_file_structure(
         py_files_flat.extend(find_python_files(search_path, ignore_underscore_prefix))
 
         if os.path.isdir(search_path):
-            base_dirs.add(search_path)
+            base_dirs.add(os.path.dirname(search_path))
         else:
             base_dirs.add(os.path.dirname(search_path))
 
