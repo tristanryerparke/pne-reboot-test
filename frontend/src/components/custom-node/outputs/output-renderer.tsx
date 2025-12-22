@@ -112,10 +112,5 @@ export default memo(function OutputRenderer({
     return "";
   };
 
-  return (
-    <SingleLineTextDisplay
-      content={displayValue()}
-      dimmed={!outputData?.value}
-    />
-  );
+  return <SingleLineTextDisplay content={displayValue()} />;
 });
