@@ -4,10 +4,8 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     field_serializer,
-    model_serializer,
     model_validator,
 )
-from pydantic.functional_serializers import WrapSerializer
 
 from app.large_data.base import CachedDataWrapper
 from app.schema_base import (
@@ -117,9 +115,9 @@ class NodeFromFrontend(CamelBaseModel):
 class Edge(CamelBaseModel):
     id: str
     source: str
-    sourceHandle: str
+    source_handle: str
     target: str
-    targetHandle: str
+    target_handle: str
 
 
 class Graph(CamelBaseModel):
@@ -132,8 +130,8 @@ class NodeUpdate(CamelBaseModel):
 
     node_id: str
     status: Literal["executing", "executed", "error"] | None = None
-    outputs: dict[str, DataWrapper | CachedDataWrapper] | None = None
-    arguments: dict[str, DataWrapper | CachedDataWrapper] | None = None
+    outputs: dict[str, DataWrapper | CachedDataWrapper] = {}
+    arguments: dict[str, DataWrapper | CachedDataWrapper] = {}
     terminal_output: str | None = None
 
     @field_serializer("outputs", "arguments")

@@ -38,12 +38,12 @@ async def execute_graph_sync(graph: Graph):
         # Propagate outputs to downstream nodes for both execution and visual display
         for edge in graph.edges:
             if edge.source == node.id:
-                # Extract the output field name from the sourceHandle
-                output_field_name = edge.sourceHandle.split(":")[-2]
+                # Extract the output field name from the source_handle
+                output_field_name = edge.source_handle.split(":")[-2]
 
                 # Extract target node ID and argument name
                 target_node_id = edge.target
-                argument_name = edge.targetHandle.split(":")[-2]
+                argument_name = edge.target_handle.split(":")[-2]
 
                 # Update the execution graph so downstream nodes have correct inputs
                 target_node = next(n for n in execution_list if n.id == target_node_id)
