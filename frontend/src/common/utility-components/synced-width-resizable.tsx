@@ -4,8 +4,10 @@ import {
   useState,
   useRef,
   useEffect,
+  useMemo,
   type ReactNode,
 } from "react";
+import useFlowStore from "@/stores/flowStore";
 
 // Tailwind spacing scale: 1 unit = 0.25rem = 4px
 const TAILWIND_UNIT = 4;
@@ -111,11 +113,13 @@ export function useSyncedWidthHandleContext() {
 interface SyncedWidthHandleProps {
   children?: ReactNode;
   className?: string;
+  dragMultiplier?: number;
 }
 
 export function SyncedWidthHandle({
   children,
   className = "",
+  dragMultiplier,
 }: SyncedWidthHandleProps) {
   const { parentWidth, setParentWidth, parentRef, maxWidth, useTailwindScale } =
     useSyncedWidthHandleContext();
@@ -124,6 +128,7 @@ export function SyncedWidthHandle({
   const startWidthRef = useRef(0);
   const handleRef = useRef<HTMLDivElement>(null);
   const currentDragWidthRef = useRef(0);
+  const viewportZoom = useFlowStore((state) => state.viewport.zoom);
 
   const disabled = parentWidth === null;
 
@@ -136,12 +141,19 @@ export function SyncedWidthHandle({
     useTailwindScale && parentWidth !== null
       ? parentWidth * TAILWIND_UNIT
       : (parentWidth ?? 0);
+  const resolvedDragMultiplier = useMemo(() => {
+    if (dragMultiplier !== undefined) {
+      return dragMultiplier;
+    }
+    const safeZoom = viewportZoom || 1;
+    return safeZoom === 0 ? 1 : 1 / safeZoom;
+  }, [dragMultiplier, viewportZoom]);
 
   useEffect(() => {
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const deltaX = e.clientX - startXRef.current;
+      const deltaX = (e.clientX - startXRef.current) * resolvedDragMultiplier;
       const newWidthPx = startWidthRef.current + deltaX;
       const clampedWidthPx =
         maxWidthPx !== undefined
@@ -160,7 +172,7 @@ export function SyncedWidthHandle({
       }
     };
 
-    const handleMouseUp = () => {
+    const finishDrag = () => {
       if (!isDragging) return;
 
       // console.log(
@@ -175,15 +187,40 @@ export function SyncedWidthHandle({
       setParentWidth(currentDragWidthRef.current);
     };
 
+    const handleMouseUp = () => {
+      finishDrag();
+    };
+
+    const handleWindowBlur = () => {
+      finishDrag();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        finishDrag();
+      }
+    };
+
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("blur", handleWindowBlur);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     document.body.style.userSelect = "none";
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("blur", handleWindowBlur);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [isDragging, maxWidthPx, setParentWidth, useTailwindScale, parentRef]);
+  }, [
+    isDragging,
+    maxWidthPx,
+    resolvedDragMultiplier,
+    setParentWidth,
+    useTailwindScale,
+    parentRef,
+  ]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (disabled) return;
