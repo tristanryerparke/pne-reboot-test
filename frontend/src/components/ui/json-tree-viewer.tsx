@@ -223,6 +223,7 @@ function JsonValue({
         return (
           <div
             className="text-emerald-500 flex-1 flex items-center relative group cursor-pointer"
+            style={{ flex: "0 1 auto", minWidth: 0 }}
             onClick={(e) => {
               e.stopPropagation();
               setIsExpanded(!isExpanded);
