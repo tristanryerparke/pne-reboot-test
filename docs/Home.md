@@ -1,3 +1,3 @@
 Python Node Editor (PNE)
 
-this came from the docs folder
+To get started, follow these see [Basic Usage](Basic-Usage.md).

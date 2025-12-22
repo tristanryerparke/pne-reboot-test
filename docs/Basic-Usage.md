@@ -44,4 +44,4 @@ INFO:     127.0.0.1:51843 - "POST /execution_submit HTTP/1.1" 200 OK
 INFO:     127.0.0.1:51843 - "GET /execution_update/ZpCxJpoFcChn6ZHjoWBTuR HTTP/1.1" 200 OK
 ```
 
-Notice how there is a submission request and an update request for each node. This is due to the default execution mode being `async` which provides the frontend with the ability to update the UI as the backend processes the nodes. For more information on `sync`/`async` execution modes, see the (Not Written Yet Page).
+Notice how there is a submission request and an update request for each node. This is due to the default execution mode being `async` which provides the frontend with the ability to update the UI as the backend processes your functions as nodes. For more information on `sync`/`async` execution modes, see the (Not Written Yet Page).
