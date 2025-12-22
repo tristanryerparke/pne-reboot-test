@@ -5,16 +5,16 @@ import { OUTPUT_TYPE_COMPONENT_REGISTRY } from "../components/custom-node/output
  * Initializes UI-specific data for arguments and outputs:
  * - _selectedType for union type arguments
  * - _expanded for types with expandable areas (e.g., Image, str)
- * - _status for tracking node execution state
+ * - status for tracking node execution state
  * This should be called when creating a new node (e.g., on drop).
  */
 export function initializeUIData(nodeData: any): void {
   // Note: _expandedComponentWidth is not initialized here
   // It will be set dynamically when the first component is resized
 
-  // Initialize _status field for tracking execution state
-  if (nodeData._status === undefined) {
-    nodeData._status = "not-executed";
+  // Initialize status field for tracking execution state
+  if (nodeData.status === undefined) {
+    nodeData.status = "not-executed";
   }
 
   // Initialize _terminal_drawer object for terminal drawer state

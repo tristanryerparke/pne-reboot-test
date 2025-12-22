@@ -4,7 +4,7 @@ import { LoadButton } from "./load-button";
 import { InspectorToggle } from "./inspector-toggle";
 import { NodePickerToggle } from "./node-picker-toggle";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { SettingsModal } from "./settings-modal/settings";
+import { SettingsModal } from "@/components/settings-modal/settings";
 
 export default function GraphToolbar() {
   return (

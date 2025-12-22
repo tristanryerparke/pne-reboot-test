@@ -37,7 +37,7 @@ export default function OutputFieldHandleWrapper({
         <Tooltip>
           <TooltipTrigger asChild>
             {/*The padding happens here*/}
-            <div className="px-2 py-1">
+            <div className="px-2 py-2">
               <OutputDisplay fieldData={fieldData} path={path} />
             </div>
           </TooltipTrigger>

@@ -9,6 +9,7 @@ import InspectableFieldWrapper from "../inspector-sidebar/inspectable-field-wrap
 import { useNodeData } from "@/stores/flowStore";
 import { SyncedWidthHandleProvider } from "@/common/utility-components/synced-width-resizable";
 import useFlowStore from "@/stores/flowStore";
+import { cn } from "@/lib/utils";
 
 export default memo(function CustomNode({
   data,
@@ -44,7 +45,12 @@ export default memo(function CustomNode({
         setWidth={setNodeWidth}
       >
         <div className="min-w-min">
-          <div className={`shadow-md border border-input rounded-lg bg-background text-secondary-foreground ${selected ? "outline outline-[0.75px] outline-primary outline-offset-0" : ""}`}>
+          <div
+            className={cn(
+              "border border-input rounded-lg bg-background text-secondary-foreground transition-[color,box-shadow]",
+              selected ? "ring-ring/50 ring-2" : "",
+            )}
+          >
             <InspectableFieldWrapper path={path}>
               <div>
                 <NodeHeader data={data} nodeId={id} />
@@ -60,7 +66,6 @@ export default memo(function CustomNode({
               isExpanded={data._terminal_drawer?._expanded ?? false}
               terminalOutput={data.terminal_output as string}
               path={path}
-              selected={selected}
             />
           </div>
         </div>

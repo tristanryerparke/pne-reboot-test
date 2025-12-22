@@ -1,6 +1,11 @@
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, field_serializer, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    field_serializer,
+    model_validator,
+)
 
 from app.large_data.base import CachedDataWrapper
 from app.schema_base import (
@@ -110,11 +115,29 @@ class NodeFromFrontend(CamelBaseModel):
 class Edge(CamelBaseModel):
     id: str
     source: str
-    sourceHandle: str
+    source_handle: str
     target: str
-    targetHandle: str
+    target_handle: str
 
 
 class Graph(CamelBaseModel):
     nodes: list[NodeFromFrontend]
     edges: list[Edge]
+
+
+class NodeUpdate(CamelBaseModel):
+    """Represents an update to a node during execution."""
+
+    node_id: str
+    status: Literal["executing", "executed", "error"] | None = None
+    outputs: dict[str, DataWrapper | CachedDataWrapper] | None = None
+    arguments: dict[str, DataWrapper | CachedDataWrapper] | None = None
+    terminal_output: str | None = None
+
+    @field_serializer("outputs", "arguments", when_used="unless-none")
+    def serialize_wrappers(self, value, _info):
+        """Custom serializer to ensure nested CachedDataWrapper subclasses properly serialize computed fields"""
+        return {
+            key: wrapper.model_dump(by_alias=True, exclude_none=True)
+            for key, wrapper in value.items()
+        }

@@ -21,7 +21,7 @@ export function ThemeSelect() {
 
   return (
     <Select value={theme} onValueChange={setTheme}>
-      <SelectTrigger className="min-w-40">
+      <SelectTrigger className="min-w-30 max-w-30 min-h-9">
         <SelectValue placeholder="Select theme" />
       </SelectTrigger>
       <SelectContent>
