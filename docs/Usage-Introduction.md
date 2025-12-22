@@ -1,8 +1,6 @@
-Let's say your python project is too flexible/modular to keep re-writing a frontend for it. Or maybe you don't want to keep looking at code while you're running some python functions you wrote while tweaking the inputs.
+This guide expects you have installed PNE using one of the methods in [Installation](https://github.com/tristanryerparke/python-node-editor/wiki/Installation).
 
-To make functions usable on the frontend, all you have to do is fully type annotate them.
-
-Here's a sample typed function in [basic_percentage.py](https://github.com/tristanryerparke/python-node-editor/blob/main/examples/basic_percentage.py) that calculates a percentage of the given number `x`.
+Here's a sample typed function in [basic_percentage.py](https://github.com/tristanryerparke/python-node-editor/blob/main/examples/basic_percentage.py) that calculates a percentage of the given number x.
 ```python
 def percentage(x: float, percentage: int) -> float:
     return x * (percentage / 100)
@@ -18,7 +16,7 @@ INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
 
-Navigate to the frontend's url to see the node-editor interface.
+Navigate to the frontend url to see the node-editor interface.
 Drag the "percentage" node onto the canvas and you should see the following:
 
 <img alt="localhost_8000_.png" src="images/localhost_8000_.png" />
@@ -44,4 +42,4 @@ INFO:     127.0.0.1:51843 - "POST /execution_submit HTTP/1.1" 200 OK
 INFO:     127.0.0.1:51843 - "GET /execution_update/ZpCxJpoFcChn6ZHjoWBTuR HTTP/1.1" 200 OK
 ```
 
-Notice how there is a submission request and an update request for each node. This is due to the default execution mode being `async` which provides the frontend with the ability to update the UI as the backend processes your functions as nodes. For more information on `sync`/`async` execution modes, see the (Not Written Yet Page).
+Notice how there is a submission request and an update request for each node. This is due to the default execution mode being `async` which provides the frontend with the ability to update the UI as the backend processes your functions as nodes. For more information on `sync`/`async` execution modes, see the (Not written yet page).

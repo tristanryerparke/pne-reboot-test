@@ -1,10 +1,12 @@
 ### Intro
 This app is meant to make it easy for you to execute your python code visually, without you having to write the code in a special way (other than type annotating it). However there may be times when you want to improve the experience on the frontend, or add functionalities that are too complex for the frontend to automatically analyze. PNE as a python library add some useful ways to augment your python code for use in the frontend.
 
+These examples assume you have [PNE installed](https://github.com/tristanryerparke/python-node-editor/wiki/Installation).
+
 Examples for node customization are in this file: [examples/basic_custominfo.py](https://github.com/tristanryerparke/python-node-editor/blob/main/examples/basic_custominfo.py) and can be run with `uv run pne examples/basic_custominfo.py`
 
 ### Docstrings
-Docstring analysis is built into PNE by default, when you add a docstring on your function, it appears when you mouse over the function the node picker.
+Docstring analysis is built into PNE by default. When you add a docstring on your function, it appears when you mouse over the function the node picker.
 
 <img alt="images/localhost_8000_ (3).png" src="images/localhost_8000_ (3).png">
 
