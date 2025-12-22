@@ -24,8 +24,8 @@ EXECUTION_CLEANUP_DELAY = 10
 class ExecutionState(CamelBaseModel):
     status: Literal["running", "complete"] = "running"
     node_updates: dict[str, NodeUpdate] = {}
-    update_index: int = 0
-    last_sent_index: int = -1
+    update_index: int = -1
+    last_sent_index: int | None = None
 
 
 EXECUTIONS: dict[str, ExecutionState] = {}
@@ -54,7 +54,7 @@ async def get_execution_status(execution_id: str):
     current_index = execution_state.update_index
 
     # If nothing has changed, return only the index
-    if current_index == last_sent:
+    if last_sent is not None and current_index == last_sent:
         return {"updateIndex": current_index}
 
     # Update the last sent index for this execution

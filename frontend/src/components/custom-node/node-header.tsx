@@ -1,16 +1,19 @@
-import type { FunctionSchema } from "@/types/types";
+import type { FrontendNodeData } from "@/types/types";
 import { memo, useCallback } from "react";
 import NodeStatus from "./node-status";
 import SourceCodeButton from "./source-code-button";
 import useFlowStore from "@/stores/flowStore";
 
 type NodeHeaderProps = {
-  data: FunctionSchema;
+  data: FrontendNodeData;
   nodeId: string;
 };
 
 export default memo(function NodeHeader({ data, nodeId }: NodeHeaderProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
+  const terminalOutput =
+    (data as { terminalOutput?: string }).terminalOutput ??
+    data.terminal_output;
 
   const handleToggleDrawer = useCallback(() => {
     const path = [nodeId, "_terminal_drawer", "_expanded"];
@@ -29,7 +32,7 @@ export default memo(function NodeHeader({ data, nodeId }: NodeHeaderProps) {
         <NodeStatus
           status={data.status ?? "not-executed"}
           onToggleDrawer={handleToggleDrawer}
-          hasTerminalOutput={!!data.terminal_output}
+          hasTerminalOutput={!!terminalOutput}
           isDrawerOpen={data._terminal_drawer?._expanded ?? false}
         />
       </div>

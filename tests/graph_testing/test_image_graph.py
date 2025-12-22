@@ -48,6 +48,12 @@ app.add_middleware(
 )
 
 client = TestClient(app)
+CACHE_KEY_PREFIX = "$cacheKey:"
+
+
+def extract_cache_key(value: str) -> str:
+    assert value.startswith(CACHE_KEY_PREFIX)
+    return value.split(":", 1)[1]
 
 
 def test_app_setup():
@@ -89,7 +95,7 @@ def test_image_upload():
     assert response.status_code == 200
 
     result = response.json()
-    assert "cacheKey" in result
+    assert "value" in result
     assert result["type"] == "Image"
     assert result["filename"] == "test_image.png"
     assert "preview" in result
@@ -113,7 +119,7 @@ def test_cache_exists():
 
     response = client.post("/data/upload_large_data", json=payload)
     assert response.status_code == 200
-    cache_key = response.json()["cacheKey"]
+    cache_key = extract_cache_key(response.json()["value"])
 
     # Check if it exists
     response = client.get(f"/data/cache_exists/{cache_key}")
@@ -147,7 +153,7 @@ def test_single_image_node_execute():
     upload_response = client.post("/data/upload_large_data", json=upload_payload)
     assert upload_response.status_code == 200
     upload_result = upload_response.json()
-    cache_key = upload_result["cacheKey"]
+    cache_key = extract_cache_key(upload_result["value"])
 
     # Create graph with blur_image node
     node1 = node_from_schema("blur-node-1", schema)
@@ -174,7 +180,7 @@ def test_single_image_node_execute():
 
     output = node_update["outputs"]["return"]
     assert output["type"] == "Image"
-    assert "cacheKey" in output
+    assert "value" in output
     assert "preview" in output
     assert len(output["preview"]) > 0
 
@@ -195,7 +201,7 @@ def test_two_connected_image_nodes():
 
     upload_response = client.post("/data/upload_large_data", json=upload_payload)
     assert upload_response.status_code == 200
-    cache_key = upload_response.json()["cacheKey"]
+    cache_key = extract_cache_key(upload_response.json()["value"])
 
     # Create graph with two connected blur nodes
     node1 = node_from_schema("blur-node-1", schema)
@@ -233,7 +239,7 @@ def test_two_connected_image_nodes():
     assert "return" in node1_update["outputs"]
     node1_output = node1_update["outputs"]["return"]
     assert node1_output["type"] == "Image"
-    assert "cacheKey" in node1_output
+    assert "value" in node1_output
 
     # Verify downstream argument propagation
     downstream_update = result["updates"][1]
@@ -241,7 +247,7 @@ def test_two_connected_image_nodes():
     assert "image" in downstream_update["arguments"]
     node2_input = downstream_update["arguments"]["image"]
     assert node2_input["type"] == "Image"
-    assert node2_input["cacheKey"] == node1_output["cacheKey"]
+    assert node2_input["value"] == node1_output["value"]
 
     # Verify second node output
     node2_update = result["updates"][2]
@@ -249,7 +255,7 @@ def test_two_connected_image_nodes():
     assert "return" in node2_update["outputs"]
     node2_output = node2_update["outputs"]["return"]
     assert node2_output["type"] == "Image"
-    assert "cacheKey" in node2_output
+    assert "value" in node2_output
 
 
 if __name__ == "__main__":

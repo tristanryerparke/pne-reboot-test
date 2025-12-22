@@ -6,6 +6,7 @@ from pydantic import (
     Field,
     SerializerFunctionWrapHandler,
     ValidationInfo,
+    field_serializer,
     model_serializer,
     model_validator,
 )
@@ -14,6 +15,7 @@ from app.schema_base import CamelBaseModel
 
 # Global cache for large data values
 LARGE_DATA_CACHE = {}
+CACHE_KEY_PREFIX = "$cacheKey:"
 
 
 class CachedDataWrapper(CamelBaseModel):
@@ -23,7 +25,8 @@ class CachedDataWrapper(CamelBaseModel):
     Cached types are too large to send back and forth with the execute and update messages.
     Instead we store them in LARGE_DATA_CACHE during execution with a cache_key.
     On the frontend there will be an upload input component that will populate the cache
-    via the /upload_large_data endpoint which will return the cache_key as a reference on the frontend.
+    via the /upload_large_data endpoint which will return a value field like
+    "$cacheKey:xxx" as a reference on the frontend.
     Subclasses of CachedDataWrapper can use pydantic's @computer_field decorator to add a preview
     (like a thumbnail) that gets sent back up along with the cache key.
     Then when the execute message gets recieved, the backend prorgamatically creates an instance of that
@@ -59,19 +62,41 @@ class CachedDataWrapper(CamelBaseModel):
     the wrapper subclass.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, extra="ignore", serialize_by_alias=True
+    )
     _is_cached_type: ClassVar[bool] = True  # Marker for type discovery
 
     type: str  # TODO: can we have StructDescr unions, dicts, lists later?
     value: Any | None = Field(exclude=True, default=None)
-    cache_key: str | None = Field(default_factory=lambda: str(uuid.uuid4()))
+    cache_key: str | None = Field(
+        serialization_alias="value",
+        default_factory=lambda: str(uuid.uuid4()),
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def extract_cache_key(cls, data):
+        if isinstance(data, dict):
+            raw_value = data.get("value")
+            if isinstance(raw_value, str) and raw_value.startswith(CACHE_KEY_PREFIX):
+                data = dict(data)
+                data["cache_key"] = raw_value.split(":", 1)[1]
+                data["value"] = None
+        return data
+
+    @field_serializer("cache_key")
+    def serialize_cache_key(self, cache_key: str | None):
+        if cache_key is None:
+            return None
+        return f"{CACHE_KEY_PREFIX}{cache_key}"
 
     @model_validator(mode="after")
     def populate_value_from_cache(self, info: ValidationInfo):
         """
         Validation hook that populates the value field from the cache if it's not set.
 
-        This allows the frontend to send just {type, cacheKey} and have the value
+        This allows the frontend to send just {type, value} and have the value
         automatically loaded from LARGE_DATA_CACHE during validation.
 
         Uses validation context to determine when to populate from cache.
