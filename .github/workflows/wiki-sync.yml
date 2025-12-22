@@ -1,0 +1,28 @@
+name: wiki-sync
+on:
+  push:
+    branches:
+      - main
+      - master
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Sync docs to wiki
+        env:
+          WIKI_REPO: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/tristanryerparke/python-node-editor.wiki.git
+        run: |
+          git clone "$WIKI_REPO" wiki
+          rsync -av --delete docs/ wiki/
+          cd wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "Sync docs to wiki"
+            git push
+          else
+            echo "No wiki changes to sync."
+          fi
