@@ -75,7 +75,7 @@ class NodeDataFromFrontend(CamelBaseModel):
         Pre-processes data before validation to instantiate cached data types.
 
         This validator:
-        1. Detects cached data by the presence of 'cacheKey' in the arguments
+        1. Detects cached data by the presence of a "$cacheKey:" marker in value
         2. Looks up the referenced_datamodel class from the TYPES registry
         3. Pre-instantiates the proper 3rd party datamodel instances
         4. Replaces the dict with the instance before Pydantic validates
@@ -89,7 +89,11 @@ class NodeDataFromFrontend(CamelBaseModel):
         if isinstance(data, dict):
             arguments = data.get("arguments", {})
             for arg_name, arg_value in arguments.items():
-                if isinstance(arg_value, dict) and "cacheKey" in arg_value:
+                if (
+                    isinstance(arg_value, dict)
+                    and isinstance(arg_value.get("value"), str)
+                    and arg_value["value"].startswith("$cacheKey:")
+                ):
                     type_str = arg_value.get("type")
                     type_def = TYPES.get(type_str)
 

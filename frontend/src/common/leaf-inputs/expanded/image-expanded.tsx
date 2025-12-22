@@ -40,25 +40,13 @@ export default memo(function ImageExpanded({
     return <div>No data</div>;
   }
 
-  // Image data is stored directly on the data object (from image-input.tsx)
-  // Check if data has the image properties directly or in value
-  const imageValue = (
-    (data as any).preview
-      ? data
-      : (data.value as {
-          cacheKey?: string;
-          preview?: string;
-          displayName?: string;
-          filename?: string;
-        } | null)
-  ) as {
-    cacheKey?: string;
-    preview?: string;
-    displayName?: string;
-    filename?: string;
-  } | null;
-
-  const hasImage = !!imageValue?.preview;
+  const preview = (data as any).preview as string | undefined;
+  const filename = (data as any).filename as string | undefined;
+  const cacheKey =
+    typeof data.value === "string" && data.value.startsWith("$cacheKey:")
+      ? data.value.slice("$cacheKey:".length)
+      : undefined;
+  const hasImage = !!preview || !!cacheKey;
 
   return (
     <div className="flex flex-col flex-1">
@@ -70,9 +58,9 @@ export default memo(function ImageExpanded({
         useTailwindScale={true}
       >
         <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden relative">
-          {hasImage ? (
+          {hasImage && preview ? (
             <img
-              src={`data:image/webp;base64,${imageValue.preview}`}
+              src={`data:image/webp;base64,${preview}`}
               alt="Preview"
               className="w-full h-full object-contain"
               draggable={false}
@@ -90,10 +78,8 @@ export default memo(function ImageExpanded({
           </ResizableHeightHandle>
         </div>
       </ResizableHeight>
-      {hasImage && imageValue.filename && (
-        <p className="text-xs text-muted-foreground mt-1">
-          {imageValue.filename}
-        </p>
+      {hasImage && filename && (
+        <p className="text-xs text-muted-foreground mt-1">{filename}</p>
       )}
     </div>
   );

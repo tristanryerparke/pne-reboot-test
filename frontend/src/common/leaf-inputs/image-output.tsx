@@ -6,11 +6,13 @@ interface ImageOutputProps {
 }
 
 export default memo(function ImageOutput({ outputData }: ImageOutputProps) {
-  // Check if image data exists directly on outputData or in value
-  const hasDirectData = outputData?.cacheKey;
-  const hasValueData = outputData?.value?.cache_ref;
+  const cacheKey =
+    typeof outputData?.value === "string" &&
+    outputData.value.startsWith("$cacheKey:")
+      ? outputData.value.slice("$cacheKey:".length)
+      : undefined;
 
-  if (!hasDirectData && !hasValueData) {
+  if (!cacheKey) {
     return <SingleLineTextDisplay content="No image" dimmed={true} />;
   }
 

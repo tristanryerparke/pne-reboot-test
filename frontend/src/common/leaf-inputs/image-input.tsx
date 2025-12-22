@@ -8,7 +8,6 @@ import type { FrontendFieldDataWrapper } from "../../types/types";
 import { ErrorDialog } from "./leaf-utils/error-dialog";
 
 interface CachedImageData extends FrontendFieldDataWrapper {
-  cacheKey?: string;
   preview?: string;
   displayName?: string;
   _filename?: string;
@@ -27,10 +26,14 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
   const [errorMessage, setErrorMessage] = useState("");
 
   const imageData = inputData as CachedImageData;
+  const cacheKey =
+    typeof imageData.value === "string" &&
+    imageData.value.startsWith("$cacheKey:")
+      ? imageData.value.slice("$cacheKey:".length)
+      : undefined;
 
   // Check if cache key exists on mount (after page reload with persisted state)
   useEffect(() => {
-    const cacheKey = imageData.cacheKey;
     if (!cacheKey) return;
 
     // Verify the cache key still exists in the backend
@@ -63,7 +66,7 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
     connections.length > 0 && connections[0].targetHandle === handleId;
 
   // Check if there's image data
-  const hasImage = !!imageData.cacheKey;
+  const hasImage = !!cacheKey;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
