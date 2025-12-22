@@ -1,13 +1,13 @@
 from devtools import debug as d
 from fastapi import APIRouter
 
-from app.execution.exec_utils import (
+from python_node_editor.execution.exec_utils import (
     VERBOSE,
     create_node_update,
     execute_node,
     topological_order,
 )
-from app.schema import Graph, NodeUpdate
+from python_node_editor.schema import Graph, NodeUpdate
 
 router = APIRouter()
 
@@ -15,7 +15,7 @@ router = APIRouter()
 @router.post("/graph_execute")
 async def execute_graph_sync(graph: Graph):
     """Execute a graph containing nodes and edges synchronously"""
-    from app.server import TYPES
+    from python_node_editor.server import TYPES
 
     execution_list = topological_order(graph)
 

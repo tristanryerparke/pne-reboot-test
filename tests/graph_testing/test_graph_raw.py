@@ -4,9 +4,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 
-import app.server as server_module
-from app.analysis.functions_analysis import analyze_function
-from app.execution.exec_sync import router as graph_router
+import python_node_editor.server as server_module
+from python_node_editor.analysis.functions_analysis import analyze_function
+from python_node_editor.execution.exec_sync import router as graph_router
 from tests.assets.functions import add, multiply
 
 # Analyze the test functions and register them

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-from app.large_data.base import LARGE_DATA_CACHE, CachedDataWrapper
-from app.schema_base import CamelBaseModel
+from python_node_editor.large_data.base import LARGE_DATA_CACHE, CachedDataWrapper
+from python_node_editor.schema_base import CamelBaseModel
 
 router = APIRouter()
 
@@ -22,7 +22,7 @@ async def upload_large_data(upload: LargeDataUpload):
     Uses server.TYPES to look up the cached type class.
     Each class's deserialize_to_cache() method parses its specific format into a python object and caches it.
     """
-    from app.server import TYPES
+    from python_node_editor.server import TYPES
 
     try:
         # Look up the cached type in TYPES dictionary

@@ -10,8 +10,8 @@ from pydantic import (
     computed_field,
 )
 
-from app.display import add_node_options
-from app.large_data.base import CachedDataWrapper
+from python_node_editor.display import add_node_options
+from python_node_editor.large_data.base import CachedDataWrapper
 
 THUMBNAIL_MAX_SIZE = 500
 

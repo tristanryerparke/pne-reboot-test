@@ -18,18 +18,18 @@ dependencies = [
 
 
 [project.scripts]
-pne-backend = "app.cli:backend_only"
-pne = "app.cli:main"
-pne-analyze = "app.cli:analyze"
-pne-build-frontend = "app.cli:build_frontend"
+pne-backend = "python_node_editor.cli:backend_only"
+pne = "python_node_editor.cli:main"
+pne-analyze = "python_node_editor.cli:analyze"
+pne-build-frontend = "python_node_editor.cli:build_frontend"
 
 [build-system]
 requires = ["uv_build>=0.9.18,<0.10.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "app"
-module-root = ""
+module-name = "python_node_editor"
+module-root = "src"
 
 [dependency-groups]
 dev = [

@@ -7,8 +7,8 @@ from pydantic import (
     model_validator,
 )
 
-from app.large_data.base import CachedDataWrapper
-from app.schema_base import (
+from python_node_editor.large_data.base import CachedDataWrapper
+from python_node_editor.schema_base import (
     BASE_DATATYPES,
     CamelBaseModel,
     StructDescr,
@@ -83,7 +83,7 @@ class NodeDataFromFrontend(CamelBaseModel):
         This allows 3rd party CachedDataWrapper subclasses to be properly instantiated
         without hardcoding union types in the schema.
         """
-        from app.server import TYPES
+        from python_node_editor.server import TYPES
 
         # Pre-process: replace dicts with instantiated cached models BEFORE validation
         if isinstance(data, dict):

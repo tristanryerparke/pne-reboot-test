@@ -14,10 +14,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from httpx import ASGITransport
 
-import app.server as server_module
-from app.analysis.functions_analysis import analyze_function
-from app.execution.exec_async import router as async_router
-from app.schema import Edge, Graph
+import python_node_editor.server as server_module
+from python_node_editor.analysis.functions_analysis import analyze_function
+from python_node_editor.execution.exec_async import router as async_router
+from python_node_editor.schema import Edge, Graph
 from tests.assets.functions_with_delays import (
     quick_add,
     quick_divide,

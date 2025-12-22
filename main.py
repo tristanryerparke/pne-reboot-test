@@ -1,6 +1,6 @@
 """Usually we run the backend via it's uv cli tool, but this file lets us run it with debugpy"""
 
-from app.server import app
+from python_node_editor.server import app
 
 if __name__ == "__main__":
     import uvicorn

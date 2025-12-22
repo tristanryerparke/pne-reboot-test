@@ -24,7 +24,7 @@ Arguments:
 - `--port`: The port to run the backend on. Default is 8000.
 - `--host`: The host to run the backend on. Default is 127.0.0.1.
 - `-v`, `--verbose`: Enable verbose logging.
-- `-bf`, `--build_frontend`: Force rebuild of the frontend into `frontend/prebuilt` before serving.
+- `-bf`, `--build_frontend`: Force rebuild of the frontend into `src/python_node_editor/prebuilt_frontend` before serving.
 - `--do_not_ignore_underscore_prefix`: Do not ignore underscore prefixed files and folders when looking for functions to analyze.
 
 Backend Server Analysis: `uv run pne-analyze path/to/file.py`

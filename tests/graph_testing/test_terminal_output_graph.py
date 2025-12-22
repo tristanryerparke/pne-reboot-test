@@ -4,10 +4,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 
-import app.server as server_module
-from app.analysis.functions_analysis import analyze_function
-from app.execution.exec_sync import router as graph_router
-from app.schema import Graph
+import python_node_editor.server as server_module
+from python_node_editor.analysis.functions_analysis import analyze_function
+from python_node_editor.execution.exec_sync import router as graph_router
+from python_node_editor.schema import Graph
 from tests.assets.functions import add, divide_by_zero, process_data
 from tests.assets.graph_utils import node_from_schema
 

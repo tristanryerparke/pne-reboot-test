@@ -1,4 +1,4 @@
-from app.display import add_node_options
+from python_node_editor.display import add_node_options
 
 
 def index_string(string: str, index: int) -> str:

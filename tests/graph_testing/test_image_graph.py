@@ -8,11 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 from PIL import Image
 
-import app.server as server_module
-from app.analysis.functions_analysis import analyze_function
-from app.execution.exec_sync import router as graph_router
-from app.large_data.router import router as data_router
-from app.schema import Edge, Graph
+import python_node_editor.server as server_module
+from python_node_editor.analysis.functions_analysis import analyze_function
+from python_node_editor.execution.exec_sync import router as graph_router
+from python_node_editor.large_data.router import router as data_router
+from python_node_editor.schema import Edge, Graph
 from examples._custom_datatypes.cached_image import CachedImageDataModel
 from tests.assets.blur import blur_image
 from tests.assets.graph_utils import node_from_schema

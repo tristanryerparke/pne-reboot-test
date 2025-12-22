@@ -1,6 +1,6 @@
 import pytest
 
-from app.analysis.functions_analysis import ParameterNotTypeAnnotated, analyze_function
+from python_node_editor.analysis.functions_analysis import ParameterNotTypeAnnotated, analyze_function
 
 
 def test_unannotated_regular_parameter():

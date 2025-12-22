@@ -1,4 +1,4 @@
-from app.schema import MultipleOutputs
+from python_node_editor.schema import MultipleOutputs
 
 
 class IntegerDivisionOutputs(MultipleOutputs):

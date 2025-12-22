@@ -1,5 +1,5 @@
-from app.display import add_node_options
-from app.schema_base import UserModel
+from python_node_editor.display import add_node_options
+from python_node_editor.schema_base import UserModel
 from examples.basic_user_model import Point2D
 
 

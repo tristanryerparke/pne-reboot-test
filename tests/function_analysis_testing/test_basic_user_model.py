@@ -1,8 +1,8 @@
 from devtools import debug as d
 
-from app.analysis.functions_analysis import analyze_function
-from app.schema import DataWrapper
-from app.schema_base import TypeDefModel, UserTypeDefModel
+from python_node_editor.analysis.functions_analysis import analyze_function
+from python_node_editor.schema import DataWrapper
+from python_node_editor.schema_base import TypeDefModel, UserTypeDefModel
 from tests.assets.user_model import Point2D, two_point_distance
 from tests.assets.user_model_not_used_in_function import add
 

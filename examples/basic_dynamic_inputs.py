@@ -1,4 +1,4 @@
-from app.display import add_node_options
+from python_node_editor.display import add_node_options
 
 
 @add_node_options(list_inputs=True)

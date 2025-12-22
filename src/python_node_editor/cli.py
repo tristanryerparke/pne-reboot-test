@@ -39,7 +39,7 @@ def _build_frontend(frontend_dir=None):
     import sys
 
     if frontend_dir is None:
-        frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
+        frontend_dir = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
     frontend_dist_dir = os.path.join(frontend_dir, "dist")
     frontend_prebuilt_dir = os.path.join(os.path.dirname(__file__), "prebuilt_frontend")
 
@@ -74,12 +74,13 @@ def _run_backend(args):
 
     import uvicorn
 
-    import app.server
+    import python_node_editor.execution.exec_utils as exec_utils
+    import python_node_editor.server as server_module
 
     if args.frontend:
         if args.build_frontend:
             frontend_source_dir = os.path.join(
-                os.path.dirname(__file__), "..", "frontend"
+                os.path.dirname(__file__), "..", "..", "frontend"
             )
             if not os.path.isdir(frontend_source_dir):
                 print(
@@ -88,26 +89,24 @@ def _run_backend(args):
                 )
                 sys.exit(1)
             _build_frontend(frontend_source_dir)
-        elif not app.server.get_frontend_prebuilt_dir():
+        elif not server_module.get_frontend_prebuilt_dir():
             print("Frontend: prebuilt folder not found. Run with -bf to build it.")
             sys.exit(1)
 
     # Store verbose flag globally for server and execution modules to access
-    import app.execution.exec_utils
-
-    app.server.VERBOSE = args.verbose
-    app.execution.exec_utils.VERBOSE = args.verbose
-    app.server.IGNORE_UNDERSCORE_PREFIX = not args.do_not_ignore_underscore_prefix
-    app.server.SERVE_FRONTEND = args.frontend
+    server_module.VERBOSE = args.verbose
+    exec_utils.VERBOSE = args.verbose
+    server_module.IGNORE_UNDERSCORE_PREFIX = not args.do_not_ignore_underscore_prefix
+    server_module.SERVE_FRONTEND = args.frontend
 
     # Reconstruct sys.argv for the lifespan handler to read the paths
     sys.argv = [sys.argv[0], args.path]
 
-    from app.server import app as fastapi_app
+    from python_node_editor.server import app as fastapi_app
 
     # Mount frontend static files if requested (must be done after all routes are added)
     if args.frontend:
-        app.server.mount_frontend()
+        server_module.mount_frontend()
         # ANSI escape codes for blue and clickable link
         blue = "\033[94m\033]8;;"
         reset = "\033]8;;\033\\\033[0m"
@@ -137,7 +136,7 @@ def analyze():
 
     from devtools import debug as d
 
-    from app.analysis.utils import analyze_file_structure
+    from python_node_editor.analysis.utils import analyze_file_structure
 
     parser = argparse.ArgumentParser(
         description="Analyze Python files for functions and types"

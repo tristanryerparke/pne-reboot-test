@@ -1,7 +1,7 @@
 import pytest
 from devtools import debug as d
 
-from app.analysis.utils import (
+from python_node_editor.analysis.utils import (
     DuplicateFunctionError,
     analyze_file,
     check_for_duplicate_callable_ids,

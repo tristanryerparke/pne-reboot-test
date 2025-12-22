@@ -1,7 +1,7 @@
 from devtools import debug as d
 
-from app.analysis.types_analysis import analyze_type, get_type_repr
-from app.schema_base import StructDescr, UnionDescr
+from python_node_editor.analysis.types_analysis import analyze_type, get_type_repr
+from python_node_editor.schema_base import StructDescr, UnionDescr
 from tests.assets.types_only import (
     basic_single_types,
     basic_union_types,

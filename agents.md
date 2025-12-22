@@ -2,7 +2,7 @@
 
 from devtools import debug as d
 
-from app.analysis.functions_analysis import analyze_function
+from python_node_editor.analysis.functions_analysis import analyze_function
 from examples.basic_percentage import percentage
 from examples.integer_math import add
 

@@ -6,14 +6,14 @@ from devtools import debug as d
 from fastapi import APIRouter, HTTPException
 from typing_extensions import Literal
 
-from app.execution.exec_utils import (
+from python_node_editor.execution.exec_utils import (
     VERBOSE,
     create_node_update,
     execute_node,
     topological_order,
 )
-from app.schema import Graph, NodeFromFrontend, NodeUpdate
-from app.schema_base import CamelBaseModel
+from python_node_editor.schema import Graph, NodeFromFrontend, NodeUpdate
+from python_node_editor.schema_base import CamelBaseModel
 
 router = APIRouter()
 

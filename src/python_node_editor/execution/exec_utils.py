@@ -3,8 +3,8 @@ import sys
 import traceback
 from typing import Any
 
-from app.schema import Graph, NodeDataFromFrontend, NodeFromFrontend
-from app.schema_base import StructDescr, UnionDescr
+from python_node_editor.schema import Graph, NodeDataFromFrontend, NodeFromFrontend
+from python_node_editor.schema_base import StructDescr, UnionDescr
 
 VERBOSE = False
 
@@ -39,7 +39,7 @@ def execute_node(node: NodeDataFromFrontend) -> tuple[bool, Any, str]:
 
     Returns a tuple of (success, result, error_message)
     """
-    from app.server import CALLABLES
+    from python_node_editor.server import CALLABLES
 
     callable = CALLABLES[node.callable_id]
 
@@ -148,8 +148,8 @@ def topological_order(graph: Graph) -> list[NodeFromFrontend]:
 
 def create_node_update(node, success, result, terminal_output, graph, execution_list):
     """Create a node update object from execution results"""
-    from app.schema import DataWrapper, MultipleOutputs, NodeUpdate
-    from app.server import TYPES
+    from python_node_editor.schema import DataWrapper, MultipleOutputs, NodeUpdate
+    from python_node_editor.server import TYPES
 
     outputs = {}
 

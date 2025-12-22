@@ -4,7 +4,7 @@ import os
 import typing
 from typing import Any, Callable, Dict, Tuple
 
-from app.schema import DataWrapper, FunctionSchema, StructDescr
+from python_node_editor.schema import DataWrapper, FunctionSchema, StructDescr
 
 from .types_analysis import analyze_type, get_type_repr, merge_types_dict
 

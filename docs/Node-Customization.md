@@ -12,7 +12,7 @@ Docstring analysis is built into PNE by default, when you add a docstring on you
 In python, function names are restricted to a naming convention, and we might want a prettier name to display on the frontend. To add a custom name you can use the `add_node_options` decorator:
 
 ```python
-from app.display import add_node_options
+from python_node_editor.display import add_node_options
 @add_node_options(node_name="Add With Custom Name")
 def add_with_custom_name(a: int, b: int) -> int:
     return a + b
@@ -22,7 +22,7 @@ def add_with_custom_name(a: int, b: int) -> int:
 In python arguments have names, but return values don't. To add a name to your function's return value that displays on the frontend, you can use the same decorator:
 
 ```python
-from app.display import add_node_options
+from python_node_editor.display import add_node_options
 @add_node_options(return_value_name="area")
 def calculate_rectangle_area(width: float, height: float) -> float:
     return width * height

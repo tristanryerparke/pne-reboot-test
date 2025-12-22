@@ -1,7 +1,7 @@
 from devtools import debug as d
 
-from app.analysis.functions_analysis import analyze_function
-from app.schema import DataWrapper
+from python_node_editor.analysis.functions_analysis import analyze_function
+from python_node_editor.schema import DataWrapper
 from tests.assets.functions import add, nth_root, percentage
 
 

@@ -1,6 +1,6 @@
 """Utility functions for building graph structures in tests."""
 
-from app.schema import FunctionSchema, NodeDataFromFrontend, NodeFromFrontend
+from python_node_editor.schema import FunctionSchema, NodeDataFromFrontend, NodeFromFrontend
 
 
 def node_from_schema(

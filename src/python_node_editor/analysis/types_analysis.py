@@ -4,8 +4,8 @@ import types
 import typing
 from typing import Any, Dict, Set
 
-from app.schema import MultipleOutputs
-from app.schema_base import (
+from python_node_editor.schema import MultipleOutputs
+from python_node_editor.schema_base import (
     CachedTypeDefModel,
     StructDescr,
     TypeDefModel,

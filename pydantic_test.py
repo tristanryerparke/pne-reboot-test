@@ -12,7 +12,7 @@ from pydantic import (
     model_validator,
 )
 
-from app.schema_base import CamelBaseModel
+from python_node_editor.schema_base import CamelBaseModel
 
 CACHE = {}
 

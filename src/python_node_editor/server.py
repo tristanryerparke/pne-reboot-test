@@ -8,10 +8,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.analysis.utils import analyze_file_structure
-from app.execution.exec_async import router as execute_async_router
-from app.execution.exec_sync import router as execute_sync_router
-from app.large_data.router import router as large_data_router
+from python_node_editor.analysis.utils import analyze_file_structure
+from python_node_editor.execution.exec_async import router as execute_async_router
+from python_node_editor.execution.exec_sync import router as execute_sync_router
+from python_node_editor.large_data.router import router as large_data_router
 
 FUNCTION_SCHEMAS = []
 CALLABLES = {}
