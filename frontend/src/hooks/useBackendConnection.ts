@@ -7,7 +7,7 @@ const POLL_INTERVAL_DISCONNECTED = 5000; // 5 seconds when disconnected (reduced
 export function useBackendConnection() {
   const [isConnected, setIsConnected] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const intervalRef = useRef<number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const checkConnection = useCallback(async () => {
     try {

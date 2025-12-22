@@ -66,7 +66,6 @@ export default memo(function CustomNode({
               isExpanded={data._terminal_drawer?._expanded ?? false}
               terminalOutput={data.terminal_output as string}
               path={path}
-              selected={selected}
             />
           </div>
         </div>

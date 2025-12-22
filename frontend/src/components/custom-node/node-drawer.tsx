@@ -11,7 +11,6 @@ type NodeDrawerProps = {
   isExpanded: boolean;
   terminalOutput?: string;
   path: (string | number)[];
-  selected?: boolean;
 };
 
 const DEFAULT_AND_MIN_HEIGHT = 25; // Tailwind units
@@ -21,7 +20,6 @@ export default memo(function NodeDrawer({
   isExpanded,
   terminalOutput,
   path,
-  selected,
 }: NodeDrawerProps) {
   const updateNodeData = useFlowStore((state) => state.updateNodeData);
 

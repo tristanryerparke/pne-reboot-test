@@ -1,3 +1,4 @@
+# pyright: basic, reportOptionalSubscript = false
 import asyncio
 
 import shortuuid
