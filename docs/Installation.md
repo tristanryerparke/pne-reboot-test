@@ -1,6 +1,11 @@
-There are several ways to use install and use Python Node Editor:
+Python Node Editor makes heavy use of [UV](https://github.com/astral-sh/uv), it is reccomended to install uv in order to use the tools PNE provides. 
+
+- `curl -LsSf https://astral.sh/uv/install.sh | sh`
+
+Once uv is installed, there are several ways to use install and use PNE:
 
 1. **Clone the Repository**
+
 For beginner use and development, it is recommended to clone the repository in order to learn how PNE works.
 
 - `git clone https://github.com/tristanryerparke/python-node-editor`
@@ -12,9 +17,9 @@ The basic command line scripts will available in this directory.
 
 From there you can follow the [Usage Introductions](Usage-Introduction.md) and also run PNE in [development](Development.md) mode.
 
-2. **Install in another package package with `uv`**
+2. **Install in another uv project**
 
-In your own uv project you can install PNE like so:
+In your own project you can install PNE like so:
 
 - `uv add git+https://github.com/tristanryerparke/python-node-editor`
 
@@ -22,14 +27,14 @@ Then from within that project you should be able to use the normal PNE command l
 
 - `uv run pne my-file-with-functions.py` where "my-file-with-functions.py" is the file containing the functions you want PNE to consume. 
 
-Note that this above method uses a packaged/static version of PNE (frontend and backend) that is not editable and does not contain the examples. If you want to use a version of PNE that you have modified in an external project, then you should use method 3.
+Note that this above method uses a packaged/static version of PNE (frontend and backend) that is not editable and does not contain the examples. It will still actively analyze your python code and generate nodes for the UI, but if you want to use a version of PNE that you have modified (in an external project), then you should use method 3.
 
 3. **Install your local copy as a linked/editable package**
 
-This is an advanced use case for when you have modified PNE and want to use your modified version in another project.
+This is an advanced use case for when you have modified PNE and want to use your modified version inside another project.
 
-Make sure you have cloned the repo as described in step 1, then run this command in your project's root directory:
+Make sure you have cloned the repo as described in step 1, then run this command in your external project's root directory:
 
 - `uv pip install -e /path/to/where/i/cloned/python-node-editor`, replacing the path with the actual path to your cloned and modified instance of the pne repository.
 
-If you have made modifications to the frontend in your cloned location, you should ensure that you are using an up-to-date version of the frontend by following the instructions in the [Development.md](Development.md) file.
+If you have made modifications to the frontend in your cloned location, you should ensure that you are using a build that incorporates your changes by following the frontend rebuild or dev server instructions in the [Development.md](Development.md) file.
