@@ -81,7 +81,7 @@ async def poll_execution_until_complete(
     last_update_index = -1
 
     while time.time() - start_time < timeout:
-        response = await client.get(f"/execution_status/{execution_id}")
+        response = await client.get(f"/execution_update/{execution_id}")
         assert response.status_code == 200
         data = response.json()
 

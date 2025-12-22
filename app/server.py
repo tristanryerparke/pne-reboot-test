@@ -21,6 +21,23 @@ IGNORE_UNDERSCORE_PREFIX = True
 SERVE_FRONTEND = False
 
 
+class _HealthCheckAccessFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        if " /health " in message or " /health?" in message:
+            return False
+        return True
+
+
+def _attach_access_log_filter() -> None:
+    logger = logging.getLogger("uvicorn.access")
+    if any(
+        isinstance(existing, _HealthCheckAccessFilter) for existing in logger.filters
+    ):
+        return
+    logger.addFilter(_HealthCheckAccessFilter())
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager to load functions and types from the provided path arguments"""
@@ -59,6 +76,7 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+_attach_access_log_filter()
 
 # Include routers
 app.include_router(execute_sync_router)
@@ -68,7 +86,6 @@ app.include_router(large_data_router, prefix="/data", tags=["data"])
 
 @app.get("/health")
 async def health_check(request: Request):
-    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
     return {"status": "ok"}
 
 

@@ -24,7 +24,7 @@ export function useExecuteFlowAsync() {
     async (executionId: string) => {
       try {
         const response = await fetch(
-          `http://localhost:8000/execution_status/${executionId}`,
+          `http://localhost:8000/execution_update/${executionId}`,
         );
 
         if (!response.ok) {

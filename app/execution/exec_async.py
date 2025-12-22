@@ -43,7 +43,7 @@ async def submit_execution(graph: Graph):
     return {"execution_id": execution_id}
 
 
-@router.get("/execution_status/{execution_id}")
+@router.get("/execution_update/{execution_id}")
 async def get_execution_status(execution_id: str):
     """Get the status and updates for a specific execution"""
     if execution_id not in EXECUTIONS:
