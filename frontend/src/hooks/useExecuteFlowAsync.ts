@@ -33,8 +33,8 @@ export function useExecuteFlowAsync() {
 
         const result = await response.json();
 
-        // Check if the update_index has changed
-        const currentIndex = result.update_index;
+        // Check if the updateIndex has changed
+        const currentIndex = result.updateIndex;
 
         if (currentIndex === lastSeenIndexRef.current) {
           // No changes, skip processing
@@ -45,8 +45,12 @@ export function useExecuteFlowAsync() {
         lastSeenIndexRef.current = currentIndex;
 
         // Process updates if present
-        if (result.updates && Array.isArray(result.updates)) {
-          result.updates.forEach((update: NodeUpdate) => {
+        if (result.nodeUpdates) {
+          const updates: NodeUpdate[] = Array.isArray(result.nodeUpdates)
+            ? result.nodeUpdates
+            : Object.values(result.nodeUpdates);
+
+          updates.forEach((update: NodeUpdate) => {
             const nodeId = update.nodeId;
 
             // Get existing node data and merge while preserving ui only-data

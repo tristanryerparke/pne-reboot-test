@@ -3,7 +3,6 @@ import asyncio
 import shortuuid
 from devtools import debug as d
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 from typing_extensions import Literal
 
 from app.execution.exec_utils import (
@@ -13,6 +12,7 @@ from app.execution.exec_utils import (
     topological_order,
 )
 from app.schema import Graph, NodeFromFrontend, NodeUpdate
+from app.schema_base import CamelBaseModel
 
 router = APIRouter()
 
@@ -20,8 +20,8 @@ router = APIRouter()
 EXECUTION_CLEANUP_DELAY = 10
 
 
-class ExecutionState(BaseModel):
-    status: Literal["running", "complete"] = "running"  # "running" or "complete"
+class ExecutionState(CamelBaseModel):
+    status: Literal["running", "complete"] = "running"
     node_updates: dict[str, NodeUpdate] = {}
     update_index: int = 0
     last_sent_index: int = -1
@@ -54,22 +54,13 @@ async def get_execution_status(execution_id: str):
 
     # If nothing has changed, return only the index
     if current_index == last_sent:
-        return {"update_index": current_index}
-
-    # Something changed, send full response with merged updates
-    response = {
-        "update_index": current_index,
-        "status": execution_state.status,
-        "updates": [
-            update.model_dump(exclude_none=True)
-            for update in execution_state.node_updates.values()
-        ],
-    }
+        return {"updateIndex": current_index}
 
     # Update the last sent index for this execution
     execution_state.last_sent_index = current_index
 
-    return response
+    # Return the execution state, excluding internal last_sent_index field
+    return execution_state.model_dump(exclude={"last_sent_index"}, exclude_none=True)
 
 
 def push_node_update(
@@ -79,6 +70,9 @@ def push_node_update(
 
     If an update for the node already exists, dict fields (outputs, arguments) are merged
     and other fields are overwritten. Otherwise, the update is added as new.
+
+    This avoids calling model_dump() to prevent triggering expensive serializers
+    (like thumbnail generation for images) during internal merging operations.
     """
     node_id = new_update.node_id
 
@@ -86,23 +80,27 @@ def push_node_update(
         node_updates[node_id] = new_update
         return
 
-    # Merge with existing update
+    # Merge with existing update directly without model_dump()
     existing = node_updates[node_id]
-    merged_data = existing.model_dump()
-    new_data = new_update.model_dump()
 
-    for key, value in new_data.items():
-        if key == "nodeId":
-            # nodeId should never change
-            continue
-        elif key in ("outputs", "arguments") and isinstance(value, dict):
-            # Merge dict fields
-            merged_data[key].update(value)
-        elif value is not None:
-            # Overwrite other fields if provided
-            merged_data[key] = value
+    # Merge outputs dict if new_update has outputs
+    if new_update.outputs:
+        if not existing.outputs:
+            existing.outputs = {}
+        existing.outputs.update(new_update.outputs)
 
-    node_updates[node_id] = NodeUpdate(**merged_data)
+    # Merge arguments dict if new_update has arguments
+    if new_update.arguments:
+        if not existing.arguments:
+            existing.arguments = {}
+        existing.arguments.update(new_update.arguments)
+
+    # Overwrite scalar fields if provided
+    if new_update.status is not None:
+        existing.status = new_update.status
+
+    if new_update.terminal_output is not None:
+        existing.terminal_output = new_update.terminal_output
 
 
 async def execute_and_create_update(

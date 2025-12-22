@@ -10,7 +10,9 @@ from app.analysis.user_model_functions.user_model_nodes import (
     create_const_deconst_models,
 )
 from app.execution.exec_sync import router as graph_router
+from app.schema import Edge, Graph
 from examples.basic_user_model import two_point_distance
+from tests.assets.graph_utils import node_from_schema
 
 # Analyze the function to get types and schema
 _, schema, _, found_types = analyze_function(two_point_distance)
@@ -31,6 +33,17 @@ for model_schema in model_schemas:
         construct_callable_id = model_schema.callable_id
     elif model_schema.name.startswith("deconstruct-"):
         deconstruct_callable_id = model_schema.callable_id
+
+construct_schema = next(
+    schema_item
+    for schema_item in model_schemas
+    if schema_item.callable_id == construct_callable_id
+)
+deconstruct_schema = next(
+    schema_item
+    for schema_item in model_schemas
+    if schema_item.callable_id == deconstruct_callable_id
+)
 
 mock_callables.update(model_callables)
 
@@ -60,26 +73,13 @@ client = TestClient(app)
 
 def test_single_construct_node():
     """Test executing a single Point2D construct node"""
-    graph_data = {
-        "nodes": [
-            {
-                "id": "construct-node-1",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": construct_callable_id,
-                    "arguments": {
-                        "x": {"type": "float", "value": 2.0},
-                        "y": {"type": "float", "value": 4.0},
-                    },
-                    "outputs": {"return": {"type": "Point2D"}},
-                    "outputStyle": "single",
-                },
-            },
-        ],
-        "edges": [],
-    }
+    node1 = node_from_schema("construct-node-1", construct_schema)
+    node1.data.arguments["x"].value = 2.0
+    node1.data.arguments["y"].value = 4.0
 
-    response = client.post("/graph_execute", json=graph_data)
+    graph = Graph(nodes=[node1], edges=[])
+
+    response = client.post("/graph_execute", json=graph.model_dump(by_alias=True))
     assert response.status_code == 200
 
     result = response.json()
@@ -98,49 +98,26 @@ def test_single_construct_node():
 
 def test_construct_and_deconstruct():
     """Test constructing a Point2D and then deconstructing it"""
-    graph_data = {
-        "nodes": [
-            {
-                "id": "construct-node-1",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": construct_callable_id,
-                    "arguments": {
-                        "x": {"type": "float", "value": 3.0},
-                        "y": {"type": "float", "value": 5.0},
-                    },
-                    "outputs": {"return": {"type": "Point2D"}},
-                    "outputStyle": "single",
-                },
-            },
-            {
-                "id": "deconstruct-node-1",
-                "position": {"x": 200, "y": 0},
-                "data": {
-                    "callableId": deconstruct_callable_id,
-                    "arguments": {
-                        "instance": {"type": "Point2D", "value": None},
-                    },
-                    "outputs": {
-                        "x": {"type": "float"},
-                        "y": {"type": "float"},
-                    },
-                    "outputStyle": "multiple",
-                },
-            },
-        ],
-        "edges": [
-            {
-                "id": "edge1",
-                "source": "construct-node-1",
-                "sourceHandle": "construct-node-1:outputs:return:handle",
-                "target": "deconstruct-node-1",
-                "targetHandle": "deconstruct-node-1:inputs:instance:handle",
-            }
-        ],
-    }
+    construct_node = node_from_schema("construct-node-1", construct_schema)
+    construct_node.data.arguments["x"].value = 3.0
+    construct_node.data.arguments["y"].value = 5.0
 
-    response = client.post("/graph_execute", json=graph_data)
+    deconstruct_node = node_from_schema(
+        "deconstruct-node-1", deconstruct_schema, position={"x": 200, "y": 0}
+    )
+    deconstruct_node.data.arguments["instance"].value = None
+
+    edge1 = Edge(
+        id="edge1",
+        source="construct-node-1",
+        source_handle="construct-node-1:outputs:return:handle",
+        target="deconstruct-node-1",
+        target_handle="deconstruct-node-1:inputs:instance:handle",
+    )
+
+    graph = Graph(nodes=[construct_node, deconstruct_node], edges=[edge1])
+
+    response = client.post("/graph_execute", json=graph.model_dump(by_alias=True))
     assert response.status_code == 200
 
     result = response.json()
@@ -167,67 +144,40 @@ def test_construct_and_deconstruct():
 
 def test_two_point_distance_calculation():
     """Test calculating distance between two points"""
-    graph_data = {
-        "nodes": [
-            {
-                "id": "construct-point-a",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": construct_callable_id,
-                    "arguments": {
-                        "x": {"type": "float", "value": 0.0},
-                        "y": {"type": "float", "value": 0.0},
-                    },
-                    "outputs": {"return": {"type": "Point2D"}},
-                    "outputStyle": "single",
-                },
-            },
-            {
-                "id": "construct-point-b",
-                "position": {"x": 0, "y": 100},
-                "data": {
-                    "callableId": construct_callable_id,
-                    "arguments": {
-                        "x": {"type": "float", "value": 3.0},
-                        "y": {"type": "float", "value": 4.0},
-                    },
-                    "outputs": {"return": {"type": "Point2D"}},
-                    "outputStyle": "single",
-                },
-            },
-            {
-                "id": "distance-node",
-                "position": {"x": 200, "y": 50},
-                "data": {
-                    "callableId": schema.callable_id,
-                    "arguments": {
-                        "a": {"type": "Point2D", "value": None},
-                        "b": {"type": "Point2D", "value": None},
-                    },
-                    "outputs": {"return": {"type": "float"}},
-                    "outputStyle": "single",
-                },
-            },
-        ],
-        "edges": [
-            {
-                "id": "edge1",
-                "source": "construct-point-a",
-                "sourceHandle": "construct-point-a:outputs:return:handle",
-                "target": "distance-node",
-                "targetHandle": "distance-node:inputs:a:handle",
-            },
-            {
-                "id": "edge2",
-                "source": "construct-point-b",
-                "sourceHandle": "construct-point-b:outputs:return:handle",
-                "target": "distance-node",
-                "targetHandle": "distance-node:inputs:b:handle",
-            },
-        ],
-    }
+    point_a = node_from_schema("construct-point-a", construct_schema)
+    point_a.data.arguments["x"].value = 0.0
+    point_a.data.arguments["y"].value = 0.0
 
-    response = client.post("/graph_execute", json=graph_data)
+    point_b = node_from_schema(
+        "construct-point-b", construct_schema, position={"x": 0, "y": 100}
+    )
+    point_b.data.arguments["x"].value = 3.0
+    point_b.data.arguments["y"].value = 4.0
+
+    distance_node = node_from_schema(
+        "distance-node", schema, position={"x": 200, "y": 50}
+    )
+    distance_node.data.arguments["a"].value = None
+    distance_node.data.arguments["b"].value = None
+
+    edge1 = Edge(
+        id="edge1",
+        source="construct-point-a",
+        source_handle="construct-point-a:outputs:return:handle",
+        target="distance-node",
+        target_handle="distance-node:inputs:a:handle",
+    )
+    edge2 = Edge(
+        id="edge2",
+        source="construct-point-b",
+        source_handle="construct-point-b:outputs:return:handle",
+        target="distance-node",
+        target_handle="distance-node:inputs:b:handle",
+    )
+
+    graph = Graph(nodes=[point_a, point_b, distance_node], edges=[edge1, edge2])
+
+    response = client.post("/graph_execute", json=graph.model_dump(by_alias=True))
     assert response.status_code == 200
 
     result = response.json()

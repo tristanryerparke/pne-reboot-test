@@ -130,15 +130,13 @@ class NodeUpdate(CamelBaseModel):
 
     node_id: str
     status: Literal["executing", "executed", "error"] | None = None
-    outputs: dict[str, DataWrapper | CachedDataWrapper] = {}
-    arguments: dict[str, DataWrapper | CachedDataWrapper] = {}
+    outputs: dict[str, DataWrapper | CachedDataWrapper] | None = None
+    arguments: dict[str, DataWrapper | CachedDataWrapper] | None = None
     terminal_output: str | None = None
 
-    @field_serializer("outputs", "arguments")
+    @field_serializer("outputs", "arguments", when_used="unless-none")
     def serialize_wrappers(self, value, _info):
         """Custom serializer to ensure nested CachedDataWrapper subclasses properly serialize computed fields"""
-        if value is None:
-            return None
         return {
             key: wrapper.model_dump(by_alias=True, exclude_none=True)
             for key, wrapper in value.items()

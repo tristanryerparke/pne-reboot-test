@@ -12,14 +12,17 @@ import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
 from app.execution.exec_sync import router as graph_router
 from app.large_data.router import router as data_router
+from app.schema import Edge, Graph
+from examples._custom_datatypes.cached_image import CachedImageDataModel
 from tests.assets.blur import blur_image
+from tests.assets.graph_utils import node_from_schema
 
 # Analyze the blur_image function to get types
 _, schema, _, found_types = analyze_function(blur_image)
 
 # Register the blur_image function and its types (don't clear, just update)
 mock_callables = {
-    "blur_image": blur_image,
+    schema.callable_id: blur_image,
 }
 
 server_module.CALLABLES.update(mock_callables)
@@ -64,7 +67,7 @@ def test_app_setup():
     assert image_type._referenced_datamodel is CachedImageDataModel
 
     # Verify blur_image is registered
-    assert "blur_image" in server_module.CALLABLES
+    assert schema.callable_id in server_module.CALLABLES
 
 
 def test_image_upload():
@@ -147,33 +150,16 @@ def test_single_image_node_execute():
     cache_key = upload_result["cacheKey"]
 
     # Create graph with blur_image node
-    graph_data = {
-        "nodes": [
-            {
-                "id": "blur-node-1",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": "blur_image",
-                    "arguments": {
-                        "image": {
-                            "type": "Image",
-                            "cacheKey": cache_key,
-                        },
-                        "radius": {
-                            "type": "int",
-                            "value": 20,
-                        },
-                    },
-                    "outputs": {"image_blurred": {"type": "Image"}},
-                    "outputStyle": "single",
-                },
-            },
-        ],
-        "edges": [],
-    }
+    node1 = node_from_schema("blur-node-1", schema)
+    node1.data.arguments["image"] = CachedImageDataModel.from_cache_key(
+        cache_key, type_str="Image"
+    )
+    node1.data.arguments["radius"].value = 20
+
+    graph = Graph(nodes=[node1], edges=[])
 
     # Execute the graph
-    response = client.post("/graph_execute", json=graph_data)
+    response = client.post("/graph_execute", json=graph.model_dump(by_alias=True))
     assert response.status_code == 200
 
     result = response.json()
@@ -184,9 +170,9 @@ def test_single_image_node_execute():
     node_update = result["updates"][0]
     assert node_update["nodeId"] == "blur-node-1"
     assert "outputs" in node_update
-    assert "image_blurred" in node_update["outputs"]
+    assert "return" in node_update["outputs"]
 
-    output = node_update["outputs"]["image_blurred"]
+    output = node_update["outputs"]["return"]
     assert output["type"] == "Image"
     assert "cacheKey" in output
     assert "_preview" in output
@@ -212,60 +198,28 @@ def test_two_connected_image_nodes():
     cache_key = upload_response.json()["cacheKey"]
 
     # Create graph with two connected blur nodes
-    graph_data = {
-        "nodes": [
-            {
-                "id": "blur-node-1",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": "blur_image",
-                    "arguments": {
-                        "image": {
-                            "type": "Image",
-                            "cacheKey": cache_key,
-                        },
-                        "radius": {
-                            "type": "int",
-                            "value": 10,
-                        },
-                    },
-                    "outputs": {"image_blurred": {"type": "Image"}},
-                    "outputStyle": "single",
-                },
-            },
-            {
-                "id": "blur-node-2",
-                "position": {"x": 200, "y": 0},
-                "data": {
-                    "callableId": "blur_image",
-                    "arguments": {
-                        "image": {
-                            "type": "Image",
-                            "cacheKey": None,
-                        },
-                        "radius": {
-                            "type": "int",
-                            "value": 20,
-                        },
-                    },
-                    "outputs": {"image_blurred": {"type": "Image"}},
-                    "outputStyle": "single",
-                },
-            },
-        ],
-        "edges": [
-            {
-                "id": "edge1",
-                "source": "blur-node-1",
-                "sourceHandle": "blur-node-1:outputs:image_blurred:handle",
-                "target": "blur-node-2",
-                "targetHandle": "blur-node-2:inputs:image:handle",
-            }
-        ],
-    }
+    node1 = node_from_schema("blur-node-1", schema)
+    node1.data.arguments["image"] = CachedImageDataModel.from_cache_key(
+        cache_key, type_str="Image"
+    )
+    node1.data.arguments["radius"].value = 10
+
+    node2 = node_from_schema("blur-node-2", schema, position={"x": 200, "y": 0})
+    node2.data.arguments["image"].value = None
+    node2.data.arguments["radius"].value = 20
+
+    edge1 = Edge(
+        id="edge1",
+        source="blur-node-1",
+        source_handle="blur-node-1:outputs:return:handle",
+        target="blur-node-2",
+        target_handle="blur-node-2:inputs:image:handle",
+    )
+
+    graph = Graph(nodes=[node1, node2], edges=[edge1])
 
     # Execute the graph
-    response = client.post("/graph_execute", json=graph_data)
+    response = client.post("/graph_execute", json=graph.model_dump(by_alias=True))
     assert response.status_code == 200
 
     result = response.json()
@@ -276,8 +230,8 @@ def test_two_connected_image_nodes():
     # Verify first node output
     node1_update = result["updates"][0]
     assert node1_update["nodeId"] == "blur-node-1"
-    assert "image_blurred" in node1_update["outputs"]
-    node1_output = node1_update["outputs"]["image_blurred"]
+    assert "return" in node1_update["outputs"]
+    node1_output = node1_update["outputs"]["return"]
     assert node1_output["type"] == "Image"
     assert "cacheKey" in node1_output
 
@@ -292,8 +246,8 @@ def test_two_connected_image_nodes():
     # Verify second node output
     node2_update = result["updates"][2]
     assert node2_update["nodeId"] == "blur-node-2"
-    assert "image_blurred" in node2_update["outputs"]
-    node2_output = node2_update["outputs"]["image_blurred"]
+    assert "return" in node2_update["outputs"]
+    node2_output = node2_update["outputs"]["return"]
     assert node2_output["type"] == "Image"
     assert "cacheKey" in node2_output
 

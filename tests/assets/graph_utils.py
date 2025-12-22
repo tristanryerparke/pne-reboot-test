@@ -17,10 +17,15 @@ def node_from_schema(
     if position is None:
         position = {"x": 0, "y": 0}
 
+    # We need to copy thin inputs and outputs in case multiple nodes are created from the same schema
     node_data = NodeDataFromFrontend(
         callable_id=schema.callable_id,
-        arguments=schema.arguments.copy(),
-        outputs=schema.outputs.copy(),
+        arguments={
+            key: value.model_copy(deep=True) for key, value in schema.arguments.items()
+        },
+        outputs={
+            key: value.model_copy(deep=True) for key, value in schema.outputs.items()
+        },
         output_style=schema.output_style,
     )
 

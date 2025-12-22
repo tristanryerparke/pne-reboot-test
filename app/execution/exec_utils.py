@@ -200,6 +200,6 @@ def create_node_update(node, success, result, terminal_output, graph, execution_
     return NodeUpdate(
         node_id=node.id,
         status="executed",
-        outputs=outputs,
+        outputs=outputs or None,
         terminal_output=terminal_output,
     )

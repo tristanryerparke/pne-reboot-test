@@ -17,12 +17,14 @@ from httpx import ASGITransport
 import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
 from app.execution.exec_async import router as async_router
+from app.schema import Edge, Graph
 from tests.assets.functions_with_delays import (
     quick_add,
     quick_divide,
     quick_multiply,
     quick_power,
 )
+from tests.assets.graph_utils import node_from_schema
 
 # Register test functions
 _, schema_add, _, types_add = analyze_function(quick_add)
@@ -30,16 +32,16 @@ _, schema_multiply, _, types_multiply = analyze_function(quick_multiply)
 _, schema_divide, _, types_divide = analyze_function(quick_divide)
 _, schema_power, _, types_power = analyze_function(quick_power)
 
-server_module.CALLABLES["quick-add"] = quick_add
+server_module.CALLABLES[schema_add.callable_id] = quick_add
 server_module.FUNCTION_SCHEMAS.append(schema_add)
 
-server_module.CALLABLES["quick-multiply"] = quick_multiply
+server_module.CALLABLES[schema_multiply.callable_id] = quick_multiply
 server_module.FUNCTION_SCHEMAS.append(schema_multiply)
 
-server_module.CALLABLES["quick-divide"] = quick_divide
+server_module.CALLABLES[schema_divide.callable_id] = quick_divide
 server_module.FUNCTION_SCHEMAS.append(schema_divide)
 
-server_module.CALLABLES["quick-power"] = quick_power
+server_module.CALLABLES[schema_power.callable_id] = quick_power
 server_module.FUNCTION_SCHEMAS.append(schema_power)
 
 # Merge types
@@ -83,14 +85,20 @@ async def poll_execution_until_complete(
         assert response.status_code == 200
         data = response.json()
 
-        current_index = data["update_index"]
+        current_index = data["updateIndex"]
 
         # Only store snapshots when something changed
         if current_index != last_update_index:
             snapshots.append(data)
             last_update_index = current_index
+            node_updates = data.get("nodeUpdates", {})
+            updates_count = (
+                len(node_updates)
+                if isinstance(node_updates, dict)
+                else len(node_updates)
+            )
             print(
-                f"New snapshot: update_index={current_index}, status={data.get('status')}, num_updates={len(data.get('updates', []))}"
+                f"New snapshot: updateIndex={current_index}, status={data.get('status')}, num_updates={updates_count}"
             )
 
         # Check if execution complete
@@ -106,31 +114,20 @@ async def poll_execution_until_complete(
 @pytest.mark.asyncio
 async def test_single_node_async_execute():
     """Test async execution of a single node with status updates."""
-    graph_data = {
-        "nodes": [
-            {
-                "id": "node1",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": "quick-add",
-                    "arguments": {
-                        "a": {"type": "int", "value": 10},
-                        "b": {"type": "int", "value": 5},
-                    },
-                    "outputs": {"return": {"type": "int"}},
-                    "outputStyle": "single",
-                },
-            },
-        ],
-        "edges": [],
-    }
+    node1 = node_from_schema("node1", schema_add)
+    node1.data.arguments["a"].value = 10
+    node1.data.arguments["b"].value = 5
+
+    graph = Graph(nodes=[node1], edges=[])
 
     # Use httpx.AsyncClient to properly support background tasks
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         # Submit execution
-        response = await client.post("/execution_submit", json=graph_data)
+        response = await client.post(
+            "/execution_submit", json=graph.model_dump(by_alias=True)
+        )
         assert response.status_code == 200
         result = response.json()
         execution_id = result["execution_id"]
@@ -147,8 +144,14 @@ async def test_single_node_async_execute():
         # where node1 has status "executing"
         executing_found = False
         for snapshot in snapshots:
-            if "updates" in snapshot:
-                for update in snapshot["updates"]:
+            if "nodeUpdates" in snapshot:
+                node_updates = snapshot["nodeUpdates"]
+                updates = (
+                    list(node_updates.values())
+                    if isinstance(node_updates, dict)
+                    else node_updates
+                )
+                for update in updates:
                     if (
                         update.get("nodeId") == "node1"
                         and update.get("status") == "executing"
@@ -161,10 +164,15 @@ async def test_single_node_async_execute():
         # Final snapshot should be complete
         final_snapshot = snapshots[-1]
         assert final_snapshot["status"] == "complete"
-        assert "updates" in final_snapshot
+        assert "nodeUpdates" in final_snapshot
 
         # Find the final node update - should now be "executed"
-        final_updates = final_snapshot["updates"]
+        final_node_updates = final_snapshot["nodeUpdates"]
+        final_updates = (
+            list(final_node_updates.values())
+            if isinstance(final_node_updates, dict)
+            else final_node_updates
+        )
         node1_final = None
         for update in final_updates:
             if update.get("nodeId") == "node1":
@@ -179,51 +187,31 @@ async def test_single_node_async_execute():
 @pytest.mark.asyncio
 async def test_two_connected_nodes_async_execute():
     """Test async execution of two connected nodes with intermediate updates."""
-    graph_data = {
-        "nodes": [
-            {
-                "id": "node1",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": "quick-add",
-                    "arguments": {
-                        "a": {"type": "int", "value": 10},
-                        "b": {"type": "int", "value": 5},
-                    },
-                    "outputs": {"return": {"type": "int"}},
-                    "outputStyle": "single",
-                },
-            },
-            {
-                "id": "node2",
-                "position": {"x": 200, "y": 0},
-                "data": {
-                    "callableId": "quick-multiply",
-                    "arguments": {
-                        "x": {"type": "int", "value": None},
-                        "y": {"type": "int", "value": 3},
-                    },
-                    "outputs": {"return": {"type": "int"}},
-                    "outputStyle": "single",
-                },
-            },
-        ],
-        "edges": [
-            {
-                "id": "edge1",
-                "source": "node1",
-                "sourceHandle": "node1:outputs:return:handle",
-                "target": "node2",
-                "targetHandle": "node2:inputs:x:handle",
-            }
-        ],
-    }
+    node1 = node_from_schema("node1", schema_add)
+    node1.data.arguments["a"].value = 10
+    node1.data.arguments["b"].value = 5
+
+    node2 = node_from_schema("node2", schema_multiply, position={"x": 200, "y": 0})
+    node2.data.arguments["x"].value = None
+    node2.data.arguments["y"].value = 3
+
+    edge1 = Edge(
+        id="edge1",
+        source="node1",
+        source_handle="node1:outputs:return:handle",
+        target="node2",
+        target_handle="node2:inputs:x:handle",
+    )
+
+    graph = Graph(nodes=[node1, node2], edges=[edge1])
 
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         # Submit execution
-        response = await client.post("/execution_submit", json=graph_data)
+        response = await client.post(
+            "/execution_submit", json=graph.model_dump(by_alias=True)
+        )
         assert response.status_code == 200
         result = response.json()
         execution_id = result["execution_id"]
@@ -238,7 +226,12 @@ async def test_two_connected_nodes_async_execute():
         # Collect all updates from final snapshot
         # Since updates are consolidated per node, we expect 2 node updates:
         # one for node1 and one for node2
-        all_updates = final_snapshot["updates"]
+        node_updates = final_snapshot["nodeUpdates"]
+        all_updates = (
+            list(node_updates.values())
+            if isinstance(node_updates, dict)
+            else node_updates
+        )
         assert len(all_updates) == 2
 
         # Find specific node updates
@@ -266,30 +259,19 @@ async def test_two_connected_nodes_async_execute():
 @pytest.mark.asyncio
 async def test_async_execution_with_error():
     """Test async execution when a node encounters an error."""
-    graph_data = {
-        "nodes": [
-            {
-                "id": "node1",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": "quick-divide",
-                    "arguments": {
-                        "numerator": {"type": "int", "value": 10},
-                        "denominator": {"type": "int", "value": 0},  # Will cause error
-                    },
-                    "outputs": {"return": {"type": "float"}},
-                    "outputStyle": "single",
-                },
-            },
-        ],
-        "edges": [],
-    }
+    node1 = node_from_schema("node1", schema_divide)
+    node1.data.arguments["numerator"].value = 10
+    node1.data.arguments["denominator"].value = 0
+
+    graph = Graph(nodes=[node1], edges=[])
 
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         # Submit execution
-        response = await client.post("/execution_submit", json=graph_data)
+        response = await client.post(
+            "/execution_submit", json=graph.model_dump(by_alias=True)
+        )
         assert response.status_code == 200
         result = response.json()
         execution_id = result["execution_id"]
@@ -302,7 +284,12 @@ async def test_async_execution_with_error():
         assert final_snapshot["status"] == "complete"
 
         # Since updates are consolidated, there should be 1 update for node1
-        all_updates = final_snapshot["updates"]
+        node_updates = final_snapshot["nodeUpdates"]
+        all_updates = (
+            list(node_updates.values())
+            if isinstance(node_updates, dict)
+            else node_updates
+        )
         assert len(all_updates) == 1
 
         node1_error = all_updates[0]

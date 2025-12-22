@@ -7,7 +7,9 @@ from fastapi.testclient import TestClient
 import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
 from app.execution.exec_sync import router as graph_router
+from app.schema import Graph
 from tests.assets.functions import add, divide_by_zero, process_data
+from tests.assets.graph_utils import node_from_schema
 
 # Analyze the functions to get types and schemas
 _, add_schema, _, add_types = analyze_function(add)
@@ -49,25 +51,12 @@ client = TestClient(app)
 
 def test_terminal_output_capture():
     """Test that terminal output from print statements is captured and returned"""
-    graph_data = {
-        "nodes": [
-            {
-                "id": "verbose-node-1",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": verbose_schema.callable_id,
-                    "arguments": {
-                        "x": {"type": "int", "value": 5},
-                    },
-                    "outputs": {"return": {"type": "int"}},
-                    "outputStyle": "single",
-                },
-            },
-        ],
-        "edges": [],
-    }
+    node1 = node_from_schema("verbose-node-1", verbose_schema)
+    node1.data.arguments["x"].value = 5
 
-    response = client.post("/graph_execute", json=graph_data)
+    graph = Graph(nodes=[node1], edges=[])
+
+    response = client.post("/graph_execute", json=graph.model_dump(by_alias=True))
     assert response.status_code == 200
 
     result = response.json()
@@ -90,25 +79,12 @@ def test_terminal_output_capture():
 
 def test_error_output_capture():
     """Test that error tracebacks are captured and returned as terminal output"""
-    graph_data = {
-        "nodes": [
-            {
-                "id": "error-node-1",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": error_schema.callable_id,
-                    "arguments": {
-                        "x": {"type": "float", "value": 10.0},
-                    },
-                    "outputs": {"return": {"type": "float"}},
-                    "outputStyle": "single",
-                },
-            },
-        ],
-        "edges": [],
-    }
+    node1 = node_from_schema("error-node-1", error_schema)
+    node1.data.arguments["x"].value = 10.0
 
-    response = client.post("/graph_execute", json=graph_data)
+    graph = Graph(nodes=[node1], edges=[])
+
+    response = client.post("/graph_execute", json=graph.model_dump(by_alias=True))
     assert response.status_code == 200
 
     result = response.json()
@@ -118,7 +94,9 @@ def test_error_output_capture():
     node_update = result["updates"][0]
     assert node_update["nodeId"] == "error-node-1"
     assert node_update["status"] == "error"
-    assert "outputs" not in node_update or len(node_update.get("outputs", {})) == 0
+    # Outputs should be empty dict or not present
+    outputs = node_update.get("outputs", {})
+    assert outputs is None or outputs == {}
 
     # Check that error traceback was captured
     assert "terminalOutput" in node_update
@@ -131,26 +109,13 @@ def test_error_output_capture():
 
 def test_empty_terminal_output_on_success():
     """Test that terminal output is an empty string when function executes without errors or output"""
-    graph_data = {
-        "nodes": [
-            {
-                "id": "add-node-1",
-                "position": {"x": 0, "y": 0},
-                "data": {
-                    "callableId": add_schema.callable_id,
-                    "arguments": {
-                        "a": {"type": "int", "value": 3},
-                        "b": {"type": "int", "value": 5},
-                    },
-                    "outputs": {"return": {"type": "int"}},
-                    "outputStyle": "single",
-                },
-            },
-        ],
-        "edges": [],
-    }
+    node1 = node_from_schema("add-node-1", add_schema)
+    node1.data.arguments["a"].value = 3
+    node1.data.arguments["b"].value = 5
 
-    response = client.post("/graph_execute", json=graph_data)
+    graph = Graph(nodes=[node1], edges=[])
+
+    response = client.post("/graph_execute", json=graph.model_dump(by_alias=True))
     assert response.status_code == 200
 
     result = response.json()
