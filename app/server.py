@@ -2,6 +2,8 @@ import logging
 import os
 import sys
 from contextlib import asynccontextmanager
+from importlib import metadata as importlib_metadata
+from pathlib import PurePosixPath
 
 from devtools import debug as d
 from fastapi import FastAPI, Request
@@ -124,10 +126,47 @@ app.add_middleware(
 def mount_frontend():
     """Mount frontend static files. Called from CLI after setting SERVE_FRONTEND flag."""
     if SERVE_FRONTEND:
-        frontend_prebuilt = os.path.join(
-            os.path.dirname(__file__), "..", "frontend", "prebuilt"
-        )
-        if os.path.exists(frontend_prebuilt):
+        frontend_prebuilt = get_frontend_prebuilt_dir()
+        if frontend_prebuilt:
             app.mount(
                 "/", StaticFiles(directory=frontend_prebuilt, html=True), name="static"
             )
+
+
+def get_frontend_prebuilt_dir():
+    local_prebuilt = os.path.join(
+        os.path.dirname(__file__), "..", "frontend", "prebuilt"
+    )
+    if os.path.isdir(local_prebuilt):
+        return local_prebuilt
+
+    return _find_packaged_frontend_prebuilt("python-node-editor")
+
+
+def get_frontend_source_dir():
+    local_frontend = os.path.join(os.path.dirname(__file__), "..", "frontend")
+    if os.path.isdir(local_frontend):
+        return local_frontend
+    return None
+
+
+def _find_packaged_frontend_prebuilt(dist_name):
+    try:
+        dist = importlib_metadata.distribution(dist_name)
+    except importlib_metadata.PackageNotFoundError:
+        return None
+
+    if not dist.files:
+        return None
+
+    for file in dist.files:
+        parts = file.parts
+        for idx, part in enumerate(parts):
+            if part == "data" and parts[idx + 1 : idx + 3] == (
+                "frontend",
+                "prebuilt",
+            ):
+                prebuilt_parts = parts[: idx + 3]
+                return str(dist.locate_file(PurePosixPath(*prebuilt_parts)))
+
+    return None

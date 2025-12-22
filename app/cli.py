@@ -32,13 +32,14 @@ def _parse_backend_args(builds_frontend):
     return args
 
 
-def _build_frontend():
+def _build_frontend(frontend_dir=None):
     import os
     import shutil
     import subprocess
     import sys
 
-    frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
+    if frontend_dir is None:
+        frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
     frontend_dist_dir = os.path.join(frontend_dir, "dist")
     frontend_prebuilt_dir = os.path.join(frontend_dir, "prebuilt")
 
@@ -74,11 +75,16 @@ def _run_backend(args):
     import uvicorn
 
     if args.frontend:
-        frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
-        frontend_prebuilt_dir = os.path.join(frontend_dir, "prebuilt")
         if args.build_frontend:
-            _build_frontend()
-        elif not os.path.isdir(frontend_prebuilt_dir):
+            frontend_source_dir = app.server.get_frontend_source_dir()
+            if not frontend_source_dir:
+                print(
+                    "Frontend: source folder not found. "
+                    "Reinstall from source or use a dev checkout."
+                )
+                sys.exit(1)
+            _build_frontend(frontend_source_dir)
+        elif not app.server.get_frontend_prebuilt_dir():
             print("Frontend: prebuilt folder not found. Run with -bf to build it.")
             sys.exit(1)
 
