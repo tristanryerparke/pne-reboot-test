@@ -6,19 +6,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { LoaderIcon } from "lucide-react";
-import useFlowStore from "../../stores/flowStore";
 import useSettingsStore from "../../stores/settingsStore";
 import { useState, useCallback } from "react";
 import { type Graph } from "../../utils/strip-graph";
 import { useBackendConnection } from "../../hooks/useBackendConnection";
 import { useExecuteFlowSync } from "../../hooks/useExecuteFlowSync";
 import { useExecuteFlowAsync } from "../../hooks/useExecuteFlowAsync";
+import { clearOutputsAndConnectedInputs } from "../../utils/clear-outputs";
 
 export default function ExecuteMenu() {
   const [loading, setLoading] = useState(false);
   const { isConnected, isChecking } = useBackendConnection();
-  const nodes = useFlowStore((state) => state.nodes);
-  const edges = useFlowStore((state) => state.edges);
   const executionMode = useSettingsStore((state) => state.executionMode);
 
   const { execute: executeSyncFn } = useExecuteFlowSync();
@@ -26,9 +24,11 @@ export default function ExecuteMenu() {
 
   const execute = useCallback(async () => {
     setLoading(true);
+    const { nodes: clearedNodes, edges: clearedEdges } =
+      clearOutputsAndConnectedInputs();
     const graph: Graph = {
-      nodes: nodes,
-      edges: edges,
+      nodes: clearedNodes,
+      edges: clearedEdges,
     };
 
     try {
@@ -42,7 +42,7 @@ export default function ExecuteMenu() {
     } finally {
       setLoading(false);
     }
-  }, [nodes, edges, executionMode, executeSyncFn, executeAsyncFn]);
+  }, [executionMode, executeSyncFn, executeAsyncFn]);
 
   const isDisabled = loading || !isConnected || isChecking;
   const buttonClass =

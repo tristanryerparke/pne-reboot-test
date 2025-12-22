@@ -92,8 +92,8 @@ def test_image_upload():
     assert "cacheKey" in result
     assert result["type"] == "Image"
     assert result["_filename"] == "test_image.png"
-    assert "_preview" in result
-    assert "_displayName" in result
+    assert "preview" in result
+    assert "displayName" in result
     assert "Image(100x100, RGB)" in result["_displayName"]
 
 
@@ -175,7 +175,7 @@ def test_single_image_node_execute():
     output = node_update["outputs"]["return"]
     assert output["type"] == "Image"
     assert "cacheKey" in output
-    assert "_preview" in output
+    assert "preview" in output
     assert len(output["_preview"]) > 0
 
 
