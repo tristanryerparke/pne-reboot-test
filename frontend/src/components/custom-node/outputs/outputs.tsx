@@ -1,19 +1,16 @@
 import OutputFieldHandleWrapper from "./output-field-handle-wrapper";
 import { Separator } from "../../ui/separator";
-import type {
-  FunctionSchema,
-  FrontendFieldDataWrapper,
-} from "../../../types/types";
+import type { FrontendFieldDataWrapper } from "../../../types/types";
 
 interface OutputsProps {
-  data: FunctionSchema;
+  outputs: Record<string, FrontendFieldDataWrapper>;
   path: (string | number)[];
 }
 
-export default function Outputs({ data, path }: OutputsProps) {
+export default function Outputs({ outputs, path }: OutputsProps) {
   return (
     <div className="flex flex-col">
-      {Object.entries(data.outputs).map(
+      {Object.entries(outputs).map(
         (
           [outputName, outputDef]: [string, FrontendFieldDataWrapper],
           index,

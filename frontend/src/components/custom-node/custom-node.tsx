@@ -4,7 +4,7 @@ import Inputs from "./inputs/inputs";
 import Outputs from "./outputs/outputs";
 import NodeDrawer from "./node-drawer";
 import { Separator } from "../ui/separator";
-import type { FunctionSchema } from "../../types/types";
+import type { FrontendNodeData } from "../../types/types";
 import InspectableFieldWrapper from "../inspector-sidebar/inspectable-field-wrapper";
 import { useNodeData } from "@/stores/flowStore";
 import { SyncedWidthHandleProvider } from "@/common/utility-components/synced-width-resizable";
@@ -16,7 +16,7 @@ export default memo(function CustomNode({
   id,
   selected,
 }: {
-  data: FunctionSchema;
+  data: FrontendNodeData;
   id: string;
   selected?: boolean;
 }) {
@@ -59,12 +59,15 @@ export default memo(function CustomNode({
             <Separator />
             <Inputs arguments={data.arguments} path={[...path, "arguments"]} />
             <Separator />
-            <Outputs data={data} path={path} />
+            <Outputs outputs={data.outputs} path={path} />
           </div>
           <div className="px-2">
             <NodeDrawer
               isExpanded={data._terminal_drawer?._expanded ?? false}
-              terminalOutput={data.terminal_output as string}
+              terminalOutput={
+                ((data as { terminalOutput?: string }).terminalOutput ??
+                  data.terminal_output) as string
+              }
               path={path}
             />
           </div>
