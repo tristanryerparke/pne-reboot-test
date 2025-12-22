@@ -31,6 +31,9 @@ build-backend = "hatchling.build"
 packages = ["app"]
 include = ["frontend/prebuilt/**"]
 
+[tool.hatch.build.targets.sdist]
+include = ["frontend/prebuilt/**"]
+
 [dependency-groups]
 dev = [
     "pytest-cov>=7.0.0",
