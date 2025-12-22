@@ -57,7 +57,7 @@ export default memo(function ImageExpanded({
     _height?: number;
     _mode?: string;
     preview?: string;
-    _displayName?: string;
+    displayName?: string;
     _filename?: string;
   } | null;
 

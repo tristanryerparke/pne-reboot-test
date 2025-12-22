@@ -10,7 +10,7 @@ import { ErrorDialog } from "./leaf-utils/error-dialog";
 interface CachedImageData extends FrontendFieldDataWrapper {
   cacheKey?: string;
   preview?: string;
-  _displayName?: string;
+  displayName?: string;
   _filename?: string;
 }
 
@@ -120,7 +120,7 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
     reader.readAsDataURL(file);
   };
 
-  const displayName = imageData._displayName || "Generated Image";
+  const displayName = imageData.displayName || "Generated Image";
 
   // When connected, show as read-only display (like output)
   if (isConnected) {
@@ -142,7 +142,7 @@ export default memo(function ImageInput({ path, inputData }: ImageInputProps) {
   }
 
   // When not connected, show file picker
-  const uploadText = imageData._displayName || "Upload Image";
+  const uploadText = imageData.displayName || "Upload Image";
 
   return (
     <>
