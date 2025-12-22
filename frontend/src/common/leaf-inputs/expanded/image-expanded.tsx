@@ -43,28 +43,25 @@ export default memo(function ImageExpanded({
   // Image data is stored directly on the data object (from image-input.tsx)
   // Check if data has the image properties directly or in value
   const imageValue = (
-    (data as any)._preview
+    (data as any).preview
       ? data
       : (data.value as {
           cacheKey?: string;
-          _width?: number;
-          _height?: number;
-          _mode?: string;
-          _preview?: string;
-          _displayName?: string;
-          _filename?: string;
+          preview?: string;
+          displayName?: string;
+          filename?: string;
         } | null)
   ) as {
     cacheKey?: string;
     _width?: number;
     _height?: number;
     _mode?: string;
-    _preview?: string;
+    preview?: string;
     _displayName?: string;
     _filename?: string;
   } | null;
 
-  const hasImage = !!imageValue?._preview;
+  const hasImage = !!imageValue?.preview;
 
   return (
     <div className="flex flex-col flex-1">
@@ -78,7 +75,7 @@ export default memo(function ImageExpanded({
         <div className="w-full h-full flex items-center justify-center bg-muted/30 rounded-md border border-input overflow-hidden relative">
           {hasImage ? (
             <img
-              src={`data:image/webp;base64,${imageValue._preview}`}
+              src={`data:image/webp;base64,${imageValue.preview}`}
               alt="Preview"
               className="w-full h-full object-contain"
               draggable={false}

@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { forwardRef, useCallback, useEffect, useState, useRef } from "react";
+import { forwardRef, useCallback, useEffect, useRef } from "react";
 import { NumericFormat, type NumericFormatProps } from "react-number-format";
 import { Button } from "./button";
 import { Input } from "./input";
@@ -46,25 +46,24 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
   ) => {
     const internalRef = useRef<HTMLInputElement>(null); // Create an internal ref
     const combinedRef = ref || internalRef; // Use provided ref or internal ref
-    const [value, setValue] = useState<number | undefined>(
-      controlledValue ?? defaultValue,
-    );
+    const currentValue = controlledValue;
+    const displayValue = currentValue ?? "";
 
     const handleIncrement = useCallback(() => {
-      setValue((prev) =>
-        prev === undefined
+      const nextValue =
+        currentValue === undefined
           ? (stepper ?? 1)
-          : Math.min(prev + (stepper ?? 1), max),
-      );
-    }, [stepper, max]);
+          : Math.min(currentValue + (stepper ?? 1), max);
+      onValueChange?.(nextValue);
+    }, [currentValue, stepper, max, onValueChange]);
 
     const handleDecrement = useCallback(() => {
-      setValue((prev) =>
-        prev === undefined
+      const nextValue =
+        currentValue === undefined
           ? -(stepper ?? 1)
-          : Math.max(prev - (stepper ?? 1), min),
-      );
-    }, [stepper, min]);
+          : Math.max(currentValue - (stepper ?? 1), min);
+      onValueChange?.(nextValue);
+    }, [currentValue, stepper, min, onValueChange]);
 
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -86,34 +85,23 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       };
     }, [handleIncrement, handleDecrement, combinedRef]);
 
-    useEffect(() => {
-      if (controlledValue !== undefined) {
-        setValue(controlledValue);
-      }
-    }, [controlledValue]);
-
     const handleChange = (values: {
       value: string;
       floatValue: number | undefined;
     }) => {
       const newValue =
         values.floatValue === undefined ? undefined : values.floatValue;
-      setValue(newValue);
       if (onValueChange) {
         onValueChange(newValue);
       }
     };
 
     const handleBlur = () => {
-      if (value !== undefined) {
-        if (value < min) {
-          setValue(min);
-          (ref as React.RefObject<HTMLInputElement>).current!.value =
-            String(min);
-        } else if (value > max) {
-          setValue(max);
-          (ref as React.RefObject<HTMLInputElement>).current!.value =
-            String(max);
+      if (currentValue !== undefined) {
+        if (currentValue < min) {
+          onValueChange?.(min);
+        } else if (currentValue > max) {
+          onValueChange?.(max);
         }
       }
     };
@@ -121,7 +109,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
     return (
       <div className={cn("flex items-center flex-1", className)}>
         <NumericFormat
-          value={value}
+          value={displayValue}
           onValueChange={handleChange}
           thousandSeparator={thousandSeparator}
           decimalScale={decimalScale}
@@ -146,7 +134,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             className="px-0.5 py-0 rounded-l-none rounded-br-none border-input border-l-0 border-b-[0.5px] focus-visible:relative h-4 w-4 min-h-0"
             variant="outline"
             onClick={handleIncrement}
-            disabled={disabled || value === max}
+            disabled={disabled || currentValue === max}
           >
             <ChevronUp size={10} />
           </Button>
@@ -155,7 +143,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             className="px-0.5 py-0 rounded-l-none rounded-tr-none border-input border-l-0 border-t-[0.5px] focus-visible:relative h-4 w-4 min-h-0"
             variant="outline"
             onClick={handleDecrement}
-            disabled={disabled || value === min}
+            disabled={disabled || currentValue === min}
           >
             <ChevronDown size={10} />
           </Button>

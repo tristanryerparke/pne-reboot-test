@@ -3,6 +3,7 @@ import base64
 import io
 
 from PIL import Image as ImageLibrary
+from PIL import ImageOps
 from PIL.Image import Image
 from pydantic import (
     Field,
@@ -40,10 +41,7 @@ class CachedImageDataModel(CachedDataWrapper):
     value: Image | None = Field(
         exclude=True, default=None
     )  # we can't send the image object to the frontend so we exclude it
-    filename_: str | None = Field(
-        default=None, alias="_filename", serialization_alias="_filename"
-    )  # pydantic would make an underscore field a private attribute so if we want a non-computed
-    # field that is for frontend use only, we need to use the alias and serialization_alias parameters
+    filename: str | None = Field(default=None)
 
     @classmethod
     def deserialize_to_cache(cls, data: dict) -> "CachedImageDataModel":
@@ -60,11 +58,14 @@ class CachedImageDataModel(CachedDataWrapper):
         try:
             img_data = base64.b64decode(data["img_base64"])
             img = ImageLibrary.open(io.BytesIO(img_data))
+            # Strip rotation data (not required)
+            img = ImageOps.exif_transpose(img)
+            img.info.pop("exif", None)
 
             return cls(
                 type="Image",
                 value=img,
-                filename_=data.get("filename"),
+                filename=data.get("filename"),
             )
         except KeyError as e:
             raise ValueError(f"Missing required field for CachedImageDataModel: {e}")
@@ -73,14 +74,14 @@ class CachedImageDataModel(CachedDataWrapper):
 
     @computed_field
     @property
-    def _preview(self) -> str:
+    def preview(self) -> str:
         if self.value is None:
             return ""
         return generate_thumbnail_base64(self.value)
 
     @computed_field
     @property
-    def _display_name(self) -> str:
+    def display_name(self) -> str:
         return f"Image({self.value.width}x{self.value.height}, {self.value.mode})"
 
 

@@ -1,4 +1,12 @@
-import { useState, useRef, useEffect, createContext, useContext } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  createContext,
+  useContext,
+  useMemo,
+} from "react";
+import useFlowStore from "@/stores/flowStore";
 
 // Tailwind spacing scale: 1 unit = 0.25rem = 4px
 const TAILWIND_UNIT = 4;
@@ -19,6 +27,7 @@ interface ResizableHeightProps {
   minHeight?: number;
   maxHeight?: number;
   useTailwindScale?: boolean;
+  dragMultiplier?: number;
 }
 
 export function ResizableHeight({
@@ -29,6 +38,7 @@ export function ResizableHeight({
   minHeight = 20,
   maxHeight = Infinity,
   useTailwindScale = false,
+  dragMultiplier,
 }: ResizableHeightProps) {
   const [internalHeight, setInternalHeight] = useState(initialHeight);
   const isDraggingRef = useRef(false);
@@ -36,6 +46,7 @@ export function ResizableHeight({
   const startHeightRef = useRef(0);
   const currentDragHeightRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const viewportZoom = useFlowStore((state) => state.viewport.zoom);
 
   // Determine if component is controlled
   const isControlled =
@@ -50,12 +61,19 @@ export function ResizableHeight({
       ? maxHeight * TAILWIND_UNIT
       : maxHeight;
   const currentHeightPx = useTailwindScale ? height * TAILWIND_UNIT : height;
+  const resolvedDragMultiplier = useMemo(() => {
+    if (dragMultiplier !== undefined) {
+      return dragMultiplier;
+    }
+    const safeZoom = viewportZoom || 1;
+    return safeZoom === 0 ? 1 : 1 / safeZoom;
+  }, [dragMultiplier, viewportZoom]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDraggingRef.current) return;
 
-      const deltaY = e.clientY - startYRef.current;
+      const deltaY = (e.clientY - startYRef.current) * resolvedDragMultiplier;
       const newHeightPx = startHeightRef.current + deltaY;
       const clampedHeightPx = Math.max(
         minHeightPx,
@@ -74,7 +92,7 @@ export function ResizableHeight({
       }
     };
 
-    const handleMouseUp = () => {
+    const finishDrag = () => {
       if (!isDraggingRef.current) return;
 
       // console.log(
@@ -87,14 +105,38 @@ export function ResizableHeight({
       setHeight(currentDragHeightRef.current);
     };
 
+    const handleMouseUp = () => {
+      finishDrag();
+    };
+
+    const handleWindowBlur = () => {
+      finishDrag();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        finishDrag();
+      }
+    };
+
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("blur", handleWindowBlur);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("blur", handleWindowBlur);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [minHeightPx, maxHeightPx, setHeight, useTailwindScale]);
+  }, [
+    minHeightPx,
+    maxHeightPx,
+    resolvedDragMultiplier,
+    setHeight,
+    useTailwindScale,
+  ]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;

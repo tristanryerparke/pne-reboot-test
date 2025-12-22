@@ -9,7 +9,7 @@ import { ErrorDialog } from "./leaf-utils/error-dialog";
 
 interface CachedImageData extends FrontendFieldDataWrapper {
   cacheKey?: string;
-  _preview?: string;
+  preview?: string;
   _displayName?: string;
   _filename?: string;
 }
