@@ -29,6 +29,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
+include = ["frontend/prebuilt/**"]
 
 [dependency-groups]
 dev = [
