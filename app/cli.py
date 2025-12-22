@@ -74,6 +74,8 @@ def _run_backend(args):
 
     import uvicorn
 
+    import app.server
+
     if args.frontend:
         if args.build_frontend:
             frontend_source_dir = os.path.join(
@@ -92,7 +94,6 @@ def _run_backend(args):
 
     # Store verbose flag globally for server and execution modules to access
     import app.execution.exec_utils
-    import app.server
 
     app.server.VERBOSE = args.verbose
     app.execution.exec_utils.VERBOSE = args.verbose
