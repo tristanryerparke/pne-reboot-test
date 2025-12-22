@@ -41,7 +41,7 @@ def _build_frontend(frontend_dir=None):
     if frontend_dir is None:
         frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
     frontend_dist_dir = os.path.join(frontend_dir, "dist")
-    frontend_prebuilt_dir = os.path.join(frontend_dir, "prebuilt")
+    frontend_prebuilt_dir = os.path.join(os.path.dirname(__file__), "prebuilt_frontend")
 
     # Run bun i
     print("Frontend: Installing dependencies...", end="", flush=True)
@@ -76,8 +76,10 @@ def _run_backend(args):
 
     if args.frontend:
         if args.build_frontend:
-            frontend_source_dir = app.server.get_frontend_source_dir()
-            if not frontend_source_dir:
+            frontend_source_dir = os.path.join(
+                os.path.dirname(__file__), "..", "frontend"
+            )
+            if not os.path.isdir(frontend_source_dir):
                 print(
                     "Frontend: source folder not found. "
                     "Reinstall from source or use a dev checkout."
