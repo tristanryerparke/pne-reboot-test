@@ -18,8 +18,35 @@ const clearAllOutputs = (nodes: FunctionNode[]): Map<string, FunctionNode> => {
   const updatedNodes = new Map<string, FunctionNode>();
 
   nodes.forEach((node) => {
-    if (!node.data?.outputs) {
+    if (!node.data) {
       updatedNodes.set(node.id, node);
+      return;
+    }
+
+    const hasTerminalOutput =
+      "terminalOutput" in node.data || "terminal_output" in node.data;
+    const dataWithoutTerminalOutput = hasTerminalOutput
+      ? (({
+          terminalOutput: _terminalOutput,
+          terminal_output: _terminal_output,
+          ...rest
+        }) => rest)(
+          node.data as FunctionNode["data"] & {
+            terminal_output?: string;
+          },
+        )
+      : node.data;
+
+    if (!node.data.outputs) {
+      if (!hasTerminalOutput) {
+        updatedNodes.set(node.id, node);
+        return;
+      }
+
+      updatedNodes.set(node.id, {
+        ...node,
+        data: dataWithoutTerminalOutput,
+      });
       return;
     }
 
@@ -33,7 +60,7 @@ const clearAllOutputs = (nodes: FunctionNode[]): Map<string, FunctionNode> => {
     updatedNodes.set(node.id, {
       ...node,
       data: {
-        ...node.data,
+        ...dataWithoutTerminalOutput,
         outputs,
       },
     });

@@ -2,8 +2,7 @@ import time
 
 
 def slow_add(a: int, b: int) -> int:
-    for i in range(5):
-        remaining = 10 - i
+    for remaining in range(5, 0, -1):
         print(f"Adding {a} and {b} in {remaining} seconds")
         time.sleep(1)
     result = a + b
