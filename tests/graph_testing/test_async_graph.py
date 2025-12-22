@@ -17,7 +17,7 @@ from httpx import ASGITransport
 import app.server as server_module
 from app.analysis.functions_analysis import analyze_function
 from app.execution.exec_async import router as async_router
-from tests.assets.async_functions import (
+from tests.assets.functions_with_delays import (
     quick_add,
     quick_divide,
     quick_multiply,
@@ -97,7 +97,7 @@ async def poll_execution_until_complete(
         if data.get("status") == "complete":
             return snapshots
 
-        await asyncio.sleep(0.05)  # Poll every 50ms
+        await asyncio.sleep(0.01)  # Poll every 10ms to catch intermediate states
 
     print(f"Timeout! Last snapshots: {snapshots}")
     raise TimeoutError(f"Execution {execution_id} did not complete within {timeout}s")
@@ -142,14 +142,16 @@ async def test_single_node_async_execute():
         # Should have at least 2 snapshots: executing state and complete state
         assert len(snapshots) >= 2
 
-        # Check we got an "executing" update
+        # Check we got an "executing" status update
+        # Since updates are consolidated per node, we look for a snapshot
+        # where node1 has status "executing"
         executing_found = False
         for snapshot in snapshots:
             if "updates" in snapshot:
                 for update in snapshot["updates"]:
                     if (
-                        update.get("status") == "executing"
-                        and update.get("nodeId") == "node1"
+                        update.get("nodeId") == "node1"
+                        and update.get("status") == "executing"
                     ):
                         executing_found = True
                         break
@@ -161,14 +163,11 @@ async def test_single_node_async_execute():
         assert final_snapshot["status"] == "complete"
         assert "updates" in final_snapshot
 
-        # Find the final node update
+        # Find the final node update - should now be "executed"
         final_updates = final_snapshot["updates"]
         node1_final = None
         for update in final_updates:
-            if update.get("nodeId") == "node1" and update.get("status") in [
-                "executed",
-                "error",
-            ]:
+            if update.get("nodeId") == "node1":
                 node1_final = update
                 break
 
@@ -237,45 +236,31 @@ async def test_two_connected_nodes_async_execute():
         assert final_snapshot["status"] == "complete"
 
         # Collect all updates from final snapshot
+        # Since updates are consolidated per node, we expect 2 node updates:
+        # one for node1 and one for node2
         all_updates = final_snapshot["updates"]
+        assert len(all_updates) == 2
 
-        # Should have updates for:
-        # 1. node1 executing
-        # 2. node1 success
-        # 3. downstream arg propagation to node2
-        # 4. node2 executing
-        # 5. node2 success
-        # Note: We should have at least 5 updates
-        assert len(all_updates) >= 5
-
-        # Find specific updates
-        node1_executed = None
-        node2_arg_update = None
-        node2_executed = None
+        # Find specific node updates
+        node1_update = None
+        node2_update = None
 
         for update in all_updates:
-            if update.get("nodeId") == "node1" and update.get("status") == "executed":
-                node1_executed = update
-            elif (
-                update.get("nodeId") == "node2"
-                and "arguments" in update
-                and update.get("status") is None
-            ):
-                node2_arg_update = update
-            elif update.get("nodeId") == "node2" and update.get("status") == "executed":
-                node2_executed = update
+            if update.get("nodeId") == "node1":
+                node1_update = update
+            elif update.get("nodeId") == "node2":
+                node2_update = update
 
         # Verify node1 completed successfully
-        assert node1_executed is not None
-        assert node1_executed["outputs"]["return"]["value"] == 15
+        assert node1_update is not None
+        assert node1_update["status"] == "executed"
+        assert node1_update["outputs"]["return"]["value"] == 15
 
-        # Verify downstream argument was propagated
-        assert node2_arg_update is not None
-        assert node2_arg_update["arguments"]["x"]["value"] == 15
-
-        # Verify node2 completed successfully
-        assert node2_executed is not None
-        assert node2_executed["outputs"]["return"]["value"] == 45  # 15 * 3
+        # Verify node2 completed successfully with propagated argument
+        assert node2_update is not None
+        assert node2_update["status"] == "executed"
+        assert node2_update["arguments"]["x"]["value"] == 15
+        assert node2_update["outputs"]["return"]["value"] == 45  # 15 * 3
 
 
 @pytest.mark.asyncio
@@ -316,15 +301,12 @@ async def test_async_execution_with_error():
         final_snapshot = snapshots[-1]
         assert final_snapshot["status"] == "complete"
 
-        # Find the error update
+        # Since updates are consolidated, there should be 1 update for node1
         all_updates = final_snapshot["updates"]
-        node1_error = None
-        for update in all_updates:
-            if update.get("nodeId") == "node1" and update.get("status") == "error":
-                node1_error = update
-                break
+        assert len(all_updates) == 1
 
-        assert node1_error is not None
+        node1_error = all_updates[0]
+        assert node1_error["nodeId"] == "node1"
         assert node1_error["status"] == "error"
         assert "terminalOutput" in node1_error
         assert "Cannot divide by zero" in node1_error["terminalOutput"]

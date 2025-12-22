@@ -1,6 +1,7 @@
 import io
 import sys
 import traceback
+from typing import Any
 
 from app.schema import Graph, NodeDataFromFrontend, NodeFromFrontend
 from app.schema_base import StructDescr, UnionDescr
@@ -33,8 +34,11 @@ def infer_concrete_type(value, type_descriptor, TYPES):
     raise ValueError(f"Unknown type descriptor: {type_descriptor}")
 
 
-def execute_node(node: NodeDataFromFrontend):
-    """Finds a node's callable and executes it with the arguments from the frontend"""
+def execute_node(node: NodeDataFromFrontend) -> tuple[bool, Any, str]:
+    """Finds a node's callable and executes it with the arguments from the frontend
+
+    Returns a tuple of (success, result, error_message)
+    """
     from app.server import CALLABLES
 
     callable = CALLABLES[node.callable_id]

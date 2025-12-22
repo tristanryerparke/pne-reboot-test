@@ -12,7 +12,7 @@ from app.execution.exec_utils import (
     execute_node,
     topological_order,
 )
-from app.schema import Graph, NodeUpdate
+from app.schema import Graph, NodeFromFrontend, NodeUpdate
 
 router = APIRouter()
 
@@ -21,8 +21,8 @@ EXECUTION_CLEANUP_DELAY = 10
 
 
 class ExecutionState(BaseModel):
-    status: Literal["running", "complete"] = "running"  # "running" or "completee"
-    updates: list[NodeUpdate] = []
+    status: Literal["running", "complete"] = "running"  # "running" or "complete"
+    node_updates: dict[str, NodeUpdate] = {}
     update_index: int = 0
     last_sent_index: int = -1
 
@@ -56,12 +56,13 @@ async def get_execution_status(execution_id: str):
     if current_index == last_sent:
         return {"update_index": current_index}
 
-    # Something changed, send full response
+    # Something changed, send full response with merged updates
     response = {
         "update_index": current_index,
         "status": execution_state.status,
         "updates": [
-            update.model_dump(exclude_none=True) for update in execution_state.updates
+            update.model_dump(exclude_none=True)
+            for update in execution_state.node_updates.values()
         ],
     }
 
@@ -69,6 +70,50 @@ async def get_execution_status(execution_id: str):
     execution_state.last_sent_index = current_index
 
     return response
+
+
+def push_node_update(
+    node_updates: dict[str, NodeUpdate], new_update: NodeUpdate
+) -> None:
+    """Push a node update into the updates dict, merging with existing if present.
+
+    If an update for the node already exists, dict fields (outputs, arguments) are merged
+    and other fields are overwritten. Otherwise, the update is added as new.
+    """
+    node_id = new_update.node_id
+
+    if node_id not in node_updates:
+        node_updates[node_id] = new_update
+        return
+
+    # Merge with existing update
+    existing = node_updates[node_id]
+    merged_data = existing.model_dump()
+    new_data = new_update.model_dump()
+
+    for key, value in new_data.items():
+        if key == "nodeId":
+            # nodeId should never change
+            continue
+        elif key in ("outputs", "arguments") and isinstance(value, dict):
+            # Merge dict fields
+            merged_data[key].update(value)
+        elif value is not None:
+            # Overwrite other fields if provided
+            merged_data[key] = value
+
+    node_updates[node_id] = NodeUpdate(**merged_data)
+
+
+async def execute_and_create_update(
+    node: NodeFromFrontend, graph: Graph, execution_list: list[NodeFromFrontend]
+) -> NodeUpdate:
+    """Execute a node and create its update in a single operation."""
+    success, result, terminal_output = await asyncio.to_thread(execute_node, node.data)
+
+    return create_node_update(
+        node, success, result, terminal_output, graph, execution_list
+    )
 
 
 async def cleanup_execution(execution_id: str):
@@ -83,85 +128,80 @@ async def cleanup_execution(execution_id: str):
 async def execute_graph_async(execution_id: str, graph: Graph):
     """Execute a graph asynchronously, yielding updates as nodes complete"""
 
-    try:
-        execution_list = topological_order(graph)
+    # Get local reference to execution state
+    state = EXECUTIONS[execution_id]
 
+    execution_list = topological_order(graph)
+
+    if VERBOSE:
+        d(execution_list)
+
+    # Iterate through and execute
+    for node in execution_list:
         if VERBOSE:
-            d(execution_list)
+            print(f"Executing node {node.id}")
 
-        for node in execution_list:
-            if VERBOSE:
-                print(f"Executing node {node.id}")
+        # Send initial update when node starts executing
+        executing_update = NodeUpdate(
+            node_id=node.id,
+            status="executing",
+        )
 
-            # Send initial update when node starts executing
-            executing_update = NodeUpdate(
-                node_id=node.id,
-                status="executing",
-            )
-            EXECUTIONS[execution_id].updates.append(executing_update)
-            EXECUTIONS[execution_id].update_index += 1
+        # Push the "executing" status update
+        push_node_update(state.node_updates, executing_update)
 
-            success, result, terminal_output = await asyncio.to_thread(
-                execute_node, node.data
-            )
+        # Increment update_index so the frontend can see the "executing" status update is available
+        state.update_index += 1
 
-            node_update = create_node_update(
-                node, success, result, terminal_output, graph, execution_list
-            )
+        # Execute the node and create its update
+        node_update = await execute_and_create_update(node, graph, execution_list)
 
-            # Append the final update
-            EXECUTIONS[execution_id].updates.append(node_update)
+        # Push the final update
+        push_node_update(state.node_updates, node_update)
 
-            # Propagate outputs to downstream nodes for both execution and visual display
-            for edge in graph.edges:
-                if edge.source == node.id:
-                    # Extract the output field name from the source_handle
-                    output_field_name = edge.source_handle.split(":")[-2]
+        # Propagate outputs to downstream nodes and create updates for them
+        for edge in graph.edges:
+            if edge.source == node.id:
+                # Extract the output field name from the source_handle
+                output_field_name = edge.source_handle.split(":")[-2]
 
-                    # Extract target node ID and argument name
-                    target_node_id = edge.target
-                    argument_name = edge.target_handle.split(":")[-2]
+                # Extract target node ID and argument name
+                target_node_id = edge.target
+                argument_name = edge.target_handle.split(":")[-2]
 
-                    # Update the execution graph so downstream nodes have correct inputs
-                    target_node = next(
-                        n for n in execution_list if n.id == target_node_id
-                    )
-                    target_node.data.arguments[argument_name] = node_update.outputs[
-                        output_field_name
-                    ].model_copy()
+                # Update the execution graph so downstream nodes have inputs generated from the output in question
+                target_node = next(n for n in execution_list if n.id == target_node_id)
+                target_node.data.arguments[argument_name] = node_update.outputs[
+                    output_field_name
+                ].model_copy()
 
-                    # Create a visual update for the downstream node
-                    downstream_update = NodeUpdate(
-                        node_id=target_node_id,
-                        arguments={
-                            argument_name: node_update.outputs[
-                                output_field_name
-                            ].model_copy()
-                        },
-                    )
+                # Create an update for the downstream node so we see it's input value change in the UI
+                downstream_update = NodeUpdate(
+                    node_id=target_node_id,
+                    arguments={
+                        argument_name: node_update.outputs[
+                            output_field_name
+                        ].model_copy()
+                    },
+                )
 
-                    EXECUTIONS[execution_id].updates.append(downstream_update)
+                # Push the downstream update
+                push_node_update(state.node_updates, downstream_update)
 
-            # Increment update_index ONCE after all related updates are added
-            EXECUTIONS[execution_id].update_index += 1
+        # Increment update_index after execution completes
+        state.update_index += 1
 
-            if not success:
-                EXECUTIONS[execution_id].status = "complete"
-                EXECUTIONS[execution_id].update_index += 1
-                return
+        if node_update.status == "error":
+            state.status = "complete"
+            state.update_index += 1
+            asyncio.create_task(cleanup_execution(execution_id))
+            return
 
-        EXECUTIONS[execution_id].status = "complete"
-        EXECUTIONS[execution_id].update_index += 1
+    state.status = "complete"
+    state.update_index += 1
 
-        if VERBOSE:
-            d(EXECUTIONS[execution_id])
+    if VERBOSE:
+        d(state)
 
-    except Exception as e:
-        EXECUTIONS[execution_id].status = "complete"
-        EXECUTIONS[execution_id].update_index += 1
-        if VERBOSE:
-            print(f"Execution {execution_id} failed with error: {e}")
-
-    finally:
-        # Schedule cleanup after delay
-        asyncio.create_task(cleanup_execution(execution_id))
+    # Schedule cleanup after delay
+    asyncio.create_task(cleanup_execution(execution_id))
