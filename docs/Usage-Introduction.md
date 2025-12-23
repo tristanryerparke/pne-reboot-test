@@ -1,4 +1,4 @@
-This guide expects you have installed PNE using one of the methods in [Installation](https://github.com/tristanryerparke/python-node-editor/wiki/Installation).
+This guide expects you have installed PNE using one of the methods shown in [Installation](https://github.com/tristanryerparke/python-node-editor/wiki/Installation).
 
 Here's a sample typed function in [basic_percentage.py](https://github.com/tristanryerparke/python-node-editor/blob/main/examples/basic_percentage.py) that calculates a percentage of the given number x.
 ```python

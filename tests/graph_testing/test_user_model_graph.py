@@ -5,13 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 
 import python_node_editor.server as server_module
+from examples.user_model import two_point_distance
 from python_node_editor.analysis.functions_analysis import analyze_function
 from python_node_editor.analysis.user_model_functions.user_model_nodes import (
     create_const_deconst_models,
 )
 from python_node_editor.execution.exec_sync import router as graph_router
 from python_node_editor.schema import Edge, Graph
-from examples.basic_user_model import two_point_distance
 from tests.assets.graph_utils import node_from_schema
 
 # Analyze the function to get types and schema
