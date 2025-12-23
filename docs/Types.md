@@ -2,7 +2,7 @@
 PNE detects the all the input and output types specified on the functions it analyzes for use in the frontend. However without writing your own TS components, the frontend only has support for input/output display of certain types (for instance: a number input). You can add your own types in several different ways as shown on this page.
 
 ## Builtin Types
-Right now PNE is mostly only capable of doing stuff with `int`,`float`,`str` and unions of those types. However please see how you can create aliases and user models below.
+Right now PNE is mostly only capable of handling `int`,`float`,`str` and unions of those types. However please see how you can create user models below and custom types below.
 
 ## Union Types
 A function argument annotated with a union type can be displayed by the frontend as long as both types have display support:
@@ -16,7 +16,7 @@ Running PNE on it: `uv run pne examples/union_args.py` ([examples/union_args.py]
 
 
 ## User Model Types
-PNE uses [pydantic](https://docs.pydantic.dev/latest/) data models for serialziation/validation hooks and defining it's own internal schemas. If you create a pydantic-style class using the provided *UserModel* class and use it in a function type annotation, the code analysis in PNE will automatically create nodes to construct and deconstruct instances of the model.
+PNE uses [pydantic](https://docs.pydantic.dev/latest/) data models for serialziation/validation hooks and defining it's own internal schemas. If you create a pydantic-style class using the provided *UserModel* class and use it in a function type annotation, the code analysis in PNE will automatically create nodes to construct and deconstruct instances of the model. This allows you to create named data structures and pass them around as a new type and query their fields without writing frontend code.
 
 [user_model.py](https://github.com/tristanryerparke/python-node-editor/blob/main/examples/user_model.py) - Run with `uv run pne examples/user_model.py`
 ```python
@@ -38,3 +38,5 @@ Run the frontend and navigate to the types display on the left side. You will se
 Also note that in the nodes panel, there are an extra two nodes with an `auto` flag. These nodes were created automatically upon the detection of the `Point2D` user model, and can be used to construct the model from it's field values, or deconstruct the model into it's field values in order to access them as a normal value. Usage is as shown below to get the hypotenuse length of a 3-4-5 right triangle:
 
 <img alt="localhost_8000_ (7).png" src="images/localhost_8000_ (7).png">
+    
+<!--# Large Data Types-->
